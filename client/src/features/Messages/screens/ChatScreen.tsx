@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     FlatList,
     Platform,
@@ -44,46 +44,56 @@ export default function ChatScreen() {
     const route = useRoute<ChatRouteProp>();
     const { id } = route.params || {};
 
-    // Using a mock conversation structure as it's not fully defined in AppContext yet
-    const { user } = useApp();
+    const { user, conversations, fetchMessages, sendMessage } = useApp();
     const [text, setText] = useState("");
+    const [messages, setMessages] = useState<IMessage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const flatRef = useRef<FlatList>(null);
 
-    // Mock conversation data for demonstration
-    const [convo, setConvo] = useState<IConversation & { messages: IMessage[] }>({
-        id: id || "1",
-        participantName: "Sarah Chen",
-        lastMessage: "",
-        lastMessageTime: "",
-        unreadCount: 0,
-        isLocked: id === "3", // Emulating locked chat for the third mock ID
-        messages: [
-            { id: "1", senderId: "other", text: "Hey! I saw your profile and love your UI work.", timestamp: "10:05 AM" },
-            { id: "2", senderId: "me", text: "Thanks Sarah! I'd love to chat about your project.", timestamp: "10:10 AM" },
-            { id: "3", senderId: "other", text: "Are you available for a 3-month contract starting next week?", timestamp: "10:12 AM" },
-        ]
-    });
+    // Find current conversation from global state
+    const currentConvo = conversations.find(c => c._id === id);
+    const otherParticipant = currentConvo?.participants.find((p: any) => p._id !== user?._id);
 
     const topPaddingOffset = Platform.OS === "ios" ? insets.top : 20;
     const bottomPaddingOffset = Platform.OS === "ios" ? insets.bottom : 20;
 
-    const handleSend = () => {
-        if (!text.trim()) return;
+    useEffect(() => {
+        loadMessages();
+    }, [id]);
 
-        const newMessage: IMessage = {
-            id: Date.now().toString(),
-            senderId: "me",
-            text: text.trim(),
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
+    const loadMessages = async () => {
+        if (!id) return;
+        try {
+            const data = await fetchMessages(id);
+            // Map backend messages to IMessage
+            const formatted = data.map((m: any) => ({
+                id: m._id,
+                senderId: m.senderId === user?._id ? "me" : "other",
+                text: m.text,
+                timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }));
+            setMessages(formatted);
+            setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 200);
+        } catch (error) {
+            console.error("Load Messages Error:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        setConvo(prev => ({
-            ...prev,
-            messages: [...prev.messages, newMessage]
-        }));
+    const handleSend = async () => {
+        if (!text.trim() || !otherParticipant) return;
 
+        const receiverId = otherParticipant._id;
+        const msgText = text.trim();
         setText("");
-        setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+
+        try {
+            await sendMessage(receiverId, msgText);
+            loadMessages(); // Refresh messages
+        } catch (error) {
+            console.error("Send Message Error:", error);
+        }
     };
 
     const renderMessage = ({ item }: { item: IMessage }) => {
@@ -92,7 +102,7 @@ export default function ChatScreen() {
             <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
                 {!isMe && (
                     <View style={[styles.authorAvatar, { backgroundColor: colors.primary }]}>
-                        <Text style={styles.authorAvatarLabel}>{convo.participantName.charAt(0)}</Text>
+                        <Text style={styles.authorAvatarLabel}>{otherParticipant?.name?.charAt(0) || "?"}</Text>
                     </View>
                 )}
                 <View style={[
@@ -115,10 +125,10 @@ export default function ChatScreen() {
                     <Feather name="arrow-left" size={22} color={colors.foreground} />
                 </TouchableOpacity>
                 <View style={[styles.headerAvatarCircle, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.headerAvatarLabel}>{convo.participantName.charAt(0)}</Text>
+                    <Text style={styles.headerAvatarLabel}>{otherParticipant?.name?.charAt(0) || "?"}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                    <Text style={[styles.headerParticipantName, { color: colors.foreground }]}>{convo.participantName}</Text>
+                    <Text style={[styles.headerParticipantName, { color: colors.foreground }]}>{otherParticipant?.name || "Chat"}</Text>
                     <Text style={[styles.headerPresenceStatus, { color: colors.success }]}>Online</Text>
                 </View>
                 <TouchableOpacity>
@@ -126,7 +136,7 @@ export default function ChatScreen() {
                 </TouchableOpacity>
             </View>
 
-            {convo.isLocked ? (
+            {currentConvo?.isLocked ? (
                 <View style={styles.lockedStateView}>
                     <View style={[styles.upgradeCardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <View style={[styles.lockIconBox, { backgroundColor: colors.warning + "18" }]}>
@@ -136,24 +146,12 @@ export default function ChatScreen() {
                         <Text style={[styles.lockedDescText, { color: colors.mutedForeground }]}>
                             You've reached your free chat limit. Upgrade to Pro to unlock unlimited conversations with clients.
                         </Text>
-                        <View style={styles.upsellFeaturesList}>
-                            {["Unlimited client chats", "Priority responses", "Read receipts", "File attachments"].map(feat => (
-                                <View key={feat} style={styles.upsellFeatureItem}>
-                                    <Feather name="check-circle" size={15} color={colors.success} />
-                                    <Text style={[styles.upsellFeatureLabel, { color: colors.mutedForeground }]}>{feat}</Text>
-                                </View>
-                            ))}
-                        </View>
                         <TouchableOpacity
                             style={[styles.premiumUnlockBtn, { backgroundColor: colors.navyDeep }]}
                             onPress={() => { }}
-                            activeOpacity={0.85}
                         >
                             <Ionicons name="lock-open" size={16} color="#fff" />
                             <Text style={styles.premiumUnlockBtnLabel}>Unlock for $4.99/month</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => { }}>
-                            <Text style={[styles.freeUnlockTrigger, { color: colors.primary }]}>Use 1 free unlock</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -161,7 +159,7 @@ export default function ChatScreen() {
                 <>
                     <FlatList
                         ref={flatRef}
-                        data={convo.messages}
+                        data={messages}
                         keyExtractor={(item) => item.id}
                         renderItem={renderMessage}
                         contentContainerStyle={[styles.messagesListContent, { paddingBottom: 16 }]}

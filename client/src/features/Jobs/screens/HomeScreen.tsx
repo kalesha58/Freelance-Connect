@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     FlatList,
     Platform,
@@ -21,44 +21,6 @@ import { useColors } from "@/hooks/useColors";
 const CATEGORIES_FREELANCER = ["All", "Mobile Dev", "Web Dev", "Design", "Data Science"];
 const SKILLS_FILTER = ["All", "React Native", "UI/UX Design", "Python", "Swift", "Branding"];
 
-const MOCK_FREELANCERS: IFreelancerProfile[] = [
-    {
-        id: "f1",
-        name: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?u=sarah",
-        bio: "Award-winning designer with 6+ years creating digital experiences for startups and Fortune 500 companies.",
-        skills: ["Figma", "UI Design", "UX Research", "Branding", "Prototyping"],
-        rating: 4.9,
-        hourlyRate: "$95",
-        location: "San Francisco, USA",
-        completedProjects: 142,
-        isTopRated: true,
-    },
-    {
-        id: "f2",
-        name: "Marcus Johnson",
-        avatar: "https://i.pravatar.cc/150?u=marcus",
-        bio: "Building scalable web and mobile apps. Passionate about clean code and great user experiences.",
-        skills: ["React", "Node.js", "TypeScript", "PostgreSQL", "AWS"],
-        rating: 4.8,
-        hourlyRate: "$110",
-        location: "Austin, TX",
-        completedProjects: 89,
-        isTopRated: false,
-    },
-    {
-        id: "f3",
-        name: "Aisha Patel",
-        avatar: "https://i.pravatar.cc/150?u=aisha",
-        bio: "Specializing in React Native and high-performance cross-platform applications.",
-        skills: ["React Native", "Firebase", "Redux", "Jest"],
-        rating: 5.0,
-        hourlyRate: "$85",
-        location: "Mumbai, IN",
-        completedProjects: 56,
-        isTopRated: true,
-    }
-];
 
 const MOCK_JOBS: IJob[] = [
     {
@@ -106,19 +68,52 @@ const MOCK_JOBS: IJob[] = [
 export default function HomeScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
-    const { user, jobs } = useApp();
+    const { user, jobs, searchFreelancers } = useApp();
     const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
+    const [freelancers, setFreelancers] = useState<IFreelancerProfile[]>([]);
+    const [isLoadingFreelancers, setIsLoadingFreelancers] = useState(false);
 
     const topPaddingOffset = Platform.OS === "ios" ? insets.top : 20;
     const isHiringRole = user?.role === "hiring" || user?.role === "requester";
 
-    const filteredFreelancers = MOCK_FREELANCERS.filter(f => {
-        const isSearchMatch = search === "" || f.name.toLowerCase().includes(search.toLowerCase()) || f.skills.some((s: string) => s.toLowerCase().includes(search.toLowerCase()));
-        const isFilterMatch = activeFilter === "All" || f.skills.some((s: string) => s.toLowerCase().includes(activeFilter.toLowerCase()));
-        return isSearchMatch && isFilterMatch;
-    });
+    const loadFreelancers = async () => {
+        setIsLoadingFreelancers(true);
+        try {
+            const category = activeFilter === "All" ? undefined : activeFilter;
+            const data = await searchFreelancers(search, category);
+            // Map User object to IFreelancerProfile
+            const formatted: IFreelancerProfile[] = data.map((f: any) => ({
+                id: f._id,
+                name: f.name,
+                avatar: f.avatar,
+                bio: f.bio || "No bio provided.",
+                skills: f.skills || [],
+                rating: f.rating || 0,
+                hourlyRate: `$${f.hourlyRate || 0}`,
+                location: f.location || "Unknown",
+                completedProjects: f.projectsCompleted || 0,
+                isTopRated: (f.rating || 0) >= 4.8
+            }));
+            setFreelancers(formatted);
+        } catch (error) {
+            console.error("Load Freelancers Error:", error);
+        } finally {
+            setIsLoadingFreelancers(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isHiringRole) {
+            const delayDebounceFn = setTimeout(() => {
+                loadFreelancers();
+            }, 500);
+
+            return () => clearTimeout(delayDebounceFn);
+        }
+    }, [search, activeFilter, isHiringRole]);
+
 
     const filteredJobs = jobs.filter(j => {
         const isSearchMatch = search === "" || j.title.toLowerCase().includes(search.toLowerCase());
@@ -173,7 +168,7 @@ export default function HomeScreen() {
 
                 <View style={styles.quickMetricsRow}>
                     {[
-                        { label: "Available", value: MOCK_FREELANCERS.length, color: "#3b82f6", icon: "people" },
+                        { label: "Available", value: freelancers.length, color: "#3b82f6", icon: "people" },
                         { label: "Rating", value: "4.9 ★", color: "#f59e0b", icon: "star" },
                         { label: "Price", value: "$85/h", color: "#10b981", icon: "wallet" },
                     ].map(stat => (
@@ -211,7 +206,7 @@ export default function HomeScreen() {
                 />
                 <View style={styles.resultsHeaderRow}>
                     <Text style={[styles.resultsLabel, { color: colors.foreground }]}>
-                        Recommended {filteredFreelancers.length} Freelancers
+                        Recommended {freelancers.length} Freelancers
                     </Text>
                     <TouchableOpacity>
                         <Text style={[styles.sortText, { color: colors.primary }]}>Sort by Relevance</Text>
@@ -311,7 +306,7 @@ export default function HomeScreen() {
     return (
         <View style={[styles.mainView, { backgroundColor: colors.background }]}>
             <FlatList
-                data={(isHiringRole ? filteredFreelancers : filteredJobs) as any[]}
+                data={(isHiringRole ? freelancers : filteredJobs) as any[]}
                 keyExtractor={(item) => item._id || item.id}
                 renderItem={({ item }) => {
                     if (isHiringRole) {

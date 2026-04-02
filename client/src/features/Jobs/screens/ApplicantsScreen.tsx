@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     FlatList,
     Platform,
@@ -6,6 +6,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -13,17 +14,13 @@ import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 
 /**
  * Type for Applicants route parameters.
  */
 type ApplicantsRouteProp = RouteProp<{ Applicants: { jobId: string; jobTitle: string } }, 'Applicants'>;
 
-const APPLICANTS = [
-    { id: "a1", name: "Sarah Chen", title: "Senior UI/UX Designer", rating: 4.9, reviews: 87, proposal: "I'm excited about this opportunity! I have 6+ years of experience in exactly this type of project and can deliver outstanding results within your timeline.", bid: "$95/hr", submitted: "2h ago" },
-    { id: "a2", name: "Marcus Johnson", title: "Full Stack Developer", rating: 4.8, reviews: 63, proposal: "This aligns perfectly with my expertise. I've completed 15+ similar projects and can start immediately.", bid: "$8,000", submitted: "5h ago" },
-    { id: "a3", name: "Priya Patel", title: "React Native Developer", rating: 4.9, reviews: 51, proposal: "I specialize in exactly this stack. Check my portfolio for similar work — I guarantee you'll be impressed.", bid: "$7,500", submitted: "1d ago" },
-];
 
 /**
  * ApplicantsScreen allows hiring partners to review proposals for their posted jobs.
@@ -34,9 +31,38 @@ export default function ApplicantsScreen() {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const route = useRoute<ApplicantsRouteProp>();
-    const { jobId, jobTitle } = route.params || { jobId: "j1", jobTitle: "Project Title" };
+    const { jobId, jobTitle } = route.params || { jobId: "", jobTitle: "Project Title" };
+    const { fetchApplicants, updateApplicationStatus } = useApp();
+
+    const [applicants, setApplicants] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
+
+    useEffect(() => {
+        loadApplicants();
+    }, [jobId]);
+
+    const loadApplicants = async () => {
+        if (!jobId) return;
+        try {
+            const data = await fetchApplicants(jobId);
+            setApplicants(data);
+        } catch (error) {
+            console.error("Load Applicants Error:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUpdateStatus = async (applicationId: string, status: 'hired' | 'rejected') => {
+        try {
+            await updateApplicationStatus(applicationId, status);
+            loadApplicants(); // Refresh list
+        } catch (error) {
+            Alert.alert("Error", "Updating status failed: " + error);
+        }
+    };
 
     return (
         <View style={[styles.applicantsRoot, { backgroundColor: colors.background }]}>
@@ -52,13 +78,13 @@ export default function ApplicantsScreen() {
                     <Text style={[styles.headerContextLabel, { color: colors.mutedForeground }]} numberOfLines={1}>{jobTitle}</Text>
                 </View>
                 <View style={[styles.totalCountBadge, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.totalCountVal}>{APPLICANTS.length}</Text>
+                    <Text style={styles.totalCountVal}>{applicants.length}</Text>
                 </View>
             </View>
 
             <FlatList
-                data={APPLICANTS}
-                keyExtractor={item => item.id}
+                data={applicants}
+                keyExtractor={item => item._id}
                 contentContainerStyle={[styles.applicantListArea, { paddingBottom: 40 }]}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
@@ -66,54 +92,61 @@ export default function ApplicantsScreen() {
                         <View style={styles.proposalCardHeader}>
                             <TouchableOpacity
                                 style={[styles.proposalAvatarCircle, { backgroundColor: colors.primary }]}
-                                onPress={() => navigation.navigate("FreelancerProfile", { id: "f1" })}
+                                onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
                             >
-                                <Text style={styles.proposalAvatarInitials}>{item.name.charAt(0)}</Text>
+                                {item.applicantAvatar ? (
+                                    <View /> // Placeholder for real avatar
+                                ) : (
+                                    <Text style={styles.proposalAvatarInitials}>{item.applicantName?.charAt(0)}</Text>
+                                )}
                             </TouchableOpacity>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.candidateNameLabel, { color: colors.foreground }]}>{item.name}</Text>
-                                <Text style={[styles.candidateProfessionalTitle, { color: colors.mutedForeground }]}>{item.title}</Text>
+                                <Text style={[styles.candidateNameLabel, { color: colors.foreground }]}>{item.applicantName}</Text>
+                                <Text style={[styles.candidateProfessionalTitle, { color: colors.mutedForeground }]}>{item.status.toUpperCase()}</Text>
                                 <View style={styles.ratingInfoRow}>
                                     <Ionicons name="star" size={12} color={colors.warning} />
-                                    <Text style={[styles.ratingValCopy, { color: colors.foreground }]}>{item.rating}</Text>
-                                    <Text style={[styles.reviewsCountCopy, { color: colors.mutedForeground }]}>({item.reviews})</Text>
+                                    <Text style={[styles.ratingValCopy, { color: colors.foreground }]}>4.9</Text>
+                                    <Text style={[styles.reviewsCountCopy, { color: colors.mutedForeground }]}>(Placeholder)</Text>
                                 </View>
                             </View>
                             <View style={styles.bidContextBox}>
-                                <Text style={[styles.bidValueLabel, { color: colors.primary }]}>{item.bid}</Text>
-                                <Text style={[styles.submissionAgeLabel, { color: colors.mutedForeground }]}>{item.submitted}</Text>
+                                <Text style={[styles.bidValueLabel, { color: colors.primary }]}>{item.status === 'hired' ? 'HIRED' : ''}</Text>
+                                <Text style={[styles.submissionAgeLabel, { color: colors.mutedForeground }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
                             </View>
                         </View>
 
                         <View style={[styles.pitchTextContainer, { backgroundColor: colors.muted }]}>
                             <Text style={[styles.proposalHeadingLabel, { color: colors.mutedForeground }]}>Proposal</Text>
-                            <Text style={[styles.proposalBodyText, { color: colors.foreground }]} numberOfLines={3}>{item.proposal}</Text>
+                            <Text style={[styles.proposalBodyText, { color: colors.foreground }]} numberOfLines={3}>{item.coverLetter || "No cover letter provided."}</Text>
                         </View>
 
-                        <View style={styles.proposalActionsRow}>
-                            <TouchableOpacity
-                                style={[styles.declineActionBtn, { borderColor: colors.destructive + "60" }]}
-                                activeOpacity={0.8}
-                            >
-                                <Feather name="x" size={16} color={colors.destructive} />
-                                <Text style={[styles.declineActionLabel, { color: colors.destructive }]}>Decline</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.reviewProfileBtn, { borderColor: colors.border }]}
-                                onPress={() => navigation.navigate("FreelancerProfile", { id: "f1" })}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={[styles.reviewProfileLabel, { color: colors.foreground }]}>View Profile</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.acceptHireBtn, { backgroundColor: colors.success }]}
-                                onPress={() => navigation.navigate("HireConfirm", { freelancerId: "f1" })}
-                                activeOpacity={0.8}
-                            >
-                                <Feather name="check" size={16} color="#fff" />
-                                <Text style={styles.acceptHireLabel}>Hire</Text>
-                            </TouchableOpacity>
-                        </View>
+                        {item.status === 'pending' && (
+                            <View style={styles.proposalActionsRow}>
+                                <TouchableOpacity
+                                    style={[styles.declineActionBtn, { borderColor: colors.destructive + "60" }]}
+                                    activeOpacity={0.8}
+                                    onPress={() => handleUpdateStatus(item._id, 'rejected')}
+                                >
+                                    <Feather name="x" size={16} color={colors.destructive} />
+                                    <Text style={[styles.declineActionLabel, { color: colors.destructive }]}>Decline</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.reviewProfileBtn, { borderColor: colors.border }]}
+                                    onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={[styles.reviewProfileLabel, { color: colors.foreground }]}>View Profile</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.acceptHireBtn, { backgroundColor: colors.success }]}
+                                    onPress={() => handleUpdateStatus(item._id, 'hired')}
+                                    activeOpacity={0.8}
+                                >
+                                    <Feather name="check" size={16} color="#fff" />
+                                    <Text style={styles.acceptHireLabel}>Hire</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
                 )}
             />

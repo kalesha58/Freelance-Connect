@@ -71,15 +71,13 @@ export interface Post {
 }
 
 export interface Conversation {
-    id: string;
-    participantId: string;
-    participantName: string;
-    participantAvatar?: string;
+    _id: string;
+    participants: any[];
     lastMessage: string;
     lastMessageTime: string;
-    unreadCount: number;
     isLocked: boolean;
-    messages: any[];
+    updatedAt: string;
+    unreadCount?: number;
 }
 
 interface AppContextType {
@@ -101,7 +99,13 @@ interface AppContextType {
     forgotPassword: (emailOrPhone: string) => Promise<void>;
     verifyOTP: (email: string, otp: string) => Promise<void>;
     resetPassword: (emailOrPhone: string, otp: string, password: string) => Promise<void>;
-    sendMessage: (conversationId: string, text: string) => void;
+    fetchConversations: () => Promise<void>;
+    fetchMessages: (conversationId: string) => Promise<any[]>;
+    sendMessage: (receiverId: string, text: string) => Promise<void>;
+    applyToJob: (jobId: string, coverLetter: string) => Promise<void>;
+    fetchApplicants: (jobId: string) => Promise<any[]>;
+    updateApplicationStatus: (applicationId: string, status: string) => Promise<void>;
+    searchFreelancers: (query?: string, category?: string) => Promise<any[]>;
     unlockChat: (conversationId: string) => void;
 }
 
@@ -125,7 +129,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 const userData = await apiClient("/auth/me");
                 setUser(userData);
                 fetchPosts();
-                fetchJobs(); // Load initial jobs
+                fetchJobs();
+                fetchConversations();
             }
         } catch (e) {
             console.log("Failed to load user:", e);
@@ -150,6 +155,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setJobs(data);
         } catch (error) {
             console.error("Fetch Jobs Error:", error);
+        }
+    };
+
+    const fetchConversations = async () => {
+        try {
+            const data = await apiClient("/chat/conversations");
+            setConversations(data);
+        } catch (error) {
+            console.error("Fetch Conversations Error:", error);
         }
     };
 
@@ -258,36 +272,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
-    const sendMessage = (conversationId: string, text: string) => {
-        // Mocking for now as backend doesn't have messages yet
-        setConversations(prev =>
-            prev.map(c =>
-                c.id === conversationId
-                    ? {
-                        ...c,
-                        lastMessage: text,
-                        lastMessageTime: "Now",
-                        messages: [
-                            ...(c.messages || []),
-                            { id: Date.now().toString(), senderId: "me", text, timestamp: "Now", isRead: true },
-                        ],
-                    }
-                    : c
-            )
-        );
+    const fetchMessages = async (conversationId: string) => {
+        return await apiClient(`/chat/conversations/${conversationId}/messages`);
+    };
+
+    const sendMessage = async (receiverId: string, text: string) => {
+        await apiClient("/chat/messages", {
+            method: "POST",
+            body: { receiverId, text },
+        });
+        fetchConversations();
+    };
+
+    const applyToJob = async (jobId: string, coverLetter: string) => {
+        await apiClient(`/jobs/${jobId}/apply`, {
+            method: "POST",
+            body: { coverLetter },
+        });
+        fetchJobs();
+    };
+
+    const fetchApplicants = async (jobId: string) => {
+        return await apiClient(`/jobs/${jobId}/applicants`);
+    };
+
+    const updateApplicationStatus = async (applicationId: string, status: string) => {
+        await apiClient(`/jobs/applications/${applicationId}`, {
+            method: "PUT",
+            body: { status },
+        });
+    };
+
+    const searchFreelancers = async (search?: string, category?: string) => {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (category) queryParams.append("category", category);
+
+        return await apiClient(`/users/freelancers?${queryParams.toString()}`);
     };
 
     const unlockChat = (conversationId: string) => {
         setConversations(prev =>
             prev.map(c =>
-                c.id === conversationId
-                    ? {
-                        ...c,
-                        isLocked: false,
-                        messages: [
-                            { id: "unlocked", senderId: c.participantId, text: "Hi! I saw your profile and I'm interested in working with you.", timestamp: "Now", isRead: false },
-                        ],
-                    }
+                c._id === conversationId
+                    ? { ...c, isLocked: false }
                     : c
             )
         );
@@ -307,14 +335,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 signOut,
                 fetchPosts,
                 fetchJobs,
+                fetchConversations,
+                fetchMessages,
                 addJob,
                 forgotPassword,
                 verifyOTP,
                 resetPassword,
+                sendMessage,
+                applyToJob,
+                fetchApplicants,
+                updateApplicationStatus,
+                searchFreelancers,
                 toggleLike,
                 addPost,
                 updateProfile,
-                sendMessage,
                 unlockChat,
             }}
         >

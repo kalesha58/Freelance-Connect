@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Platform,
     ScrollView,
@@ -12,7 +12,7 @@ import {
     Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -29,11 +29,43 @@ const { width } = Dimensions.get('window');
  * ProfileScreen manages the user's professional profile, skills, and portfolio.
  * Reverted to the stable high-fidelity identity layout.
  */
+type ProfileRouteProp = RouteProp<{ Profile: { id?: string } }, 'Profile'>;
+
 export default function ProfileScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
-    const { user, signOut, posts: allPosts } = useApp();
     const navigation = useNavigation<any>();
+    const route = useRoute<ProfileRouteProp>();
+    const { id: targetUserId } = route.params || {};
+
+    const { user: currentUser, signOut, posts: allPosts } = useApp();
+    const [targetUser, setTargetUser] = useState<any>(null);
+    const [loading, setLoading] = useState(!!targetUserId);
+
+    // If viewing own profile, use currentUser, else use targetUser
+    const user = targetUserId ? targetUser : currentUser;
+    const isOwnProfile = !targetUserId || targetUserId === currentUser?._id;
+
+    useEffect(() => {
+        if (targetUserId && targetUserId !== currentUser?._id) {
+            loadTargetUser();
+        }
+    }, [targetUserId]);
+
+    const loadTargetUser = async () => {
+        setLoading(true);
+        try {
+            // We'll use a fetch call here. In a real app, this should be in AppContext.
+            // For now, we'll implement it locally or add to AppContext.
+            const response = await fetch(`https://freelance-connect.vercel.app/api/users/${targetUserId}`);
+            const data = await response.json();
+            setTargetUser(data);
+        } catch (error) {
+            console.error("Load Target User Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const [currentTab, setCurrentTab] = useState<"portfolio" | "posts">("portfolio");
     const [selectedPost, setSelectedPost] = useState<any>(null);
@@ -98,16 +130,35 @@ export default function ProfileScreen() {
             {/* Minimal Brand Header */}
             <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topInsetOffset + 12, paddingBottom: 25 }]}>
                 <View style={styles.headerContent}>
+                    {(!isOwnProfile || navigation.canGoBack()) && (
+                        <TouchableOpacity
+                            style={[styles.headerActionBtn, { marginRight: 12, backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Feather name="arrow-left" size={20} color="#fff" />
+                        </TouchableOpacity>
+                    )}
                     <View style={styles.headerTitleGroup}>
-                        <Text style={[styles.screenHeading, { color: '#fff' }]} numberOfLines={1}>{user.name}</Text>
+                        <Text style={[styles.screenHeading, { color: '#fff' }]} numberOfLines={1}>
+                            {user?.name || (loading ? "Loading..." : "Profile")}
+                        </Text>
                     </View>
                     <View style={styles.headerActionGroup}>
-                        <TouchableOpacity
-                            style={[styles.headerActionBtn, { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
-                            onPress={() => navigation.navigate("Settings")}
-                        >
-                            <Feather name="settings" size={20} color="#fff" />
-                        </TouchableOpacity>
+                        {isOwnProfile ? (
+                            <TouchableOpacity
+                                style={[styles.headerActionBtn, { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
+                                onPress={() => navigation.navigate("Settings")}
+                            >
+                                <Feather name="settings" size={20} color="#fff" />
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                style={[styles.headerActionBtn, { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
+                                onPress={() => navigation.navigate("Main", { screen: "Messages", params: { screen: "Chat", params: { id: user?._id } } })}
+                            >
+                                <Feather name="message-circle" size={20} color="#fff" />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
             </View>
@@ -162,12 +213,31 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.profileActionRow}>
-                        <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]}>
-                            <Text style={styles.primaryActionBtnText}>Edit Profile</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.secondaryActionBtn, { backgroundColor: colors.muted + "15", borderColor: colors.border }]}>
-                            <Text style={[styles.secondaryActionBtnText, { color: colors.foreground }]}>Share Profile</Text>
-                        </TouchableOpacity>
+                        {isOwnProfile ? (
+                            <>
+                                <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]} onPress={() => navigation.navigate("ProfileSetup")}>
+                                    <Text style={styles.primaryActionBtnText}>Edit Profile</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.secondaryActionBtn, { backgroundColor: colors.muted + "15", borderColor: colors.border }]}
+                                    onPress={signOut}
+                                >
+                                    <Text style={[styles.secondaryActionBtnText, { color: colors.foreground }]}>Sign Out</Text>
+                                </TouchableOpacity>
+                            </>
+                        ) : (
+                            <>
+                                <TouchableOpacity
+                                    style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]}
+                                    onPress={() => navigation.navigate("Main", { screen: "Messages", params: { screen: "Chat", params: { id: user?._id } } })}
+                                >
+                                    <Text style={styles.primaryActionBtnText}>Message</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.secondaryActionBtn, { backgroundColor: colors.muted + "15", borderColor: colors.border }]}>
+                                    <Text style={[styles.secondaryActionBtnText, { color: colors.foreground }]}>Hire Now</Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
                     </View>
                 </View>
 
@@ -176,7 +246,7 @@ export default function ProfileScreen() {
                     <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Services</Text>
                         <View style={styles.servicesGrid}>
-                            {user.services.map((service, idx) => (
+                            {user.services.map((service: string, idx: number) => (
                                 <View key={idx} style={[styles.serviceBadge, { backgroundColor: colors.primary + "15" }]}>
                                     <Text style={[styles.serviceBadgeText, { color: colors.primary }]}>{service}</Text>
                                 </View>
@@ -195,7 +265,7 @@ export default function ProfileScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {user.experience && user.experience.map((exp, idx) => (
+                    {user.experience && user.experience.map((exp: any, idx: number) => (
                         <View key={`exp-${idx}`} style={[styles.historyItem, idx !== user.experience!.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
                             <View style={[styles.historyIconBox, { backgroundColor: colors.purpleAccent + "10" }]}>
                                 <Feather name="award" size={18} color={colors.purpleAccent} />
@@ -208,7 +278,7 @@ export default function ProfileScreen() {
                         </View>
                     ))}
 
-                    {user.education && user.education.map((edu, idx) => (
+                    {user.education && user.education.map((edu: any, idx: number) => (
                         <View key={`edu-${idx}`} style={[styles.historyItem, idx !== user.education!.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
                             <View style={[styles.historyIconBox, { backgroundColor: colors.blueLight }]}>
                                 <Feather name="book" size={18} color={colors.primary} />

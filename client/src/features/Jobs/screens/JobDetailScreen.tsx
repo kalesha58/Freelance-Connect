@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Platform,
     ScrollView,
@@ -15,6 +15,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 
 /**
  * Type for Job Detail route parameters.
@@ -40,21 +41,6 @@ interface IJobDetail {
     skills: string[];
 }
 
-const MOCK_JOB: IJobDetail = {
-    id: "j1",
-    title: "React Native Developer for E-commerce App",
-    category: "Mobile Development",
-    isRemote: true,
-    clientName: "Global Shop Inc.",
-    clientRating: "4.9",
-    postedAt: "2h ago",
-    budget: "$5,000 - $8,000",
-    location: "New York, USA",
-    deadline: "Oct 15, 2025",
-    applicants: 14,
-    description: "We are looking for an experienced React Native developer to help us build out new features for our existing e-commerce mobile application. The ideal candidate has strong experience with Redux, Reanimated 2, and integrating RESTful APIs.\n\nKey Responsibilities:\n• Implement new UI components based on Figma designs.\n• Optimize app performance and load times.\n• Fix existing bugs and improve state management logic.",
-    skills: ["React Native", "TypeScript", "Redux", "Figma", "REST APIs"],
-};
 
 /**
  * JobDetailScreen provides a comprehensive view of a specific job posting.
@@ -66,14 +52,38 @@ export default function JobDetailScreen() {
     const navigation = useNavigation<any>();
     const route = useRoute<JobDetailRouteProp>();
     const { id } = route.params || {};
-
+    const { jobs, applyToJob } = useApp();
     const [hasApplied, setHasApplied] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [isApplying, setIsApplying] = useState(false);
 
-    // In a real app, we would fetch the job by ID
-    const job = MOCK_JOB;
+    const job = jobs.find(j => j._id === id);
+
+    const handleApply = async () => {
+        if (!job) return;
+        setIsApplying(true);
+        try {
+            await applyToJob(job._id, "I'm interested in this job!"); // Simple cover letter for now
+            setHasApplied(true);
+        } catch (error) {
+            console.error("Apply Error:", error);
+        } finally {
+            setIsApplying(false);
+        }
+    };
 
     const topInsetPadding = Platform.OS === "ios" ? insets.top : 20;
+
+    if (!job) {
+        return (
+            <View style={[styles.jobDetailRoot, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ color: colors.foreground }}>Job not found</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
+                    <Text style={{ color: colors.primary }}>Go Back</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.jobDetailRoot, { backgroundColor: colors.background }]}>
@@ -178,18 +188,22 @@ export default function JobDetailScreen() {
                 paddingBottom: Platform.OS === "ios" ? insets.bottom + 10 : 24,
             }]}>
                 <TouchableOpacity
-                    style={[styles.primaryApplyAction, { backgroundColor: hasApplied ? colors.success : colors.primary }]}
-                    onPress={() => setHasApplied(true)}
-                    disabled={hasApplied}
+                    style={[styles.primaryApplyAction, { backgroundColor: hasApplied ? colors.success : (isApplying ? colors.muted : colors.primary) }]}
+                    onPress={handleApply}
+                    disabled={hasApplied || isApplying}
                     activeOpacity={0.85}
                 >
-                    {hasApplied ? (
-                        <>
-                            <Feather name="check" size={18} color="#fff" />
-                            <Text style={styles.primaryApplyLabel}>Applied Successfully</Text>
-                        </>
+                    {isApplying ? (
+                        <Text style={styles.primaryApplyLabel}>Applying...</Text>
                     ) : (
-                        <Text style={styles.primaryApplyLabel}>Apply Now</Text>
+                        hasApplied ? (
+                            <>
+                                <Feather name="check" size={18} color="#fff" />
+                                <Text style={styles.primaryApplyLabel}>Applied Successfully</Text>
+                            </>
+                        ) : (
+                            <Text style={styles.primaryApplyLabel}>Apply Now</Text>
+                        )
                     )}
                 </TouchableOpacity>
             </View>

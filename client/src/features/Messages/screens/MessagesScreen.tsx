@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     FlatList,
     Platform,
@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
+import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
 /**
@@ -30,37 +31,6 @@ export interface IConversation {
     isOnline?: boolean;
 }
 
-const MOCK_CONVOS: IConversation[] = [
-    {
-        id: "1",
-        participantName: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?u=sarah",
-        lastMessage: "Sounds great, I will start on the wireframes tomorrow.",
-        lastMessageTime: "2h ago",
-        unreadCount: 2,
-        isLocked: false,
-        isOnline: true
-    },
-    {
-        id: "2",
-        participantName: "Marcus Johnson",
-        avatar: "https://i.pravatar.cc/150?u=marcus",
-        lastMessage: "Can we hop on a quick call to discuss the milestones?",
-        lastMessageTime: "5h ago",
-        unreadCount: 0,
-        isLocked: false,
-        isOnline: false
-    },
-    {
-        id: "3",
-        participantName: "Alex Rivera",
-        avatar: "https://i.pravatar.cc/150?u=alex",
-        lastMessage: "Locked Conversation",
-        lastMessageTime: "Yesterday",
-        unreadCount: 0,
-        isLocked: true
-    },
-];
 
 /**
  * Renders an individual conversation item in the list.
@@ -141,8 +111,28 @@ export default function MessagesScreen() {
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
 
-    const lockedChats = MOCK_CONVOS.filter(c => c.isLocked);
-    const unlockedChats = MOCK_CONVOS.filter(c => !c.isLocked);
+    const { user, conversations, fetchConversations } = useApp();
+
+    useEffect(() => {
+        fetchConversations();
+    }, []);
+
+    const formattedConvos: IConversation[] = conversations.map(c => {
+        const otherParticipant = c.participants.find((p: any) => p._id !== user?._id);
+        return {
+            id: c._id || (c as any).id, // Backend uses _id
+            participantName: otherParticipant?.name || "Unknown",
+            avatar: otherParticipant?.avatar,
+            lastMessage: c.lastMessage,
+            lastMessageTime: new Date(c.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            unreadCount: c.unreadCount || 0,
+            isLocked: c.isLocked,
+            isOnline: true // Placeholder
+        };
+    });
+
+    const lockedChats = formattedConvos.filter(c => c.isLocked);
+    const unlockedChats = formattedConvos.filter(c => !c.isLocked);
 
     const ListHeader = () => (
         <View style={styles.headerArea}>
