@@ -1,97 +1,114 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 📱 Tasker Mobile Application
 
-# Getting Started
+A comprehensive Freelance Marketplace platform connecting skilled professionals (**Taskers**) with clients (**Requester/Hiring Partner**). Tasker provides a seamless, real-time environment for hiring, task management, and professional growth.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 👥 User Roles
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+1.  **Freelancer / Tasker**: Skilled professionals looking to showcase their portfolio, apply for jobs, and earn through the platform.
+2.  **Requester / Hiring Partner**: Individuals or businesses looking to post jobs and hire top talent efficiently.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+---
 
-```sh
-# Using npm
-npm start
+## 🏗️ Screen Architecture (≈ 48 Screens)
 
-# OR using Yarn
-yarn start
-```
+### 🔐 1. Authentication (Common)
+*   **Splash Screen**: App Branding & Auto-token check.
+*   **Onboarding**: Platform introduction highlighting "Hire Skilled People" and "Earn as Freelancer".
+*   **Role Selection**: Toggle between Tasker or Hiring Partner.
+*   **Signup & Login**: Secure email/phone-based authentication.
+*   **Forgot Password Flow**: OTP verification & secure reset.
 
-## Step 2: Build and run your app
+### 👨‍💼 2. Freelancer / Tasker Experience
+*   **Profile Setup**: Multi-step onboarding (Basic Info, Multi-select Services, Education & Experience).
+*   **Portfolio Management**: High-quality media uploads with titles, descriptions, and tags.
+*   **Job Discovery**: Real-time Job Feed with category/budget/location filters.
+*   **Messaging & Proposals**: Direct chat with clients, proposal submission, and attachment support.
+*   **Social & Engagement**: Personal post creation, activity dashboard, and professional insights (likes/views/requests).
+*   **Growth**: Post boosting for visibility and subscription management.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+### 🧑‍💼 3. Requester / Hiring Partner Experience
+*   **Discover Talent**: Specialized Tasker List with deep-dive profiles (reviews/portfolios).
+*   **Job Posting**: Structured job creation (Title, Budget, Deadline, Attachments).
+*   **Job Management**: Dashboard for Active/Completed jobs and applicant tracking.
+*   **Hiring Flow**: Reviewing applicants, direct chatting, and hire confirmation.
 
-### Android
+### 🔁 4. Shared Components
+*   **Notifications**: Real-time alerts for jobs, messages, and engagement.
+*   **Search & Discovery**: Global search with advanced modal filters.
+*   **Security**: Report/Block functionality.
+*   **Social Proof**: Comprehensive ratings and reviews system.
 
-```sh
-# Using npm
-npm run android
+### ⚙️ 5. System & Utilities
+*   **Settings**: Account management and preferences.
+*   **Support**: Help center, T&C, and Privacy Policy.
+*   **Logout**: Secure session termination.
 
-# OR using Yarn
-yarn android
-```
+---
 
-### iOS
+## 🚀 Advanced Features
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+*   **Wallet & Earnings**: Transparent financial tracking for Taskers.
+*   **Gig Packages**: Tiered service offerings (Basic / Standard / Premium).
+*   **Video Intro**: Personality-focused video uploads for profiles.
+*   **AI Matching**: Intelligent freelancer recommendations based on job requirements.
+*   **Availability Calendar**: Real-time scheduling for Tasker services.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+---
 
-```sh
-bundle install
-```
+## 💰 Monetization & Growth
 
-Then, and every time you update your native dependencies, run:
+*   **Freemium Chat**: Chat unlock after 3 free clients to encourage subscriptions.
+*   **Subscription Model**: Unlimited chat and advanced features for power users.
+*   **Post Boosting**: Paid visibility feature for Taskers to reach more clients.
+*   **Engagement Tracking**: Built-in insights to help freelancers optimize their reach.
 
-```sh
-bundle exec pod install
-```
+---
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## 🛠️ Technical Stack (React Native)
 
-```sh
-# Using npm
-npm run ios
+*   **Framework**: React Native
+*   **Language**: TypeScript
+*   **State Management**: React Context / Redux (as applicable)
+*   **Navigation**: React Navigation
+*   **API Layer**: Axios / TanStack Query
+*   **Styling**: StyleSheet.create / Styled Components
+*   **Theming**: Complete Dark/Light mode support
 
-# OR using Yarn
-yarn ios
-```
+---
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## 🏁 Getting Started
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Prerequisites
+*   Node.js (LTS)
+*   React Native CLI / Expo CLI
+*   Android Studio / Xcode
 
-## Step 3: Modify your app
+### Installation
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/kalesha58/Freelance-Connect.git
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Run the application:
+    ```bash
+    # Android
+    npm run android
+    
+    # iOS
+    npm run ios
+    ```
 
-Now that you have successfully run the app, let's make changes!
+---
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## 🔔 Important Notes
+*   **Portfolio is Critical**: High emphasis on visual presentation for Taskers.
+*   **Theme Support**: Ensure all UI elements work seamlessly in both Dark and Light modes.
+*   **Cross-Platform**: Icons and UI elements optimized for both iOS and Android.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+*Created for Freelance-Connect Project*
