@@ -1,0 +1,377 @@
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    StatusBar,
+    Alert,
+} from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '@/navigation/types';
+import Header from '@/components/Header';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
+import SocialButton from '@/components/SocialButton';
+import ProgressBar from '@/components/ProgressBar';
+import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { validateSignup, SignupErrors } from '@/utils/validation';
+
+type Props = {
+    navigation: NativeStackNavigationProp<RootStackParamList, 'Signup'>;
+    route: RouteProp<RootStackParamList, 'Signup'>;
+};
+
+type UserRole = 'freelancer' | 'hiring';
+
+const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
+    // Default to freelancer if not provided
+    const [role, setRole] = useState<UserRole>((route.params?.role as UserRole) || 'freelancer');
+
+    const [name, setName] = useState('');
+    const [emailOrPhone, setEmailOrPhone] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [errors, setErrors] = useState<SignupErrors>({});
+    const [loading, setLoading] = useState(false);
+
+    const handleSignup = async () => {
+        const validationErrors = validateSignup(
+            name, emailOrPhone, password, confirmPassword, termsAccepted
+        );
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        setErrors({});
+        setLoading(true);
+
+        // Simulate API call
+        setTimeout(() => {
+            setLoading(false);
+            navigation.navigate('OTPVerification', {
+                email: emailOrPhone,
+                flow: 'signup',
+                name: name,
+                role: role,
+            });
+        }, 1500);
+    };
+
+    const passwordStrength = () => {
+        if (!password) return null;
+        if (password.length < 6) return { label: 'Too short', color: Colors.error };
+        if (password.length < 8) return { label: 'Weak', color: Colors.warning };
+        if (password.length < 12) return { label: 'Good', color: Colors.secondary };
+        return { label: 'Strong', color: Colors.success };
+    };
+
+    const strength = passwordStrength();
+
+    return (
+        <View style={[styles.container, { backgroundColor: Colors.background }]}>
+
+            <Header
+                onBack={() => navigation.goBack()}
+                title="Create Account"
+                rightElement={<Text style={[styles.stepText, { color: '#fff' }]}>Step 1 of 2</Text>}
+            />
+
+            <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                <ProgressBar currentStep={1} totalSteps={2} showLabel={false} />
+
+                <Text style={styles.heading}>Create Account</Text>
+                <Text style={styles.subheading}>Enter your details to get started</Text>
+
+                {/* Role Switcher */}
+                <View style={styles.roleContainer}>
+                    <Text style={styles.roleTitle}>I want to join as a:</Text>
+                    <View style={styles.roleSwitch}>
+                        <TouchableOpacity
+                            style={[styles.roleOption, role === 'freelancer' && styles.roleActive]}
+                            onPress={() => setRole('freelancer')}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={[styles.roleText, role === 'freelancer' && styles.roleTextActive]}>
+                                👨‍💻 Freelancer
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.roleOption, role === 'hiring' && styles.roleActive]}
+                            onPress={() => setRole('hiring')}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={[styles.roleText, role === 'hiring' && styles.roleTextActive]}>
+                                💼 Hiring Partner
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View style={styles.form}>
+                    <Input
+                        label="Full Name"
+                        placeholder="John Smith"
+                        value={name}
+                        onChangeText={(t) => { setName(t); setErrors({ ...errors, name: undefined }); }}
+                        error={errors.name}
+                        autoCapitalize="words"
+                        autoComplete="name"
+                        leftIcon="user"
+                    />
+
+                    <Input
+                        label="Email / Phone"
+                        placeholder="you@example.com or +91 9876543210"
+                        value={emailOrPhone}
+                        onChangeText={(t) => { setEmailOrPhone(t); setErrors({ ...errors, emailOrPhone: undefined }); }}
+                        error={errors.emailOrPhone}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        leftIcon="mail"
+                    />
+
+                    <Input
+                        label="Password"
+                        placeholder="Min. 6 characters"
+                        value={password}
+                        onChangeText={(t) => { setPassword(t); setErrors({ ...errors, password: undefined }); }}
+                        error={errors.password}
+                        isPassword
+                        hint={strength ? undefined : 'At least 6 characters'}
+                        leftIcon="lock"
+                    />
+
+                    {strength && (
+                        <View style={styles.strengthRow}>
+                            <View style={styles.strengthBar}>
+                                <View
+                                    style={[
+                                        styles.strengthFill,
+                                        {
+                                            width: `${Math.min((password.length / 12) * 100, 100)}%`,
+                                            backgroundColor: strength.color,
+                                        },
+                                    ]}
+                                />
+                            </View>
+                            <Text style={[styles.strengthLabel, { color: strength.color }]}>
+                                {strength.label}
+                            </Text>
+                        </View>
+                    )}
+
+                    <Input
+                        label="Confirm Password"
+                        placeholder="Repeat password"
+                        value={confirmPassword}
+                        onChangeText={(t) => { setConfirmPassword(t); setErrors({ ...errors, confirmPassword: undefined }); }}
+                        error={errors.confirmPassword}
+                        isPassword
+                        leftIcon="shield"
+                    />
+
+                    <TouchableOpacity
+                        style={styles.termsRow}
+                        onPress={() => setTermsAccepted(!termsAccepted)}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+                            {termsAccepted && <Text style={styles.checkmark}>✓</Text>}
+                        </View>
+                        <Text style={styles.termsText}>
+                            I agree to the{' '}
+                            <Text style={styles.link}>Terms & Conditions</Text>
+                            {' '}and{' '}
+                            <Text style={styles.link}>Privacy Policy</Text>
+                        </Text>
+                    </TouchableOpacity>
+                    {errors.terms && <Text style={styles.errorText}>{errors.terms}</Text>}
+                </View>
+
+                <Button
+                    title="Create Account"
+                    onPress={handleSignup}
+                    loading={loading}
+                    style={styles.submitBtn}
+                />
+
+                <View style={styles.divider}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>OR</Text>
+                    <View style={styles.dividerLine} />
+                </View>
+
+                <SocialButton
+                    title="Continue with Google"
+                    icon="🔵"
+                    onPress={() => Alert.alert('Google Sign In', 'Coming soon!')}
+                />
+
+                <View style={styles.loginRow}>
+                    <Text style={styles.loginText}>Already have an account? </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                        <Text style={styles.link}>Login</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    stepText: { fontSize: Typography.sm, color: Colors.textSecondary },
+    scroll: { flex: 1 },
+    content: {
+        paddingHorizontal: Spacing.xl,
+        paddingBottom: Spacing['3xl'],
+    },
+    heading: {
+        fontSize: Typography['3xl'],
+        fontWeight: Typography.bold,
+        color: Colors.text,
+        marginBottom: Spacing.xs,
+    },
+    subheading: {
+        fontSize: Typography.sm,
+        color: Colors.textSecondary,
+        marginBottom: Spacing.lg,
+    },
+    roleContainer: {
+        marginBottom: Spacing.xl,
+    },
+    roleTitle: {
+        fontSize: Typography.sm,
+        fontWeight: Typography.semibold,
+        color: Colors.textSecondary,
+        marginBottom: Spacing.sm,
+    },
+    roleSwitch: {
+        flexDirection: 'row',
+        backgroundColor: Colors.border + '40',
+        padding: 4,
+        borderRadius: BorderRadius.md,
+        gap: 4,
+    },
+    roleOption: {
+        flex: 1,
+        paddingVertical: Spacing.sm,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: BorderRadius.sm,
+    },
+    roleActive: {
+        backgroundColor: Colors.white,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    roleText: {
+        fontSize: Typography.sm,
+        fontWeight: Typography.medium,
+        color: Colors.textSecondary,
+    },
+    roleTextActive: {
+        color: Colors.primary,
+        fontWeight: Typography.semibold,
+    },
+    form: { gap: 0 },
+    strengthRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        marginTop: -Spacing.sm,
+        marginBottom: Spacing.md,
+    },
+    strengthBar: {
+        flex: 1,
+        height: 4,
+        backgroundColor: Colors.border,
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    strengthFill: {
+        height: '100%',
+        borderRadius: 2,
+    },
+    strengthLabel: {
+        fontSize: Typography.xs,
+        fontWeight: Typography.medium,
+        minWidth: 50,
+        textAlign: 'right',
+    },
+    termsRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: Spacing.sm,
+        marginBottom: Spacing.md,
+        marginTop: Spacing.xs,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 5,
+        borderWidth: 2,
+        borderColor: Colors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 1,
+    },
+    checkboxChecked: {
+        backgroundColor: Colors.primary,
+        borderColor: Colors.primary,
+    },
+    checkmark: {
+        color: Colors.white,
+        fontSize: 11,
+        fontWeight: Typography.bold,
+    },
+    termsText: {
+        flex: 1,
+        fontSize: Typography.sm,
+        color: Colors.textSecondary,
+        lineHeight: Typography.sm * Typography.relaxed,
+    },
+    link: {
+        color: Colors.primary,
+        fontWeight: Typography.medium,
+    },
+    errorText: {
+        fontSize: Typography.xs,
+        color: Colors.error,
+        marginTop: -Spacing.sm,
+        marginBottom: Spacing.sm,
+    },
+    submitBtn: { marginTop: Spacing.base },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: Spacing.lg,
+        gap: Spacing.md,
+    },
+    dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+    dividerText: { fontSize: Typography.sm, color: Colors.textSecondary },
+    loginRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: Spacing.base,
+    },
+    loginText: { fontSize: Typography.sm, color: Colors.textSecondary },
+});
+
+export default SignupScreen;

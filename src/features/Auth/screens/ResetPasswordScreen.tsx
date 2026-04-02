@@ -1,0 +1,234 @@
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    Alert,
+} from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '@/navigation/types';
+import Header from '@/components/Header';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
+import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { isValidPassword, passwordsMatch } from '@/utils/validation';
+
+type Props = {
+    navigation: NativeStackNavigationProp<RootStackParamList, 'ResetPassword'>;
+    route: RouteProp<RootStackParamList, 'ResetPassword'>;
+};
+
+interface Requirement {
+    label: string;
+    met: boolean;
+}
+
+const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
+    const [loading, setLoading] = useState(false);
+
+    const requirements: Requirement[] = [
+        { label: 'At least 6 characters', met: newPassword.length >= 6 },
+        { label: 'Contains a number', met: /\d/.test(newPassword) },
+        { label: 'Passwords match', met: !!newPassword && newPassword === confirmPassword },
+    ];
+
+    const allMet = requirements.every((r) => r.met);
+
+    const handleReset = () => {
+        const errs: typeof errors = {};
+
+        if (!isValidPassword(newPassword)) {
+            errs.newPassword = 'Password must be at least 6 characters';
+        }
+        if (!passwordsMatch(newPassword, confirmPassword)) {
+            errs.confirmPassword = 'Passwords do not match';
+        }
+
+        if (Object.keys(errs).length > 0) {
+            setErrors(errs);
+            return;
+        }
+
+        setErrors({});
+        setLoading(true);
+
+        setTimeout(() => {
+            setLoading(false);
+            Alert.alert(
+                '🎉 Password Reset!',
+                'Your password has been updated successfully. Please log in with your new password.',
+                [
+                    {
+                        text: 'Login Now',
+                        onPress: () =>
+                            navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+                    },
+                ]
+            );
+        }, 1500);
+    };
+
+    return (
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+
+            <Header onBack={() => navigation.goBack()} title="New Password" />
+
+            <ScrollView
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={styles.iconWrap}>
+                    <Text style={styles.icon}>🔒</Text>
+                </View>
+
+                <Text style={styles.heading}>Set New Password</Text>
+                <Text style={styles.description}>
+                    Create a strong password you haven't used before.
+                </Text>
+
+                <Input
+                    label="New Password"
+                    placeholder="Min. 6 characters"
+                    value={newPassword}
+                    onChangeText={(t) => {
+                        setNewPassword(t);
+                        setErrors((e) => ({ ...e, newPassword: undefined }));
+                    }}
+                    error={errors.newPassword}
+                    isPassword
+                    autoFocus
+                    leftIcon="lock"
+                />
+
+                <Input
+                    label="Confirm Password"
+                    placeholder="Repeat new password"
+                    value={confirmPassword}
+                    onChangeText={(t) => {
+                        setConfirmPassword(t);
+                        setErrors((e) => ({ ...e, confirmPassword: undefined }));
+                    }}
+                    error={errors.confirmPassword}
+                    isPassword
+                    returnKeyType="done"
+                    onSubmitEditing={handleReset}
+                    leftIcon="shield"
+                />
+
+                {/* Requirements checklist */}
+                <View style={styles.requirementsBox}>
+                    <Text style={styles.requirementsTitle}>Password requirements</Text>
+                    {requirements.map((req, i) => (
+                        <View key={i} style={styles.reqRow}>
+                            <View style={[styles.reqDot, req.met && styles.reqDotMet]}>
+                                <Text style={styles.reqCheck}>{req.met ? '✓' : '·'}</Text>
+                            </View>
+                            <Text style={[styles.reqLabel, req.met && styles.reqLabelMet]}>
+                                {req.label}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={styles.spacer} />
+
+                <Button
+                    title="Reset Password"
+                    onPress={handleReset}
+                    loading={loading}
+                    disabled={!allMet}
+                />
+            </ScrollView>
+        </KeyboardAvoidingView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    content: {
+        flexGrow: 1,
+        paddingHorizontal: Spacing.xl,
+        paddingBottom: Spacing['2xl'],
+    },
+    iconWrap: {
+        width: 64,
+        height: 64,
+        borderRadius: 18,
+        backgroundColor: Colors.primaryLight,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: Spacing.base,
+        marginBottom: Spacing.lg,
+    },
+    icon: { fontSize: 28 },
+    heading: {
+        fontSize: Typography['2xl'],
+        fontWeight: Typography.bold,
+        color: Colors.text,
+        marginBottom: Spacing.xs,
+    },
+    description: {
+        fontSize: Typography.base,
+        color: Colors.textSecondary,
+        marginBottom: Spacing.xl,
+        lineHeight: Typography.base * 1.6,
+    },
+    requirementsBox: {
+        backgroundColor: '#F0FDF4', // Success light
+        borderRadius: BorderRadius.md,
+        padding: Spacing.base,
+        marginBottom: Spacing.lg,
+        gap: Spacing.sm,
+    },
+    requirementsTitle: {
+        fontSize: Typography.sm,
+        fontWeight: Typography.semibold,
+        color: '#15803D',
+        marginBottom: 4,
+    },
+    reqRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+    },
+    reqDot: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: Colors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    reqDotMet: {
+        backgroundColor: Colors.success,
+    },
+    reqCheck: {
+        fontSize: 10,
+        color: Colors.white,
+        fontWeight: Typography.bold,
+    },
+    reqLabel: {
+        fontSize: Typography.sm,
+        color: Colors.textSecondary,
+    },
+    reqLabelMet: {
+        color: '#166534',
+        fontWeight: Typography.medium,
+    },
+    spacer: { flex: 1, minHeight: Spacing.lg },
+});
+
+export default ResetPasswordScreen;
