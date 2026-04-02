@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const { protect } = require('../middleware/authMiddleware');
 
-// Get all posts
+// Get all posts (Public)
 router.get('/', async (req, res) => {
     try {
         const posts = await Post.find().sort({ createdAt: -1 });
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get posts by user ID
+// Get posts by user ID (Public)
 router.get('/user/:userId', async (req, res) => {
     try {
         const posts = await Post.find({ userId: req.params.userId }).sort({ createdAt: -1 });
@@ -22,13 +23,13 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-// Create a new post
-router.post('/', async (req, res) => {
+// Create a new post (Protected)
+router.post('/', protect, async (req, res) => {
     const post = new Post({
-        userId: req.body.userId,
-        userName: req.body.userName,
-        userAvatar: req.body.userAvatar,
-        userRole: req.body.userRole,
+        userId: req.user._id,
+        userName: req.user.name,
+        userAvatar: req.user.avatar,
+        userRole: req.user.role,
         type: req.body.type || 'social',
         imageUrl: req.body.imageUrl,
         caption: req.body.caption,
@@ -42,5 +43,6 @@ router.post('/', async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 });
+
 
 module.exports = router;

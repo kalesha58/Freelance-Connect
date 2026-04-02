@@ -18,8 +18,24 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
+
+app.get('/api/routes', (req, res) => {
+    const routes = [];
+    app._router.stack.forEach((middleware) => {
+        if (middleware.route) { // routes registered directly on the app
+            routes.push(`${Object.keys(middleware.route.methods)} ${middleware.route.path}`);
+        } else if (middleware.name === 'router') { // router middleware
+            middleware.handle.stack.forEach((handler) => {
+                const route = handler.route;
+                route && routes.push(`${Object.keys(route.methods)} ${middleware.regexp} ${route.path}`);
+            });
+        }
+    });
+    res.json(routes);
+});
 
 app.get('/', (req, res) => {
     res.send('Freelance Connect API is running...');
