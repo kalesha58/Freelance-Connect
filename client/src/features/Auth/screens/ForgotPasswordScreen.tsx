@@ -15,16 +15,19 @@ import Button from '@/components/Button';
 import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
 import { isValidEmailOrPhone } from '@/utils/validation';
 
+import { useApp } from '@/context/AppContext';
+
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'ForgotPassword'>;
 };
 
 const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
+    const { forgotPassword } = useApp();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSendOTP = () => {
+    const handleSendOTP = async () => {
         if (!isValidEmailOrPhone(emailOrPhone)) {
             setError('Enter a valid email or phone number');
             return;
@@ -33,14 +36,17 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
         setError('');
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            await forgotPassword(emailOrPhone);
             setLoading(false);
             navigation.navigate('OTPVerification', {
                 email: emailOrPhone,
                 flow: 'forgot',
             });
-        }, 1200);
+        } catch (err: any) {
+            setLoading(false);
+            setError(err.message || 'Failed to send reset code.');
+        }
     };
 
     return (

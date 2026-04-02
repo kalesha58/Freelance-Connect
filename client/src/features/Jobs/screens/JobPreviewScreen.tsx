@@ -6,17 +6,19 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 
 /**
  * Type for Job Preview route parameters.
  */
-type JobPreviewRouteProp = RouteProp<{ JobPreview: { title: string; description: string; budget: string; budgetType: string; deadline: string } }, 'JobPreview'>;
+type JobPreviewRouteProp = RouteProp<{ JobPreview: { title: string; description: string; budget: string; budgetType: string; deadline: string; category: string; location: string; isRemote: boolean } }, 'JobPreview'>;
 
 /**
  * JobPreviewScreen gives requesters a final look at their posting.
@@ -28,20 +30,35 @@ export default function JobPreviewScreen() {
     const navigation = useNavigation<any>();
     const route = useRoute<JobPreviewRouteProp>();
 
-    const { title, description, budget, budgetType, deadline } = route.params || {
-        title: "Project Title", description: "Project Description", budget: "0", budgetType: "fixed", deadline: "Flexible"
+    const { title, description, budget, budgetType, deadline, category, location, isRemote } = route.params || {
+        title: "Project Title", description: "Project Description", budget: "0", budgetType: "fixed", deadline: "Flexible", category: "General", location: "Remote", isRemote: true
     };
+
+    const { addJob } = useApp();
 
     const [isPosting, setIsPosting] = useState(false);
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
 
-    const handlePost = () => {
+    const handlePost = async () => {
         setIsPosting(true);
-        setTimeout(() => {
+        try {
+            await addJob({
+                title,
+                description,
+                budget,
+                budgetType,
+                deadline,
+                category,
+                location,
+                isRemote
+            });
             setIsPosting(false);
             // Navigate back to the main Jobs screen (Home)
             navigation.navigate("Main", { screen: "Jobs" });
-        }, 1000);
+        } catch (error: any) {
+            setIsPosting(false);
+            Alert.alert("Error", "Posting job failed: " + error.message);
+        }
     };
 
     return (
@@ -55,7 +72,7 @@ export default function JobPreviewScreen() {
                     <Feather name="edit-2" size={20} color={colors.primary} />
                 </TouchableOpacity>
             </View>
-
+ 
             <ScrollView contentContainerStyle={[styles.previewContentArea, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
                 {/* Visual Step Indicator (Premium Touch) */}
                 <View style={styles.stepperContainer}>
@@ -92,18 +109,19 @@ export default function JobPreviewScreen() {
 
                 <View style={[styles.simulationJobCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={[styles.projectTypeBadge, { backgroundColor: colors.primary + "18" }]}>
-                        <Text style={[styles.projectTypeLabel, { color: colors.primary }]}>Full-time / Project</Text>
+                        <Text style={[styles.projectTypeLabel, { color: colors.primary }]}>{category}</Text>
                     </View>
                     <Text style={[styles.previewJobTitle, { color: colors.foreground }]}>{title || "Untitled Job"}</Text>
 
                     <View style={styles.metricsSummaryGrid}>
                         {[
                             { icon: "dollar-sign" as const, label: "Budget", value: budget ? `$${budget}${budgetType === "hourly" ? "/hr" : ""}` : "Not set", color: colors.primary },
+                            { icon: "map-pin" as const, label: "Location", value: location || "Remote", color: colors.purpleAccent },
                             { icon: "calendar" as const, label: "Deadline", value: deadline || "Flexible", color: colors.warning },
                         ].map(item => (
                             <View key={item.label} style={[styles.metricDisplayCell, { backgroundColor: colors.muted }]}>
                                 <View style={[styles.metricIconSurface, { backgroundColor: item.color + "18" }]}>
-                                    <Feather name={item.icon} size={14} color={item.color} />
+                                    <Feather name={item.icon as any} size={14} color={item.color} />
                                 </View>
                                 <Text style={[styles.metricLabelCopy, { color: colors.mutedForeground }]}>{item.label}</Text>
                                 <Text style={[styles.metricValueCopy, { color: colors.foreground }]}>{item.value}</Text>

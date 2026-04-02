@@ -8,6 +8,8 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    Image,
+    Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -16,6 +18,8 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { uploadImage } from "@/utils/apiClient";
 
 /**
  * CreatePostScreen allows users to share updates, portfolios, or thoughts with the community.
@@ -30,7 +34,7 @@ export default function CreatePostScreen() {
     const [caption, setCaption] = useState("");
     const [tagInput, setTagInput] = useState("");
     const [tags, setTags] = useState<string[]>([]);
-    const [hasImage, setHasImage] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [postType, setPostType] = useState<"social" | "portfolio">("social");
     const [isPosting, setIsPosting] = useState(false);
 
@@ -49,19 +53,45 @@ export default function CreatePostScreen() {
         setTags(prev => prev.filter(t => t !== tag));
     };
 
+    const pickImage = async (useCamera: boolean) => {
+        const options: any = {
+            mediaType: 'photo',
+            quality: 0.8,
+            maxWidth: 1200,
+            maxHeight: 1200,
+        };
+
+        const result = useCamera ? await launchCamera(options) : await launchImageLibrary(options);
+
+        if (result.assets && result.assets.length > 0) {
+            setSelectedImage(result.assets[0].uri || null);
+        }
+    };
+
     const handlePost = async () => {
         if (!caption.trim()) return;
         setIsPosting(true);
 
-        await addPost({
-            caption: caption.trim(),
-            tags,
-            type: postType,
-            imageUrl: hasImage ? "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1000&auto=format&fit=crop" : undefined // Mock image for now
-        });
+        try {
+            let imageUrl = undefined;
+            if (selectedImage) {
+                const uploadResult = await uploadImage(selectedImage);
+                imageUrl = uploadResult.url;
+            }
 
-        setIsPosting(false);
-        navigation.goBack();
+            await addPost({
+                caption: caption.trim(),
+                tags,
+                type: postType,
+                imageUrl
+            });
+
+            navigation.goBack();
+        } catch (error: any) {
+            Alert.alert("Post Failed", error.message || "Something went wrong while sharing your post.");
+        } finally {
+            setIsPosting(false);
+        }
     };
 
     return (
@@ -87,15 +117,16 @@ export default function CreatePostScreen() {
 
             <ScrollView contentContainerStyle={styles.postContentArea} showsVerticalScrollIndicator={false}>
                 <TouchableOpacity
-                    style={[styles.mediaDropZone, { backgroundColor: colors.card, borderColor: hasImage ? colors.primary : colors.border }]}
-                    onPress={() => setHasImage(!hasImage)}
+                    style={[styles.mediaDropZone, { backgroundColor: colors.card, borderColor: selectedImage ? colors.primary : colors.border }]}
+                    onPress={() => pickImage(false)}
                     activeOpacity={0.8}
                 >
-                    {hasImage ? (
-                        <View style={[styles.mediaActivePreview, { backgroundColor: colors.blueLight }]}>
-                            <MaterialCommunityIcons name="image" size={48} color={colors.primary} />
-                            <Text style={[styles.mediaStatusText, { color: colors.primary }]}>Image Selected</Text>
-                            <Text style={[styles.mediaResetHint, { color: colors.mutedForeground }]}>Tap to change</Text>
+                    {selectedImage ? (
+                        <View style={styles.mediaActivePreview}>
+                            <Image source={{ uri: selectedImage }} style={styles.selectedImagePreview} />
+                            <TouchableOpacity style={styles.removeImageBtn} onPress={() => setSelectedImage(null)}>
+                                <Feather name="trash-2" size={16} color="#fff" />
+                            </TouchableOpacity>
                         </View>
                     ) : (
                         <>
@@ -103,16 +134,22 @@ export default function CreatePostScreen() {
                                 <Feather name="upload" size={28} color={colors.mutedForeground} />
                             </View>
                             <Text style={[styles.uploadPromptLabel, { color: colors.foreground }]}>Upload Image or Video</Text>
-                            <Text style={[styles.uploadRequirementsLabel, { color: colors.mutedForeground }]}>JPG, PNG, MP4 up to 10MB</Text>
+                            <Text style={[styles.uploadRequirementsLabel, { color: colors.mutedForeground }]}>JPG, PNG, up to 10MB</Text>
                             <View style={styles.uploadSourceButtonsRow}>
-                                <View style={[styles.uploadSourceBtn, { borderColor: colors.primary }]}>
+                                <TouchableOpacity 
+                                    style={[styles.uploadSourceBtn, { borderColor: colors.primary }]}
+                                    onPress={() => pickImage(true)}
+                                >
                                     <Feather name="camera" size={14} color={colors.primary} />
                                     <Text style={[styles.uploadSourceBtnLabel, { color: colors.primary }]}>Camera</Text>
-                                </View>
-                                <View style={[styles.uploadSourceBtn, { borderColor: colors.primary }]}>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[styles.uploadSourceBtn, { borderColor: colors.primary }]}
+                                    onPress={() => pickImage(false)}
+                                >
                                     <Feather name="image" size={14} color={colors.primary} />
                                     <Text style={[styles.uploadSourceBtnLabel, { color: colors.primary }]}>Gallery</Text>
-                                </View>
+                                </TouchableOpacity>
                             </View>
                         </>
                     )}
@@ -212,6 +249,8 @@ const styles = StyleSheet.create({
     uploadSourceButtonsRow: { flexDirection: "row", gap: 12, marginTop: 4 },
     uploadSourceBtn: { flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
     uploadSourceBtnLabel: { fontSize: 13, fontWeight: '600' },
+    selectedImagePreview: { width: "100%", height: "100%", borderRadius: 12 },
+    removeImageBtn: { position: "absolute", top: 10, right: 10, backgroundColor: "rgba(0,0,0,0.6)", padding: 8, borderRadius: 20 },
     captionInputSection: { gap: 8 },
     fieldLabelLabel: { fontSize: 14, fontWeight: '600' },
     captionTextArea: { borderRadius: 14, borderWidth: 1.5, padding: 14, fontSize: 15, fontWeight: '400', minHeight: 100, textAlignVertical: "top", lineHeight: 22 },

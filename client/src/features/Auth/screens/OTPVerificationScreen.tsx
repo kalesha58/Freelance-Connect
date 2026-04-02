@@ -27,7 +27,7 @@ type Props = {
 };
 
 const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
-    const { signUp } = useApp();
+    const { signUp, verifyOTP } = useApp();
     const { email, flow } = route.params;
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
     const [otpError, setOtpError] = useState(false);
@@ -63,22 +63,26 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
         setOtpError(false);
         setLoading(true);
 
-        setTimeout(async () => {
-            if (flow === 'forgot') {
-                setLoading(false);
-                navigation.navigate('ResetPassword', { email, otp: code });
-            } else {
-                // signup flow — create user and go to home
-                try {
-                    const { name, role } = route.params;
-                    await signUp(name || email.split('@')[0], email, role || 'freelancer');
-                    // RootNavigator will automatically switch to Main stack when user is set
-                } catch (e) {
+        const verify = async () => {
+            try {
+                await verifyOTP(email, code);
+                if (flow === 'forgot') {
                     setLoading(false);
-                    Alert.alert('Error', 'Signup failed. Please try again.');
+                    navigation.navigate('ResetPassword', { email, otp: code });
+                } else {
+                    // signup flow — create user and go to home
+                    const { name, role } = route.params;
+                    await signUp(name || email.split('@')[0], email, route.params.password || '', role || 'freelancer');
+                    // RootNavigator will automatically switch to Main stack when user is set
                 }
+            } catch (e: any) {
+                setLoading(false);
+                setOtpError(true);
+                Alert.alert('Error', e.message || 'OTP verification failed.');
             }
-        }, 1200);
+        };
+
+        verify();
     };
 
     const handleResend = () => {

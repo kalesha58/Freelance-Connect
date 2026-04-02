@@ -18,6 +18,7 @@ import SocialButton from '@/components/SocialButton';
 import ProgressBar from '@/components/ProgressBar';
 import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
 import { validateSignup, SignupErrors } from '@/utils/validation';
+import { useApp } from '@/context/AppContext';
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'Signup'>;
@@ -29,6 +30,7 @@ type UserRole = 'freelancer' | 'hiring';
 const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
     // Default to freelancer if not provided
     const [role, setRole] = useState<UserRole>((route.params?.role as UserRole) || 'freelancer');
+    const { signUp } = useApp();
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -51,16 +53,13 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
         setErrors({});
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            await signUp(name, email, password, role);
+            // AppContext will set user once signed in, switching them to Main stack automatically
+        } catch (error: any) {
             setLoading(false);
-            navigation.navigate('OTPVerification', {
-                email: email,
-                flow: 'signup',
-                name: name,
-                role: role,
-            });
-        }, 1500);
+            Alert.alert('Signup Failed', error.message || 'There was an error creating your account.');
+        }
     };
 
     const passwordStrength = () => {

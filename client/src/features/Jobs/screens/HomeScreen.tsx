@@ -106,7 +106,7 @@ const MOCK_JOBS: IJob[] = [
 export default function HomeScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
-    const { user } = useApp();
+    const { user, jobs } = useApp();
     const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
@@ -120,7 +120,7 @@ export default function HomeScreen() {
         return isSearchMatch && isFilterMatch;
     });
 
-    const filteredJobs = MOCK_JOBS.filter(j => {
+    const filteredJobs = jobs.filter(j => {
         const isSearchMatch = search === "" || j.title.toLowerCase().includes(search.toLowerCase());
         const isFilterMatch = activeFilter === "All" || j.category.toLowerCase().includes(activeFilter.toLowerCase());
         return isSearchMatch && isFilterMatch;
@@ -312,7 +312,7 @@ export default function HomeScreen() {
         <View style={[styles.mainView, { backgroundColor: colors.background }]}>
             <FlatList
                 data={(isHiringRole ? filteredFreelancers : filteredJobs) as any[]}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item._id || item.id}
                 renderItem={({ item }) => {
                     if (isHiringRole) {
                         const f = item as IFreelancerProfile;

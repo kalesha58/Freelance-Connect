@@ -24,41 +24,6 @@ import { PostCard } from "@/components/PostCard/PostCard";
 
 const { width } = Dimensions.get('window');
 
-const MOCK_PORTFOLIO = [
-    {
-        id: "p1",
-        image: "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1000&auto=format&fit=crop",
-        label: "Fintech App UI",
-        category: "Mobile Design"
-    },
-    {
-        id: "p2",
-        image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1000&auto=format&fit=crop",
-        label: "Code Architecture",
-        category: "Development"
-    },
-    {
-        id: "p3",
-        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop",
-        label: "Data Dashboard",
-        category: "Analytics"
-    },
-    {
-        id: "p4",
-        image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop",
-        label: "Brand Identity",
-        category: "Branding"
-    },
-];
-
-const MOCK_COMMUNITY_POSTS = [
-    { id: "cp1", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1000&auto=format&fit=crop", likes: 120, comments: 12 },
-    { id: "cp2", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1000&auto=format&fit=crop", likes: 85, comments: 8 },
-    { id: "cp3", image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1000&auto=format&fit=crop", likes: 210, comments: 25 },
-    { id: "cp4", image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1000&auto=format&fit=crop", likes: 45, comments: 3 },
-    { id: "cp5", image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop", likes: 156, comments: 18 },
-    { id: "cp6", image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?q=80&w=1000&auto=format&fit=crop", likes: 92, comments: 7 },
-];
 
 /**
  * ProfileScreen manages the user's professional profile, skills, and portfolio.
@@ -77,7 +42,7 @@ export default function ProfileScreen() {
     const openPostDetail = (post: any) => {
         // Map local post data to full IPost format for PostCard
         const fullPost = {
-            id: post.id,
+            id: post._id,
             userName: user?.name || "User",
             userRole: user?.role || "freelancer",
             userAvatar: user?.avatar,
@@ -93,8 +58,8 @@ export default function ProfileScreen() {
         setIsSheetVisible(true);
     };
 
-    const portfolioPosts = user ? allPosts.filter(p => p.userId === user.id && p.type === "portfolio") : [];
-    const socialPosts = user ? allPosts.filter(p => p.userId === user.id && p.type !== "portfolio") : [];
+    const portfolioPosts = user ? allPosts.filter(p => p.userId === user._id && p.type === "portfolio") : [];
+    const socialPosts = user ? allPosts.filter(p => p.userId === user._id && p.type !== "portfolio") : [];
 
     const handlePostLongPress = (postId: string) => {
         // Mocking the delete/hide functionality
@@ -277,7 +242,7 @@ export default function ProfileScreen() {
                     <View style={styles.portfolioGrid}>
                         {portfolioPosts.length > 0 ? portfolioPosts.map(item => (
                             <TouchableOpacity
-                                key={item.id}
+                                key={item._id}
                                 style={[styles.portfolioItem, { backgroundColor: colors.card, borderColor: colors.border }]}
                                 activeOpacity={0.9}
                                 onPress={() => openPostDetail(item)}
@@ -310,11 +275,11 @@ export default function ProfileScreen() {
                     <View style={styles.postsGrid}>
                         {socialPosts.map(post => (
                             <TouchableOpacity
-                                key={post.id}
+                                key={post._id}
                                 style={styles.postGridItem}
                                 activeOpacity={0.8}
                                 onPress={() => openPostDetail(post)}
-                                onLongPress={() => handlePostLongPress(post.id)}
+                                onLongPress={() => handlePostLongPress(post._id)}
                             >
                                 <Image source={{ uri: post.imageUrl || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1000&auto=format&fit=crop" }} style={styles.postGridImage} />
                                 <View style={styles.postGridStats}>

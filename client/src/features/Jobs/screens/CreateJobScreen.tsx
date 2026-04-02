@@ -30,7 +30,9 @@ export default function CreateJobScreen() {
     const [description, setDescription] = useState("");
     const [budget, setBudget] = useState("");
     const [budgetType, setBudgetType] = useState<"fixed" | "hourly">("fixed");
+    const [category, setCategory] = useState("Mobile Dev");
     const [deadline, setDeadline] = useState("");
+    const [location, setLocation] = useState("Remote");
     const [hasAttachment, setHasAttachment] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,7 +40,16 @@ export default function CreateJobScreen() {
 
     const handlePreview = () => {
         if (!title.trim() || !description.trim() || !budget.trim()) return;
-        navigation.navigate("JobPreview", { title, description, budget, budgetType, deadline });
+        navigation.navigate("JobPreview", { 
+            title, 
+            description, 
+            budget, 
+            budgetType, 
+            deadline, 
+            category,
+            location,
+            isRemote: location.toLowerCase() === 'remote'
+        });
     };
 
     return (
@@ -130,6 +141,28 @@ export default function CreateJobScreen() {
                             maxLength={1000}
                         />
                         <Text style={[styles.counter, { color: colors.mutedForeground }]}>{description.length}/1000</Text>
+                    </View>
+
+                    <View style={styles.fieldGroup}>
+                        <Text style={[styles.fieldLabel, { color: colors.foreground }]}>Category*</Text>
+                        <TextInput
+                            style={[styles.inputBox, { backgroundColor: colors.background, borderColor: colors.border, color: colors.foreground }]}
+                            placeholder="e.g. Design, Mobile Dev, Backend"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={category}
+                            onChangeText={setCategory}
+                        />
+                    </View>
+
+                    <View style={styles.fieldGroup}>
+                        <Text style={[styles.fieldLabel, { color: colors.foreground }]}>Location*</Text>
+                        <TextInput
+                            style={[styles.inputBox, { backgroundColor: colors.background, borderColor: colors.border, color: colors.foreground }]}
+                            placeholder="e.g. Remote, New York, London"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={location}
+                            onChangeText={setLocation}
+                        />
                     </View>
                 </View>
 

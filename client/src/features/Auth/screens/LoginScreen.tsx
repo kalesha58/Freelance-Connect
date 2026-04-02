@@ -47,17 +47,13 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         setErrors({});
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(async () => {
-            // On success: save token and navigate home
-            try {
-                await signIn(emailOrPhone, 'freelancer');
-                // RootNavigator will automatically switch to Main stack when user is set
-            } catch {
-                setLoading(false);
-                Alert.alert('Error', 'Login failed. Please try again.');
-            }
-        }, 1500);
+        try {
+            await signIn(emailOrPhone, password);
+            // RootNavigator will automatically switch to Main stack when user is set
+        } catch (error: any) {
+            setLoading(false);
+            Alert.alert('Login Failed', error.message || 'Please check your credentials and try again.');
+        }
     };
 
     const handleGoogleLogin = () => {

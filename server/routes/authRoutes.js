@@ -99,6 +99,37 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// @desc    Forgot password
+// @route   POST /api/auth/forgot-password
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+    const { emailOrPhone } = req.body;
+    // For now, simulate sending OTP
+    res.json({ message: 'If an account exists, a reset code has been sent.' });
+});
+
+// @desc    Reset password
+// @route   POST /api/auth/reset-password
+// @access  Public
+router.post('/reset-password', async (req, res) => {
+    const { emailOrPhone, otp, password } = req.body;
+    // For now, simulate successful reset
+    res.json({ message: 'Password has been reset successfully.' });
+});
+
+// @desc    Verify OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+router.post('/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+    // For now, accept '123456' as valid
+    if (otp === '123456') {
+        res.json({ message: 'OTP verified successfully.' });
+    } else {
+        res.status(400).json({ message: 'Invalid OTP' });
+    }
+});
+
 // @desc    Get user profile
 // @route   GET /api/auth/me
 // @access  Private

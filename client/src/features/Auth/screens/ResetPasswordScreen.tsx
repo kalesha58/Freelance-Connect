@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useApp } from '@/context/AppContext';
 import {
     View,
     Text,
@@ -29,6 +30,8 @@ interface Requirement {
 }
 
 const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
+    const { resetPassword } = useApp();
+    const { email, otp } = route.params;
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
@@ -60,20 +63,28 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
         setErrors({});
         setLoading(true);
 
-        setTimeout(() => {
-            setLoading(false);
-            Alert.alert(
-                '🎉 Password Reset!',
-                'Your password has been updated successfully. Please log in with your new password.',
-                [
-                    {
-                        text: 'Login Now',
-                        onPress: () =>
-                            navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
-                    },
-                ]
-            );
-        }, 1500);
+        const reset = async () => {
+            try {
+                await resetPassword(email, otp, newPassword);
+                setLoading(false);
+                Alert.alert(
+                    '🎉 Password Reset!',
+                    'Your password has been updated successfully. Please log in with your new password.',
+                    [
+                        {
+                            text: 'Login Now',
+                            onPress: () =>
+                                navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+                        },
+                    ]
+                );
+            } catch (error: any) {
+                setLoading(false);
+                Alert.alert('Error', error.message || 'Failed to reset password.');
+            }
+        };
+
+        reset();
     };
 
     return (

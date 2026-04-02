@@ -21,6 +21,8 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
+app.use('/api/jobs', require('./routes/jobRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
 
 app.get('/api/routes', (req, res) => {
     const routes = [];

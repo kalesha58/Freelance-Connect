@@ -78,19 +78,23 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
         };
         pulseLoop();
 
-        // Navigate after delay
+        // Wait for AppContext to potentially load the user
         const timer = setTimeout(async () => {
             try {
-                const token = await AsyncStorage.getItem('auth_token');
+                const token = await AsyncStorage.getItem('tasker_token');
                 const seenOnboarding = await AsyncStorage.getItem('seen_onboarding');
 
-                if (token) {
-                    navigation.replace('Main');
-                } else if (seenOnboarding) {
-                    navigation.replace('Login');
-                } else {
-                    navigation.replace('Onboarding');
+                // If user is null but token exists, loadUser in AppContext is likely running.
+                // If user is set, RootNavigator will automatically swap stacks.
+                // We only need to handle Onboarding/Login navigation here if NO user is found.
+                if (!token) {
+                    if (seenOnboarding) {
+                        navigation.replace('Login');
+                    } else {
+                        navigation.replace('Onboarding');
+                    }
                 }
+                // If token exists, we just stay on Splash until RootNavigator swaps the stack
             } catch {
                 navigation.replace('Onboarding');
             }

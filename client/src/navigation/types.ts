@@ -3,7 +3,7 @@ export type RootStackParamList = {
     Onboarding: undefined;
     Login: undefined;
     Signup: { role?: 'freelancer' | 'hiring' | 'requester' };
-    OTPVerification: { email: string; flow: 'signup' | 'forgot'; name?: string; role?: 'freelancer' | 'hiring' | 'requester' };
+    OTPVerification: { email: string; flow: 'signup' | 'forgot'; name?: string; role?: 'freelancer' | 'hiring' | 'requester'; password?: string };
     ForgotPassword: undefined;
     ResetPassword: { email: string; otp: string };
     Home: undefined;
@@ -13,7 +13,7 @@ export type RootStackParamList = {
     JobDetail: { id: string };
     CreateJob: undefined;
     MyJobs: undefined;
-    JobPreview: { job: any };
+    JobPreview: { title: string; description: string; budget: string; budgetType: string; deadline: string; category: string; location: string; isRemote: boolean };
     Applicants: { jobId: string };
     HireConfirm: { applicantId: string; jobId: string };
     FreelancerProfile: { id: string };
