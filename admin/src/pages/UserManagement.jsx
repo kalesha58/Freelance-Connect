@@ -146,8 +146,8 @@ const UserManagement = () => {
                                                 border: '2px solid white',
                                                 boxShadow: 'var(--shadow-sm)'
                                             }}>
-                                                {user.avatar ? (
-                                                    <img src={user.avatar} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+                                                {user.profilePic ? (
+                                                    <img src={user.profilePic} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
                                                 ) : <User size={20} />}
                                             </div>
                                             <div>

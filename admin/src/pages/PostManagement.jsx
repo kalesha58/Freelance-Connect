@@ -43,8 +43,8 @@ const PostManagement = () => {
     };
 
     const filteredPosts = posts.filter(post => 
-        post.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        post.caption?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.userName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) return (
@@ -118,12 +118,12 @@ const PostManagement = () => {
                                             fontWeight: '700',
                                             border: '2px solid white'
                                         }}>
-                                            {post.user?.avatar ? (
-                                                <img src={post.user.avatar} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+                                            {post.userAvatar ? (
+                                                <img src={post.userAvatar} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
                                             ) : <User size={20} />}
                                         </div>
                                         <div>
-                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{post.user?.name || 'Anonymous'}</div>
+                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{post.userName || 'Anonymous'}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                 <Clock size={12} /> {new Date(post.createdAt).toLocaleDateString()}
                                             </div>
@@ -138,10 +138,10 @@ const PostManagement = () => {
                                 </div>
 
                                 <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                                    {post.content}
-                                    {post.image && (
+                                    {post.caption}
+                                    {post.imageUrl && (
                                         <div style={{ marginTop: '1rem', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                                            <img src={post.image} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Post content" />
+                                            <img src={post.imageUrl} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Post content" />
                                         </div>
                                     )}
                                 </div>
