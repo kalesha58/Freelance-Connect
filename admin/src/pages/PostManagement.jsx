@@ -47,7 +47,21 @@ const PostManagement = () => {
         post.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading) return <div style={{ padding: '2rem' }}>Loading posts...</div>;
+    if (loading) return (
+        <div className="animate-fade-in">
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <div className="skeleton skeleton-title"></div>
+                    <div className="skeleton skeleton-text" style={{ width: '200px' }}></div>
+                </div>
+            </header>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="card skeleton skeleton-card" style={{ height: '250px' }}></div>
+                ))}
+            </div>
+        </div>
+    );
 
     return (
         <div className="animate-fade-in">

@@ -32,8 +32,22 @@ const Dashboard = () => {
     }, []);
 
     if (loading) return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px' }}>
-            <div className="loader">Loading Dashboard...</div>
+        <div className="animate-fade-in">
+            <header style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                    <div className="skeleton skeleton-title"></div>
+                    <div className="skeleton skeleton-text" style={{ width: '250px' }}></div>
+                </div>
+            </header>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="card skeleton skeleton-card" style={{ height: '140px' }}></div>
+                ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+                <div className="card skeleton skeleton-card" style={{ height: '300px' }}></div>
+                <div className="card skeleton skeleton-card" style={{ height: '300px' }}></div>
+            </div>
         </div>
     );
 

@@ -48,7 +48,29 @@ const UserManagement = () => {
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading) return <div style={{ padding: '2rem' }}>Loading users...</div>;
+    if (loading) return (
+        <div className="animate-fade-in">
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <div className="skeleton skeleton-title"></div>
+                    <div className="skeleton skeleton-text" style={{ width: '200px' }}></div>
+                </div>
+            </header>
+            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+                 <div style={{ padding: '1.5rem' }}>
+                     {[1, 2, 3, 4, 5].map(i => (
+                         <div key={i} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                             <div className="skeleton skeleton-avatar"></div>
+                             <div style={{ flex: 1 }}>
+                                 <div className="skeleton skeleton-text" style={{ width: '30%' }}></div>
+                                 <div className="skeleton skeleton-text" style={{ width: '20%' }}></div>
+                             </div>
+                         </div>
+                     ))}
+                 </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="animate-fade-in">
