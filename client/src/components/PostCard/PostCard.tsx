@@ -74,8 +74,10 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
     const formattedRoleLabel = post.userRole === "freelancer" ? "Freelancer" : "Hiring Partner";
     const roleDisplayColor = post.userRole === "freelancer" ? colors.primary : colors.purpleAccent;
     const isLiked = post.likedByMe ?? post.isLiked ?? false;
-    const likesCount = Array.isArray(post.likes) ? post.likes.length : (post.likes as any ?? 0);
-    const commentsCount = Array.isArray(post.comments) ? post.comments.length : (post.comments as any ?? 0);
+    const rawLikes = post.likes as any;
+    const likesCount = Array.isArray(rawLikes) ? rawLikes.length : (Number(rawLikes) || 0);
+    const commentsCount = Array.isArray(post.comments) ? post.comments.length : (Number(post.comments) || 0);
+
 
     return (
         <View style={[styles.cardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
