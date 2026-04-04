@@ -48,16 +48,59 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
     const colors = useColors();
     const navigation = useNavigation<any>();
     const iconScaleValue = useSharedValue(1);
+    const bigHeartScale = useSharedValue(0);
+    const bigHeartOpacity = useSharedValue(0);
 
     const heartAnimationStyle = useAnimatedStyle(() => ({
         transform: [{ scale: iconScaleValue.value }],
     }));
 
+    const bigHeartStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: bigHeartScale.value }],
+        opacity: bigHeartOpacity.value,
+    }));
+
+    const triggerBigHeartAnimation = () => {
+        bigHeartScale.value = 0;
+        bigHeartOpacity.value = 1;
+        bigHeartScale.value = withSpring(1.2, { damping: 12, stiffness: 100 }, () => {
+            bigHeartScale.value = withSpring(1.0, {}, () => {
+                bigHeartOpacity.value = withSpring(0);
+            });
+        });
+    };
+
     const handleLikeInteraction = () => {
-        iconScaleValue.value = withSpring(1.4, {}, () => {
+        const isCurrentlyLiked = post.likedByMe ?? post.isLiked ?? false;
+        
+        // Only trigger big heart when liking (not unliking)
+        if (!isCurrentlyLiked) {
+            triggerBigHeartAnimation();
+        }
+
+        iconScaleValue.value = withSpring(1.5, { damping: 10, stiffness: 100 }, () => {
             iconScaleValue.value = withSpring(1);
         });
+        
         onLike(post.id || post._id || '');
+    };
+
+    // Double tap detection
+    const lastTap = React.useRef(0);
+    const handleImagePress = () => {
+        const now = Date.now();
+        if (lastTap.current && (now - lastTap.current) < 300) {
+            // Only like on double tap if NOT already liked
+            const isCurrentlyLiked = post.likedByMe ?? post.isLiked ?? false;
+            if (!isCurrentlyLiked) {
+                handleLikeInteraction();
+            } else {
+                // If already liked, still show big heart but don't toggle
+                triggerBigHeartAnimation();
+            }
+        } else {
+            lastTap.current = now;
+        }
     };
 
     const handleCommentPress = () => {
@@ -107,14 +150,19 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
 
             {/* Post Content: Image (Instagram Style) */}
             {(post.postImage || post.imageUrl) && (
-                <View style={styles.imageContainer}>
+                <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
                     <Image
                         source={{ uri: post.postImage || post.imageUrl }}
                         style={styles.postMediaImage}
                         resizeMode="cover"
                     />
-                </View>
+                    {/* Big Heart Popup Overlay */}
+                    <Animated.View style={[styles.bigHeartContainer, bigHeartStyle]}>
+                        <Ionicons name="heart" size={80} color="#fff" />
+                    </Animated.View>
+                </TouchableOpacity>
             )}
+
 
             {/* Engagement Bar */}
             <View style={styles.postEngagementActions}>
@@ -248,6 +296,16 @@ const styles = StyleSheet.create({
     postMediaImage: {
         width: '100%',
         height: '100%',
+    },
+    bigHeartContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
     },
     postEngagementActions: {
         flexDirection: "row",
