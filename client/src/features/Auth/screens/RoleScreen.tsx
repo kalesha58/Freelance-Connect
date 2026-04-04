@@ -47,7 +47,7 @@ export default function RoleScreen({ navigation }: { navigation: any }) {
             perks: ["Find remote jobs", "Build portfolio", "Grow earnings"],
         },
         {
-            id: "requester" as UserRole,
+            id: "hiring" as UserRole,
             title: "Requester / Hiring Partner",
             desc: "Post jobs, hire top talent, and grow your business with skilled freelancers.",
             iconName: "briefcase",

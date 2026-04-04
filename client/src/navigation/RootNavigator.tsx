@@ -27,6 +27,7 @@ import FreelancerProfileScreen from '@/features/Jobs/screens/FreelancerProfileSc
 import SearchScreen from '@/features/Jobs/screens/SearchScreen';
 import FilterModal from '@/features/Jobs/screens/FilterModal';
 import CreatePostScreen from '@/features/Feed/screens/CreatePostScreen';
+import PostCommentsScreen from '@/features/Feed/screens/PostCommentsScreen';
 import ProfileSetupScreen from '@/features/Profile/screens/ProfileSetupScreen';
 import SettingsScreen from '@/features/Profile/screens/SettingsScreen';
 import RatingsScreen from '@/features/Profile/screens/RatingsScreen';
@@ -82,6 +83,7 @@ export const RootNavigator = () => {
                     <Stack.Screen name="Search" component={SearchScreen} />
                     <Stack.Screen name="FilterModal" component={FilterModal} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="PostComments" component={PostCommentsScreen} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="Settings" component={SettingsScreen} />
                     <Stack.Screen name="Ratings" component={RatingsScreen} />
                     <Stack.Screen name="Notifications" component={NotificationsScreen} />

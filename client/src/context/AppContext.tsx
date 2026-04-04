@@ -11,6 +11,11 @@ export interface User {
     role: UserRole;
     avatar?: string;
     bio?: string;
+    tagline?: string;
+    location?: string;
+    companyName?: string;
+    companyWebsite?: string;
+    industry?: string;
     skills?: string[];
     services?: string[];
     education?: {
@@ -54,6 +59,26 @@ export interface Job {
     isRemote: boolean;
 }
 
+export interface Comment {
+    _id: string;
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    text: string;
+    likes: string[];
+    replies: Reply[];
+    createdAt: string;
+}
+
+export interface Reply {
+    _id: string;
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    text: string;
+    createdAt: string;
+}
+
 export interface Post {
     _id: string;
     userId: string;
@@ -64,9 +89,9 @@ export interface Post {
     imageUrl?: string;
     caption: string;
     tags: string[];
-    likes: number;
-    comments: any[];
-    isLiked: boolean;
+    likes: string[];          // Array of userIds
+    likedByMe: boolean;       // Computed on load: does current user's id appear in likes[]?
+    comments: Comment[];
     createdAt: string;
 }
 
@@ -91,7 +116,7 @@ interface AppContextType {
     signUp: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
     signOut: () => Promise<void>;
     fetchPosts: () => Promise<void>;
-    toggleLike: (postId: string) => void;
+    toggleLike: (postId: string) => Promise<void>;
     addPost: (post: Partial<Post>) => Promise<void>;
     updateProfile: (profileData: Partial<User>) => Promise<void>;
     fetchJobs: () => Promise<void>;
@@ -107,6 +132,9 @@ interface AppContextType {
     updateApplicationStatus: (applicationId: string, status: string) => Promise<void>;
     searchFreelancers: (query?: string, category?: string) => Promise<any[]>;
     unlockChat: (conversationId: string) => void;
+    fetchComments: (postId: string) => Promise<{ comments: Comment[]; postOwnerId: string }>;
+    addComment: (postId: string, text: string) => Promise<Comment>;
+    addReply: (postId: string, commentId: string, text: string) => Promise<Reply>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -128,7 +156,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (token) {
                 const userData = await apiClient("/auth/me");
                 setUser(userData);
-                fetchPosts();
+                fetchPosts(userData._id);
                 fetchJobs();
                 fetchConversations();
             }
@@ -140,10 +168,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const fetchPosts = async () => {
+    // Enrich posts with likedByMe flag based on current userId
+    const enrichPosts = (rawPosts: any[], currentUserId?: string): Post[] => {
+        return rawPosts.map(p => ({
+            ...p,
+            likes: Array.isArray(p.likes) ? p.likes : [],
+            likedByMe: currentUserId
+                ? (Array.isArray(p.likes) ? p.likes.some((id: string) => id.toString() === currentUserId) : false)
+                : false,
+        }));
+    };
+
+    const fetchPosts = async (userId?: string) => {
         try {
             const data = await apiClient("/posts");
-            setPosts(data);
+            const uid = userId || user?._id;
+            setPosts(enrichPosts(data, uid));
         } catch (error) {
             console.error("Fetch Posts Error:", error);
         }
@@ -176,7 +216,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
             await AsyncStorage.setItem("tasker_token", data.token);
             setUser(data);
-            fetchPosts();
+            fetchPosts(data._id);
             fetchJobs();
         } catch (error) {
             throw error;
@@ -192,7 +232,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
             await AsyncStorage.setItem("tasker_token", data.token);
             setUser(data);
-            fetchPosts();
+            fetchPosts(data._id);
             fetchJobs();
         } catch (error) {
             throw error;
@@ -216,15 +256,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
     };
 
-    const toggleLike = (postId: string) => {
-        // Backend doesn't have like endpoint yet, updating locally
+    const toggleLike = async (postId: string) => {
+        // Optimistic update first
         setPosts(prev =>
             prev.map(p =>
                 p._id === postId
-                    ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
+                    ? {
+                        ...p,
+                        likedByMe: !p.likedByMe,
+                        likes: p.likedByMe
+                            ? p.likes.filter(id => id !== user?._id)
+                            : [...p.likes, user?._id ?? ''],
+                    }
                     : p
             )
         );
+
+        try {
+            await apiClient(`/posts/${postId}/like`, { method: "POST" });
+        } catch (error) {
+            // Revert on failure
+            console.error("Toggle Like Error:", error);
+            setPosts(prev =>
+                prev.map(p =>
+                    p._id === postId
+                        ? {
+                            ...p,
+                            likedByMe: !p.likedByMe,
+                            likes: p.likedByMe
+                                ? p.likes.filter(id => id !== user?._id)
+                                : [...p.likes, user?._id ?? ''],
+                        }
+                        : p
+                )
+            );
+        }
     };
 
     const addPost = async (postData: Partial<Post>) => {
@@ -233,7 +299,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 method: "POST",
                 body: postData,
             });
-            setPosts(prev => [newPost, ...prev]);
+            const enriched = enrichPosts([newPost], user?._id);
+            setPosts(prev => [enriched[0], ...prev]);
         } catch (error) {
             throw error;
         }
@@ -321,6 +388,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         );
     };
 
+    // ── Comment API Helpers ──────────────────────────────────────────────────
+
+    const fetchComments = async (postId: string): Promise<{ comments: Comment[]; postOwnerId: string }> => {
+        return await apiClient(`/posts/${postId}/comments`);
+    };
+
+    const addComment = async (postId: string, text: string): Promise<Comment> => {
+        const newComment = await apiClient(`/posts/${postId}/comments`, {
+            method: "POST",
+            body: { text },
+        });
+        // Update comment count locally
+        setPosts(prev =>
+            prev.map(p =>
+                p._id === postId
+                    ? { ...p, comments: [...p.comments, newComment] }
+                    : p
+            )
+        );
+        return newComment;
+    };
+
+    const addReply = async (postId: string, commentId: string, text: string): Promise<Reply> => {
+        const newReply = await apiClient(`/posts/${postId}/comments/${commentId}/reply`, {
+            method: "POST",
+            body: { text },
+        });
+        return newReply;
+    };
+
     return (
         <AppContext.Provider
             value={{
@@ -350,6 +447,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 addPost,
                 updateProfile,
                 unlockChat,
+                fetchComments,
+                addComment,
+                addReply,
             }}
         >
             {children}

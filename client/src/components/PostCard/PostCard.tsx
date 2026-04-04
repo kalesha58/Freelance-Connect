@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-na
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useNavigation } from "@react-navigation/native";
 
 import { useColors } from "@/hooks/useColors";
 import { UserRole } from "@/types/auth";
@@ -15,14 +16,18 @@ const { width } = Dimensions.get('window');
  */
 export interface IPost {
     id: string;
+    _id?: string;
+    userId: string;
     userName: string;
     userRole: UserRole;
     userAvatar?: string;
     caption: string;
     postImage?: string;
-    likes: number;
-    comments: number;
-    isLiked: boolean;
+    imageUrl?: string;
+    likes: string[];      // array of user IDs
+    likedByMe: boolean;
+    comments: any[];      // raw comment objects
+    isLiked?: boolean;    // legacy fallback
     createdAt: string;
     tags: string[];
 }
@@ -41,6 +46,7 @@ interface IPostCardProps {
  */
 function PostCardInner({ post, onLike }: IPostCardProps) {
     const colors = useColors();
+    const navigation = useNavigation<any>();
     const iconScaleValue = useSharedValue(1);
 
     const heartAnimationStyle = useAnimatedStyle(() => ({
@@ -51,11 +57,25 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
         iconScaleValue.value = withSpring(1.4, {}, () => {
             iconScaleValue.value = withSpring(1);
         });
-        onLike(post.id);
+        onLike(post.id || post._id || '');
+    };
+
+    const handleCommentPress = () => {
+        navigation.navigate("PostComments", {
+            postId: post.id || post._id,
+            postOwnerId: post.userId,
+            caption: post.caption,
+            userName: post.userName,
+            userAvatar: post.userAvatar,
+            likesCount: Array.isArray(post.likes) ? post.likes.length : 0,
+        });
     };
 
     const formattedRoleLabel = post.userRole === "freelancer" ? "Freelancer" : "Hiring Partner";
     const roleDisplayColor = post.userRole === "freelancer" ? colors.primary : colors.purpleAccent;
+    const isLiked = post.likedByMe ?? post.isLiked ?? false;
+    const likesCount = Array.isArray(post.likes) ? post.likes.length : (post.likes as any ?? 0);
+    const commentsCount = Array.isArray(post.comments) ? post.comments.length : (post.comments as any ?? 0);
 
     return (
         <View style={[styles.cardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -84,10 +104,10 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
             </View>
 
             {/* Post Content: Image (Instagram Style) */}
-            {post.postImage && (
+            {(post.postImage || post.imageUrl) && (
                 <View style={styles.imageContainer}>
                     <Image
-                        source={{ uri: post.postImage }}
+                        source={{ uri: post.postImage || post.imageUrl }}
                         style={styles.postMediaImage}
                         resizeMode="cover"
                     />
@@ -100,14 +120,14 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                     <TouchableOpacity style={styles.actionItemBtn} onPress={handleLikeInteraction} activeOpacity={0.7}>
                         <Animated.View style={heartAnimationStyle}>
                             <Ionicons
-                                name={post.isLiked ? "heart" : "heart-outline"}
+                                name={isLiked ? "heart" : "heart-outline"}
                                 size={26}
-                                color={post.isLiked ? colors.destructive : colors.foreground}
+                                color={isLiked ? colors.destructive : colors.foreground}
                             />
                         </Animated.View>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.actionItemBtn} activeOpacity={0.7}>
+                    <TouchableOpacity style={styles.actionItemBtn} activeOpacity={0.7} onPress={handleCommentPress}>
                         <MaterialCommunityIcons name="comment-outline" size={24} color={colors.foreground} />
                     </TouchableOpacity>
 
@@ -123,7 +143,7 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
 
             {/* Likes Count */}
             <Text style={[styles.likesCountText, { color: colors.foreground }]}>
-                {post.likes.toLocaleString()} likes
+                {likesCount.toLocaleString()} {likesCount === 1 ? 'like' : 'likes'}
             </Text>
 
             {/* Caption Section */}
@@ -133,7 +153,7 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                     {post.caption}
                 </Text>
 
-                {post.tags.length > 0 && (
+                {post.tags && post.tags.length > 0 && (
                     <View style={styles.postTagsWrapper}>
                         {post.tags.map(tagName => (
                             <Text key={tagName} style={[styles.postTagLabel, { color: colors.primary }]}>#{tagName}</Text>
@@ -141,10 +161,10 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                     </View>
                 )}
 
-                {post.comments > 0 && (
-                    <TouchableOpacity style={styles.viewCommentsBtn}>
+                {commentsCount > 0 && (
+                    <TouchableOpacity style={styles.viewCommentsBtn} onPress={handleCommentPress}>
                         <Text style={[styles.viewCommentsText, { color: colors.mutedForeground }]}>
-                            View all {post.comments} comments
+                            View all {commentsCount} {commentsCount === 1 ? 'comment' : 'comments'}
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -174,20 +194,20 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     profileAvatarPlaceholder: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         alignItems: "center",
         justifyContent: "center",
     },
     profileAvatarImg: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
     },
     avatarLabel: {
         color: "#fff",
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: '700',
     },
     headerMetaData: {
@@ -220,7 +240,7 @@ const styles = StyleSheet.create({
     },
     imageContainer: {
         width: '100%',
-        aspectRatio: 1, // Instagram standard square or 4:5
+        aspectRatio: 1,
         backgroundColor: '#f0f0f0',
     },
     postMediaImage: {

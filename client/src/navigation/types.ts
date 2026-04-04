@@ -20,6 +20,7 @@ export type RootStackParamList = {
     Search: undefined;
     FilterModal: undefined;
     CreatePost: undefined;
+    PostComments: { postId: string; postOwnerId: string; caption: string; userName: string; userAvatar?: string; likesCount: number };
     Settings: undefined;
     Ratings: undefined;
     Notifications: undefined;

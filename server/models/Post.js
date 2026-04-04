@@ -1,5 +1,23 @@
 const mongoose = require('mongoose');
 
+const replySchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userName: { type: String, required: true },
+    userAvatar: { type: String },
+    text: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const commentSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userName: { type: String, required: true },
+    userAvatar: { type: String },
+    text: { type: String, required: true },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    replies: [replySchema],
+    createdAt: { type: Date, default: Date.now }
+});
+
 const postSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     userName: { type: String, required: true },
@@ -9,12 +27,9 @@ const postSchema = new mongoose.Schema({
     imageUrl: { type: String },
     caption: { type: String },
     tags: { type: [String], default: [] },
-    likes: { type: Number, default: 0 },
-    comments: [{
-        userName: String,
-        text: String,
-        createdAt: { type: Date, default: Date.now }
-    }],
+    // likes is now an array of user ObjectIds for toggle + count
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    comments: [commentSchema],
     createdAt: { type: Date, default: Date.now }
 });
 

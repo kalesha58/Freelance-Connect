@@ -19,11 +19,17 @@ import { useColors } from "@/hooks/useColors";
 
 const { width } = Dimensions.get("window");
 
-const STEPS = [
+const FREELANCER_STEPS = [
     { title: "Personal Info", icon: "user" },
     { title: "Services", icon: "briefcase" },
     { title: "Education", icon: "book" },
     { title: "Experience", icon: "award" },
+];
+
+const HIRING_STEPS = [
+    { title: "Company Info", icon: "briefcase" },
+    { title: "About", icon: "info" },
+    { title: "Industry & Location", icon: "map-pin" },
 ];
 
 export default function ProfileSetupScreen() {
@@ -34,8 +40,15 @@ export default function ProfileSetupScreen() {
 
     const [currentStep, setCurrentStep] = useState(0);
     const [bio, setBio] = useState(user?.bio || "");
+    const [tagline, setTagline] = useState(user?.tagline || "");
     const [services, setServices] = useState<string[]>(user?.services || []);
     const [newService, setNewService] = useState("");
+
+    // Hiring specific state
+    const [companyName, setCompanyName] = useState(user?.companyName || "");
+    const [companyWebsite, setCompanyWebsite] = useState(user?.companyWebsite || "");
+    const [location, setLocation] = useState(user?.location || "");
+    const [industry, setIndustry] = useState(user?.industry || "");
 
     // Education state
     const [education, setEducation] = useState(user?.education || []);
@@ -51,6 +64,9 @@ export default function ProfileSetupScreen() {
     const [expStart, setExpStart] = useState("");
     const [expEnd, setExpEnd] = useState("");
     const [expDesc, setExpDesc] = useState("");
+
+    const isHiring = user?.role === "hiring" || user?.role === "requester";
+    const STEPS = isHiring ? HIRING_STEPS : FREELANCER_STEPS;
 
     const addService = () => {
         if (newService.trim()) {
@@ -96,12 +112,21 @@ export default function ProfileSetupScreen() {
     };
 
     const isNextDisabled = () => {
-        switch (currentStep) {
-            case 0: return bio.trim().length < 10; // Bio at least 10 chars
-            case 1: return services.length === 0;
-            case 2: return education.length === 0;
-            case 3: return experience.length === 0;
-            default: return false;
+        if (isHiring) {
+            switch (currentStep) {
+                case 0: return companyName.trim().length < 2;
+                case 1: return bio.trim().length < 10;
+                case 2: return industry.trim().length < 2 || location.trim().length < 2;
+                default: return false;
+            }
+        } else {
+            switch (currentStep) {
+                case 0: return bio.trim().length < 10; // Bio at least 10 chars
+                case 1: return services.length === 0;
+                case 2: return education.length === 0;
+                case 3: return experience.length === 0;
+                default: return false;
+            }
         }
     };
 
@@ -116,16 +141,107 @@ export default function ProfileSetupScreen() {
     };
 
     const handleComplete = async () => {
-        await updateProfile({
+        const profileData: any = {
             bio,
-            services,
-            education,
-            experience,
+            tagline,
+            location,
             isProfileComplete: true
-        });
+        };
+
+        if (isHiring) {
+            profileData.companyName = companyName;
+            profileData.companyWebsite = companyWebsite;
+            profileData.industry = industry;
+        } else {
+            profileData.services = services;
+            profileData.education = education;
+            profileData.experience = experience;
+        }
+
+        await updateProfile(profileData);
     };
 
     const renderStepContent = () => {
+        if (isHiring) {
+            switch (currentStep) {
+                case 0:
+                    return (
+                        <View style={styles.stepContainer}>
+                            <Text style={[styles.stepTitle, { color: colors.foreground }]}>Company Details</Text>
+                            <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
+                                Tell us about your organization or personal brand.
+                            </Text>
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="Company Name"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={companyName}
+                                onChangeText={setCompanyName}
+                            />
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="Company Website (Optional)"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={companyWebsite}
+                                onChangeText={setCompanyWebsite}
+                                keyboardType="url"
+                                autoCapitalize="none"
+                            />
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="Professional Tagline"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={tagline}
+                                onChangeText={setTagline}
+                            />
+                        </View>
+                    );
+                case 1:
+                    return (
+                        <View style={styles.stepContainer}>
+                            <Text style={[styles.stepTitle, { color: colors.foreground }]}>About Your Company</Text>
+                            <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
+                                Describe what your company does and what kind of talent you're looking for.
+                            </Text>
+                            <TextInput
+                                style={[styles.textArea, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="e.g. We are a startup focused on AI solutions..."
+                                placeholderTextColor={colors.mutedForeground}
+                                multiline
+                                numberOfLines={6}
+                                value={bio}
+                                onChangeText={setBio}
+                            />
+                        </View>
+                    );
+                case 2:
+                    return (
+                        <View style={styles.stepContainer}>
+                            <Text style={[styles.stepTitle, { color: colors.foreground }]}>Industry & Location</Text>
+                            <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
+                                Help freelancers know where you're based and your field of work.
+                            </Text>
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="Industry (e.g. Technology, Healthcare)"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={industry}
+                                onChangeText={setIndustry}
+                            />
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="Location (e.g. New York, USA)"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={location}
+                                onChangeText={setLocation}
+                            />
+                        </View>
+                    );
+                default: return null;
+            }
+        }
+
+        // Freelancer steps
         switch (currentStep) {
             case 0:
                 return (
@@ -136,12 +252,16 @@ export default function ProfileSetupScreen() {
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                             Write a brief bio that highlights your passion and expertise.
                         </Text>
-                        <Text style={[styles.helperText, { color: colors.mutedForeground }]}>
-                            Example: "I am a professional photographer with over 5 years of experience..."
-                        </Text>
+                        <TextInput
+                            style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 12 }]}
+                            placeholder="Professional Tagline (e.g. Senior Mobile Developer)"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={tagline}
+                            onChangeText={setTagline}
+                        />
                         <TextInput
                             style={[styles.textArea, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
-                            placeholder="e.g. Professional Photographer"
+                            placeholder="Tell us more about your background..."
                             placeholderTextColor={colors.mutedForeground}
                             multiline
                             numberOfLines={6}

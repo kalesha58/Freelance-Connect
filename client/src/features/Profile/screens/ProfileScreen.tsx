@@ -202,13 +202,31 @@ export default function ProfileScreen() {
 
                     <View style={styles.bioSection}>
                         <Text style={[styles.profileNameBold, { color: colors.foreground }]}>{user.name}</Text>
+                        {user.tagline ? (
+                            <Text style={[styles.taglineText, { color: colors.primary }]}>{user.tagline}</Text>
+                        ) : null}
+                        
                         <View style={styles.roleBadgeCompact}>
                             <View style={[styles.roleDot, { backgroundColor: roleAccentColor }]} />
                             <Text style={[styles.roleTextCompact, { color: roleAccentColor }]}>{roleName}</Text>
-                            <Text style={[styles.emailText, { color: colors.mutedForeground }]}> • {user.email}</Text>
+                            {user.location ? (
+                                <Text style={[styles.locationText, { color: colors.mutedForeground }]}> • {user.location}</Text>
+                            ) : null}
                         </View>
+
+                        {user.role === 'hiring' || user.role === 'requester' ? (
+                            <View style={styles.companyInfoRow}>
+                                <Feather name="briefcase" size={14} color={colors.mutedForeground} />
+                                <Text style={[styles.companyText, { color: colors.foreground }]}>
+                                    {user.companyName || "Independent Hirer"} {user.industry ? `• ${user.industry}` : ""}
+                                </Text>
+                            </View>
+                        ) : null}
+
                         <Text style={[styles.bioBodyText, { color: colors.foreground }]}>
-                            {user.bio || "Crafting digital experiences with passion. Senior UI/UX Designer & Frontend Developer specialized in mobile applications."}
+                            {user.bio || (user.role === 'freelancer' 
+                                ? "Crafting digital experiences with passion. Senior UI/UX Designer & Frontend Developer specialized in mobile applications."
+                                : "Looking for top-tier talent to collaborate on exciting projects and drive innovation.")}
                         </Text>
                     </View>
 
@@ -648,6 +666,31 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '400',
         lineHeight: 20,
+        marginTop: 8,
+    },
+    taglineText: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 6,
+    },
+    locationText: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    companyInfoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 8,
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        alignSelf: 'flex-start',
+    },
+    companyText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
     profileActionRow: {
         flexDirection: "row",

@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['freelancer', 'hiring', 'requester', 'admin'], required: true },
     avatar: { type: String },
     bio: { type: String, default: "" },
+    tagline: { type: String, default: "" },
+    location: { type: String, default: "" },
+    companyName: { type: String, default: "" },
+    companyWebsite: { type: String, default: "" },
+    industry: { type: String, default: "" },
     skills: { type: [String], default: [] },
     services: { type: [String], default: [] },
     education: [{
