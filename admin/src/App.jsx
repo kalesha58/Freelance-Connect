@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
 import JobManagement from './pages/JobManagement';
 import PostManagement from './pages/PostManagement';
+import Settings from './pages/Settings';
 
 function App() {
     const [auth, setAuth] = useState(null);
@@ -41,7 +42,7 @@ function App() {
                         <Route path="/users" element={<Layout handleLogout={handleLogout}><UserManagement /></Layout>} />
                         <Route path="/jobs" element={<Layout handleLogout={handleLogout}><JobManagement /></Layout>} />
                         <Route path="/posts" element={<Layout handleLogout={handleLogout}><PostManagement /></Layout>} />
-                        <Route path="/settings" element={<Layout handleLogout={handleLogout}><div className="card"><h3>System Settings</h3><p>Configure platform-wide parameters.</p></div></Layout>} />
+                        <Route path="/settings" element={<Layout handleLogout={handleLogout}><Settings /></Layout>} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </>
                 )}
