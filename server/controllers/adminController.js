@@ -84,7 +84,7 @@ const deleteUser = async (req, res) => {
 // Job Management
 const getJobs = async (req, res) => {
     try {
-        const jobs = await Job.find({}).populate('postedBy', 'name email');
+        const jobs = await Job.find({}).populate('clientId', 'name email');
         res.json(jobs);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -108,7 +108,7 @@ const deleteJob = async (req, res) => {
 // Community Post Management
 const getPosts = async (req, res) => {
     try {
-        const posts = await Post.find({}).populate('user', 'name email');
+        const posts = await Post.find({}).populate('userId', 'name email');
         res.json(posts);
     } catch (error) {
         res.status(500).json({ message: error.message });
