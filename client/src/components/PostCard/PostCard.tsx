@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Image, Dimensions } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -63,9 +63,12 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
     const triggerBigHeartAnimation = () => {
         bigHeartScale.value = 0;
         bigHeartOpacity.value = 1;
-        bigHeartScale.value = withSpring(1.2, { damping: 12, stiffness: 100 }, () => {
+
+        // Snappy pop-in
+        bigHeartScale.value = withSpring(1.2, { damping: 10, stiffness: 100 }, () => {
             bigHeartScale.value = withSpring(1.0, {}, () => {
-                bigHeartOpacity.value = withSpring(0);
+                // Wait and then fade out over the requested 2 seconds
+                bigHeartOpacity.value = withTiming(0, { duration: 2000 });
             });
         });
     };
