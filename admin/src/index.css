@@ -33,6 +33,39 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html.dark {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #020617;
+    
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-light: #64748b;
+    --text-on-dark: #f8fafc;
+    
+    --border: #334155;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+}
+
+html.dark .form-input, html.dark select, html.dark .skeleton {
+    background-color: #0f172a;
+    color: var(--text-main);
+}
+
+html.dark .skeleton {
+    background-image: linear-gradient(
+        to right,
+        #0f172a 0%,
+        #1e293b 20%,
+        #0f172a 40%,
+        #0f172a 100%
+    );
+}
+
 * {
     margin: 0;
     padding: 0;

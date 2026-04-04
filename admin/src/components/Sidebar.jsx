@@ -7,10 +7,14 @@ import {
     MessageSquare, 
     Settings, 
     LogOut,
-    ExternalLink
+    ExternalLink,
+    Moon,
+    Sun
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Sidebar = ({ handleLogout }) => {
+    const { isDarkMode, toggleTheme } = useTheme();
     const navItems = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
         { name: 'User Management', icon: <Users size={20} />, path: '/users' },
@@ -86,6 +90,26 @@ const Sidebar = ({ handleLogout }) => {
                 padding: '1.5rem',
                 borderTop: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
+                <button
+                    onClick={toggleTheme}
+                    style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        padding: '1rem 1.25rem',
+                        borderRadius: 'var(--radius-md)',
+                        color: 'var(--text-light)',
+                        backgroundColor: 'transparent',
+                        transition: 'var(--transition)',
+                        fontSize: '0.95rem',
+                        marginBottom: '0.5rem'
+                    }}
+                >
+                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                    <span style={{ fontWeight: '500' }}>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+
                 <button
                     onClick={handleLogout}
                     style={{
