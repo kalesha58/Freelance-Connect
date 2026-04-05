@@ -46,14 +46,17 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                 className="card animate-scale-in" 
                 style={{
                     width: '100%',
-                    maxWidth: '550px',
+                    maxWidth: '600px',
+                    maxHeight: '90vh',
                     backgroundColor: 'white',
                     position: 'relative',
                     padding: 0,
-                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
                     borderRadius: '16px',
-                    border: '1px solid var(--border)'
+                    border: '1px solid var(--border)',
+                    overflow: 'hidden'
                 }}
             >
                 {/* Header */}
@@ -63,7 +66,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    backgroundColor: '#fff'
+                    backgroundColor: '#fff',
+                    flexShrink: 0
                 }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0, color: 'var(--text-main)' }}>
                         {title}
@@ -88,7 +92,11 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: '1.75rem' }}>
+                <div style={{ 
+                    padding: '1.75rem', 
+                    overflowY: 'auto',
+                    flex: 1
+                }}>
                     {children}
                 </div>
             </div>
@@ -99,11 +107,11 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                     to { opacity: 1; }
                 }
                 @keyframes scale-in {
-                    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-                    to { opacity: 1; transform: scale(1) translateY(0); }
+                    from { opacity: 0; transform: scale(0.98); }
+                    to { opacity: 1; transform: scale(1); }
                 }
                 .animate-scale-in {
-                    animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}} />
         </div>
