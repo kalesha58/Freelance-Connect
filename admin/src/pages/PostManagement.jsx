@@ -321,12 +321,12 @@ const PostManagement = () => {
                         <div style={{
                             border: '2px dashed var(--border)',
                             borderRadius: '12px',
-                            padding: '1.5rem',
+                            padding: '1rem',
                             textAlign: 'center',
                             backgroundColor: '#f8fafc',
                             position: 'relative',
                             overflow: 'hidden',
-                            minHeight: '140px',
+                            minHeight: '100px',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -358,13 +358,13 @@ const PostManagement = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ padding: '0.75rem', backgroundColor: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-sm)', color: 'var(--text-light)' }}>
-                                        <ImageIcon size={24} />
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div style={{ padding: '0.5rem', backgroundColor: 'white', borderRadius: '10px', boxShadow: 'var(--shadow-sm)', color: 'var(--text-light)' }}>
+                                        <ImageIcon size={20} />
                                     </div>
                                     <div>
-                                        <p style={{ margin: 0, fontWeight: '600', fontSize: '0.9rem' }}>Upload some media</p>
-                                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>JPG, PNG or WEBP (Max 5MB)</p>
+                                        <p style={{ margin: 0, fontWeight: '600', fontSize: '0.85rem' }}>Upload some media</p>
+                                        <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>JPG, PNG or WEBP (Max 5MB)</p>
                                     </div>
                                 </div>
                             )}

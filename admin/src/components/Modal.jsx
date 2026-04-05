@@ -47,7 +47,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                 style={{
                     width: '100%',
                     maxWidth: '600px',
-                    maxHeight: '90vh',
+                    maxHeight: '80vh',
                     backgroundColor: 'white',
                     position: 'relative',
                     padding: 0,
