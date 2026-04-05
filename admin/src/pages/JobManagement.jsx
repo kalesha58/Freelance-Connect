@@ -8,18 +8,41 @@ import {
     Clock, 
     Search, 
     MoreVertical,
-    FileText
+    FileText,
+    Plus,
+    AlertCircle,
+    X,
+    Filter
 } from 'lucide-react';
+import Modal from '../components/Modal';
 
 const JobManagement = () => {
-    const [jobs, setJobs] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        title: '',
+        budget: '',
+        budgetType: 'fixed',
+        location: 'Remote',
+        description: '',
+        category: 'Development',
+        clientId: '',
+        isRemote: true
+    });
 
-    const fetchJobs = async () => {
+    const fetchData = async () => {
         try {
-            const response = await api.get('/api/admin/jobs');
-            setJobs(response.data);
+            setLoading(true);
+            const [jobsRes, usersRes] = await Promise.all([
+                api.get('/api/admin/jobs'),
+                api.get('/api/admin/users')
+            ]);
+            setJobs(jobsRes.data);
+            setUsers(usersRes.data.filter(u => u.role === 'hiring'));
         } catch (err) {
             console.error(err);
         } finally {
@@ -28,8 +51,27 @@ const JobManagement = () => {
     };
 
     useEffect(() => {
-        fetchJobs();
+        fetchData();
     }, []);
+
+    const handleCreateJob = async (e) => {
+        e.preventDefault();
+        if (!formData.clientId) return alert('Please select a Hiring Partner');
+        setSubmitting(true);
+        try {
+            await api.post('/api/admin/jobs', formData);
+            await fetchData();
+            setIsModalOpen(false);
+            setFormData({
+                title: '', budget: '', budgetType: 'fixed', location: 'Remote',
+                description: '', category: 'Development', clientId: '', isRemote: true
+            });
+        } catch (err) {
+            alert(err.response?.data?.message || 'Error creating job');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this job listing?')) return;
@@ -41,10 +83,12 @@ const JobManagement = () => {
         }
     };
 
-    const filteredJobs = jobs.filter(job => 
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredJobs = jobs.filter(job => {
+        const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            job.company?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = categoryFilter === 'all' || job.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+    });
 
     if (loading) return (
         <div className="animate-fade-in">
@@ -66,14 +110,27 @@ const JobManagement = () => {
         <div className="animate-fade-in">
             <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Job Listings</h2>
+                    <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', fontWeight: '800' }}>Job Listings</h2>
                     <p style={{ color: 'var(--text-muted)' }}>Monitor and manage all job postings</p>
                 </div>
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="btn btn-primary"
+                >
+                    <Plus size={18} style={{ marginRight: '0.5rem' }} />
+                    Post New Job
+                </button>
             </header>
 
             <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', backgroundColor: '#fafafa' }}>
-                    <div style={{ position: 'relative', width: '400px' }}>
+                <div style={{ 
+                    padding: '1.25rem 1.5rem', 
+                    borderBottom: '1px solid var(--border)', 
+                    backgroundColor: '#fafafa',
+                    display: 'flex',
+                    gap: '1.5rem'
+                }}>
+                    <div style={{ position: 'relative', flex: 2 }}>
                         <Search size={18} style={{
                             position: 'absolute',
                             left: '1rem',
@@ -85,10 +142,24 @@ const JobManagement = () => {
                             type="text"
                             placeholder="Search jobs..."
                             className="form-input"
-                            style={{ paddingLeft: '2.75rem', backgroundColor: 'white' }}
+                            style={{ paddingLeft: '2.75rem', backgroundColor: 'white', height: '48px' }}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <select 
+                            className="form-input"
+                            style={{ backgroundColor: 'white', height: '48px', appearance: 'none' }}
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                        >
+                            <option value="all">All Categories</option>
+                            <option value="Development">Development</option>
+                            <option value="Design">Design</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Writing">Writing</option>
+                        </select>
                     </div>
                 </div>
 
@@ -180,10 +251,92 @@ const JobManagement = () => {
                 {filteredJobs.length === 0 && (
                     <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-light)' }}>
                         <Briefcase size={48} style={{ marginBottom: '1rem', opacity: 0.2 }} />
-                        <p>No jobs found.</p>
+                        <p>No jobs found matching filters.</p>
                     </div>
                 )}
             </div>
+
+            <Modal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                title="Post New Job Listing"
+            >
+                <form onSubmit={handleCreateJob} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Job Title</label>
+                            <input 
+                                required
+                                className="form-input" 
+                                placeholder="e.g. Senior React Developer"
+                                value={formData.title}
+                                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Assign to Hiring Partner</label>
+                            <select 
+                                required
+                                className="form-input"
+                                value={formData.clientId}
+                                onChange={(e) => setFormData({...formData, clientId: e.target.value})}
+                            >
+                                <option value="">Select Partner...</option>
+                                {users.map(u => (
+                                    <option key={u._id} value={u._id}>{u.name} ({u.email})</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Budget (e.g. $500)</label>
+                            <input 
+                                required
+                                className="form-input" 
+                                placeholder="$500"
+                                value={formData.budget}
+                                onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Category</label>
+                            <select 
+                                className="form-input"
+                                value={formData.category}
+                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                            >
+                                <option value="Development">Development</option>
+                                <option value="Design">Design</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Writing">Writing</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Job Description</label>
+                        <textarea 
+                            required
+                            className="form-input" 
+                            style={{ minHeight: '100px', paddingTop: '0.75rem' }}
+                            placeholder="Describe the job requirements..."
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn" style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none' }}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={submitting}>
+                            {submitting ? 'Posting...' : 'Post Job'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };

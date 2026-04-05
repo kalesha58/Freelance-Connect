@@ -115,6 +115,29 @@ const getPosts = async (req, res) => {
     }
 };
 
+const createPost = async (req, res) => {
+    try {
+        const { userId, caption, imageUrl, type, tags } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const post = await Post.create({
+            userId,
+            userName: user.name,
+            userAvatar: user.profilePic || user.avatar,
+            userRole: user.role === 'hiring' ? 'hiring' : 'freelancer', // Normalized role for feed
+            caption,
+            imageUrl,
+            type,
+            tags: tags || []
+        });
+
+        res.status(201).json(post);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 const deletePost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
@@ -129,13 +152,71 @@ const deletePost = async (req, res) => {
     }
 };
 
+// Create User
+const createUser = async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
+        const userExists = await User.findOne({ email });
+
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role,
+            isProfileComplete: true // Admins create "verified" profiles by default
+        });
+
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// Create Job
+const createJob = async (req, res) => {
+    try {
+        const { title, budget, budgetType, location, description, category, clientId, isRemote } = req.body;
+        const client = await User.findById(clientId);
+        if (!client) return res.status(404).json({ message: 'Client not found' });
+
+        const job = await Job.create({
+            title,
+            budget,
+            budgetType,
+            location,
+            description,
+            category,
+            clientId,
+            clientName: client.name,
+            clientAvatar: client.profilePic || client.avatar,
+            isRemote: isRemote || true
+        });
+
+        res.status(201).json(job);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     adminLogin,
     getStats,
     getUsers,
+    createUser,
     deleteUser,
     getJobs,
+    createJob,
     deleteJob,
     getPosts,
+    createPost,
     deletePost
 };
