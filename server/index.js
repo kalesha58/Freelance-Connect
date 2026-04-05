@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const multer = require('multer');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -54,10 +55,21 @@ app.get('/', (req, res) => {
     res.send('Freelance Connect API is running...');
 });
 
-// Basic Error Handler
+// Error handler (multer / Cloudinary / other)
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    console.error(err.stack || err);
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ message: 'File too large (max 10MB)' });
+        }
+        return res.status(400).json({ message: err.message });
+    }
+    const status = err.status || err.statusCode || 500;
+    const message =
+        typeof err.message === 'string' && err.message
+            ? err.message
+            : 'Something went wrong';
+    res.status(status).json({ message });
 });
 
 // Export for Vercel

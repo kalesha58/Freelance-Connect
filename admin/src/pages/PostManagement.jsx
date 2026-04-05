@@ -78,13 +78,11 @@ const PostManagement = () => {
         uploadData.append('image', file);
 
         try {
-            const response = await api.post('/api/upload', uploadData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await api.post('/api/upload', uploadData);
             setFormData({ ...formData, imageUrl: response.data.url });
         } catch (err) {
-            console.error('Upload Error:', err);
-            alert('Failed to upload image. Please try again.');
+            console.error('Upload Error Details:', err.response?.data || err.message);
+            alert(`Upload failed: ${err.response?.data?.message || err.message}`);
             setImagePreview(null);
         } finally {
             setUploadingImage(false);
