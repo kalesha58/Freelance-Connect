@@ -110,7 +110,7 @@ export default function SettingsScreen() {
                 </SettingSection>
 
                 <SettingSection title="ACCOUNT" colors={colors}>
-                    <SettingRow icon="user" label="Edit Profile" onPress={() => { }} colors={colors} />
+                    <SettingRow icon="user" label="Edit Profile" onPress={() => navigation.navigate("ProfileSetup")} colors={colors} />
                     <SettingRow icon="credit-card" label="Payments" sublabel="Manage cards & billing" onPress={() => { }} colors={colors} />
                     <SettingRow icon="star" label="Reviews" onPress={() => navigation.navigate("Ratings")} colors={colors} />
                     <SettingRow icon="shield" label="Security" sublabel="Password & Verification" onPress={() => { }} isLast colors={colors} />

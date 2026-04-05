@@ -37,7 +37,9 @@ const UserManagement = () => {
         hourlyRate: 0,
         isAvailableForHire: true,
         portfolioItems: [{ title: '', imageUrl: '', link: '' }],
-        freelancerReviews: [{ clientName: '', rating: 5, comment: '' }]
+        freelancerReviews: [{ clientName: '', rating: 5, comment: '' }],
+        education: [{ institution: '', degree: '', startYear: '', endYear: '' }],
+        experience: [{ company: '', role: '', startYear: '', endYear: '', description: '' }]
     });
     const [savingFreelancer, setSavingFreelancer] = useState(false);
 
@@ -53,13 +55,24 @@ const UserManagement = () => {
                 comment: r.comment || ''
             }))
             : [{ clientName: '', rating: 5, comment: '' }];
+        
+        const education = (user.education && user.education.length > 0)
+            ? user.education.map((e) => ({ institution: e.institution || '', degree: e.degree || '', startYear: e.startYear || '', endYear: e.endYear || '' }))
+            : [{ institution: '', degree: '', startYear: '', endYear: '' }];
+            
+        const experience = (user.experience && user.experience.length > 0)
+            ? user.experience.map((e) => ({ company: e.company || '', role: e.role || '', startYear: e.startYear || '', endYear: e.endYear || '', description: e.description || '' }))
+            : [{ company: '', role: '', startYear: '', endYear: '', description: '' }];
+
         setFreelancerProfileForm({
             tagline: user.tagline || '',
             bio: user.bio || '',
             hourlyRate: user.hourlyRate ?? 0,
             isAvailableForHire: user.isAvailableForHire !== false,
             portfolioItems: portfolio,
-            freelancerReviews: reviews
+            freelancerReviews: reviews,
+            education,
+            experience
         });
         setEditFreelancerOpen(true);
     };
@@ -79,13 +92,24 @@ const UserManagement = () => {
                     rating: Math.min(5, Math.max(1, Number(r.rating) || 5)),
                     comment: r.comment.trim()
                 }));
+
+            const education = freelancerProfileForm.education.filter(
+                (e) => (e.institution && e.institution.trim()) || (e.degree && e.degree.trim())
+            );
+
+            const experience = freelancerProfileForm.experience.filter(
+                (e) => (e.company && e.company.trim()) || (e.role && e.role.trim())
+            );
+
             await api.put(`/api/admin/users/${editFreelancerUser._id}`, {
                 tagline: freelancerProfileForm.tagline.trim(),
                 bio: freelancerProfileForm.bio.trim(),
                 hourlyRate: Number(freelancerProfileForm.hourlyRate) || 0,
                 isAvailableForHire: freelancerProfileForm.isAvailableForHire,
                 portfolioItems,
-                freelancerReviews
+                freelancerReviews,
+                education,
+                experience
             });
             setEditFreelancerOpen(false);
             setEditFreelancerUser(null);
@@ -618,6 +642,147 @@ const UserManagement = () => {
                                         const next = [...freelancerProfileForm.freelancerReviews];
                                         next[idx] = { ...next[idx], comment: e.target.value };
                                         setFreelancerProfileForm({ ...freelancerProfileForm, freelancerReviews: next });
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Education</label>
+                            <button
+                                type="button"
+                                className="btn"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                                onClick={() => setFreelancerProfileForm({
+                                    ...freelancerProfileForm,
+                                    education: [...freelancerProfileForm.education, { institution: '', degree: '', startYear: '', endYear: '' }]
+                                })}
+                            >
+                                + Add item
+                            </button>
+                        </div>
+                        {freelancerProfileForm.education.map((e, idx) => (
+                            <div key={idx} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.5rem' }}>
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Institution"
+                                    value={e.institution}
+                                    onChange={(val) => {
+                                        const next = [...freelancerProfileForm.education];
+                                        next[idx] = { ...next[idx], institution: val.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, education: next });
+                                    }}
+                                />
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Degree"
+                                    value={e.degree}
+                                    onChange={(val) => {
+                                        const next = [...freelancerProfileForm.education];
+                                        next[idx] = { ...next[idx], degree: val.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, education: next });
+                                    }}
+                                />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                    <input
+                                        className="form-input"
+                                        placeholder="Start Year"
+                                        value={e.startYear}
+                                        onChange={(val) => {
+                                            const next = [...freelancerProfileForm.education];
+                                            next[idx] = { ...next[idx], startYear: val.target.value };
+                                            setFreelancerProfileForm({ ...freelancerProfileForm, education: next });
+                                        }}
+                                    />
+                                    <input
+                                        className="form-input"
+                                        placeholder="End Year"
+                                        value={e.endYear}
+                                        onChange={(val) => {
+                                            const next = [...freelancerProfileForm.education];
+                                            next[idx] = { ...next[idx], endYear: val.target.value };
+                                            setFreelancerProfileForm({ ...freelancerProfileForm, education: next });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Work Experience</label>
+                            <button
+                                type="button"
+                                className="btn"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                                onClick={() => setFreelancerProfileForm({
+                                    ...freelancerProfileForm,
+                                    experience: [...freelancerProfileForm.experience, { company: '', role: '', startYear: '', endYear: '', description: '' }]
+                                })}
+                            >
+                                + Add item
+                            </button>
+                        </div>
+                        {freelancerProfileForm.experience.map((e, idx) => (
+                            <div key={idx} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.5rem' }}>
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Company"
+                                    value={e.company}
+                                    onChange={(val) => {
+                                        const next = [...freelancerProfileForm.experience];
+                                        next[idx] = { ...next[idx], company: val.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, experience: next });
+                                    }}
+                                />
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Role"
+                                    value={e.role}
+                                    onChange={(val) => {
+                                        const next = [...freelancerProfileForm.experience];
+                                        next[idx] = { ...next[idx], role: val.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, experience: next });
+                                    }}
+                                />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <input
+                                        className="form-input"
+                                        placeholder="Start Year"
+                                        value={e.startYear}
+                                        onChange={(val) => {
+                                            const next = [...freelancerProfileForm.experience];
+                                            next[idx] = { ...next[idx], startYear: val.target.value };
+                                            setFreelancerProfileForm({ ...freelancerProfileForm, experience: next });
+                                        }}
+                                    />
+                                    <input
+                                        className="form-input"
+                                        placeholder="End Year"
+                                        value={e.endYear}
+                                        onChange={(val) => {
+                                            const next = [...freelancerProfileForm.experience];
+                                            next[idx] = { ...next[idx], endYear: val.target.value };
+                                            setFreelancerProfileForm({ ...freelancerProfileForm, experience: next });
+                                        }}
+                                    />
+                                </div>
+                                <textarea
+                                    className="form-input"
+                                    style={{ minHeight: '60px' }}
+                                    placeholder="Description"
+                                    value={e.description}
+                                    onChange={(val) => {
+                                        const next = [...freelancerProfileForm.experience];
+                                        next[idx] = { ...next[idx], description: val.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, experience: next });
                                     }}
                                 />
                             </div>

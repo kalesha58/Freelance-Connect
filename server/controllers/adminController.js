@@ -95,7 +95,9 @@ const ALLOWED_USER_UPDATES = [
     'projectsCompleted',
     'rating',
     'avatar',
-    'isProfileComplete'
+    'isProfileComplete',
+    'experience',
+    'education'
 ];
 
 const updateUser = async (req, res) => {
@@ -133,6 +135,25 @@ const updateUser = async (req, res) => {
                 title: p.title || '',
                 imageUrl: p.imageUrl || '',
                 link: p.link || ''
+            }));
+        }
+
+        if (updates.experience && Array.isArray(updates.experience)) {
+            updates.experience = updates.experience.map((e) => ({
+                company: e.company || '',
+                role: e.role || '',
+                startYear: e.startYear || '',
+                endYear: e.endYear || '',
+                description: e.description || ''
+            }));
+        }
+
+        if (updates.education && Array.isArray(updates.education)) {
+            updates.education = updates.education.map((e) => ({
+                institution: e.institution || '',
+                degree: e.degree || '',
+                startYear: e.startYear || '',
+                endYear: e.endYear || ''
             }));
         }
 

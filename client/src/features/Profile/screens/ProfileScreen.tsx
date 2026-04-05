@@ -286,6 +286,11 @@ export default function ProfileScreen() {
                                 <Text style={[styles.historyTitle, { color: colors.foreground }]}>{exp.role}</Text>
                                 <Text style={[styles.historySubtitle, { color: colors.mutedForeground }]}>{exp.company}</Text>
                                 <Text style={[styles.historyDate, { color: colors.mutedForeground }]}>{exp.startYear} - {exp.endYear}</Text>
+                                {exp.description ? (
+                                    <View style={{ marginTop: 8 }}>
+                                        <Text style={{ fontSize: 13, lineHeight: 18, color: colors.foreground }}>{exp.description}</Text>
+                                    </View>
+                                ) : null}
                             </View>
                         </View>
                     ))}
