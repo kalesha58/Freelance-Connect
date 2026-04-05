@@ -17,6 +17,7 @@ import {
 import Modal from '../components/Modal';
 
 const JobManagement = () => {
+    const [jobs, setJobs] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');

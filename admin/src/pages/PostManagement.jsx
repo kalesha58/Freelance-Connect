@@ -17,6 +17,7 @@ import {
 import Modal from '../components/Modal';
 
 const PostManagement = () => {
+    const [posts, setPosts] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
