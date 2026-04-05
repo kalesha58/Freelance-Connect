@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_STATS_POLL_MS } from '../hooks/useAdminLiveRefresh';
 import { 
     Users, 
     Briefcase, 
@@ -15,21 +16,40 @@ const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [lastUpdated, setLastUpdated] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const response = await api.get('/api/admin/stats');
-                setStats(response.data);
-            } catch (err) {
+    const fetchStats = useCallback(async (silent = false) => {
+        try {
+            if (silent) {
+                setIsRefreshing(true);
+            } else {
+                setLoading(true);
+            }
+            const response = await api.get('/api/admin/stats');
+            setStats(response.data);
+            setLastUpdated(new Date());
+            setError('');
+        } catch {
+            if (!silent) {
                 setError('Failed to fetch dashboard statistics.');
-            } finally {
+            }
+        } finally {
+            if (silent) {
+                setIsRefreshing(false);
+            } else {
                 setLoading(false);
             }
-        };
-
-        fetchStats();
+        }
     }, []);
+
+    useEffect(() => {
+        fetchStats(false);
+    }, [fetchStats]);
+
+    useAdminLiveRefresh(() => {
+        fetchStats(true);
+    }, ADMIN_STATS_POLL_MS);
 
     if (loading) return (
         <div className="animate-fade-in">
@@ -60,6 +80,22 @@ const Dashboard = () => {
 
     return (
         <div className="animate-fade-in">
+            {error ? (
+                <div
+                    role="alert"
+                    style={{
+                        marginBottom: '1rem',
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        color: 'var(--danger)',
+                        fontSize: '0.9rem',
+                    }}
+                >
+                    {error}
+                </div>
+            ) : null}
             <header style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                 <div>
                     <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Welcome Back, Admin</h1>
@@ -76,7 +112,16 @@ const Dashboard = () => {
                     boxShadow: 'var(--shadow-sm)'
                 }}>
                     <TrendingUp size={16} color="var(--primary)" />
-                    <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Real-time Monitoring Active</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.15rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+                            {isRefreshing ? 'Refreshing…' : 'Live stats (auto-refresh)'}
+                        </span>
+                        {lastUpdated && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                Last updated {formatAdminLastUpdated(lastUpdated)}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </header>
 
@@ -106,9 +151,6 @@ const Dashboard = () => {
                                 backgroundColor: `${stat.color}15`,
                                 color: stat.color,
                                 borderRadius: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyCenter: 'center',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'

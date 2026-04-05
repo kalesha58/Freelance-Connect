@@ -6,6 +6,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useColors } from "@/hooks/useColors";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 
 /**
  * Interface defining the properties for a Job.
@@ -86,7 +87,7 @@ export function JobCard({ job }: IJobCardProps) {
                 <View style={styles.metaSeparator} />
                 <View style={styles.metaItem}>
                     <Feather name="clock" size={12} color={colors.mutedForeground} />
-                    <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{job.postedAt}</Text>
+                    <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{formatRelativeTime(job.postedAt)}</Text>
                 </View>
             </View>
 

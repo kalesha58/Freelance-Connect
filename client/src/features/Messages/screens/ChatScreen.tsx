@@ -16,6 +16,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { IConversation } from "./MessagesScreen";
 import { useApp } from "@/context/AppContext";
+import { formatSafeTime } from "@/utils/formatRelativeTime";
 import { useColors } from "@/hooks/useColors";
 
 /**
@@ -70,7 +71,7 @@ export default function ChatScreen() {
                 id: m._id,
                 senderId: m.senderId === user?._id ? "me" : "other",
                 text: m.text,
-                timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                timestamp: formatSafeTime(m.createdAt) || "—"
             }));
             setMessages(formatted);
             setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 200);

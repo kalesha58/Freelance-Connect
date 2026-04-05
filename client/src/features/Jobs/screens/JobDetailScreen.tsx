@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     Platform,
     ScrollView,
@@ -16,6 +16,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { formatRelativeTime, formatSafeLocaleDate } from "@/utils/formatRelativeTime";
 
 /**
  * Type for Job Detail route parameters.
@@ -129,14 +130,26 @@ export default function JobDetailScreen() {
                         <View style={[styles.clientAvatarDisk, { backgroundColor: colors.navyMid }]}>
                             <Text style={styles.clientAvatarInitial}>{job.clientName.charAt(0)}</Text>
                         </View>
-                        <View style={{ flex: 1 }}>
+                        <TouchableOpacity
+                            style={{ flex: 1 }}
+                            disabled={!job.clientId}
+                            onPress={() => {
+                                if (job.clientId) {
+                                    navigation.navigate("FreelancerProfile", { id: String(job.clientId) });
+                                }
+                            }}
+                            activeOpacity={job.clientId ? 0.75 : 1}
+                        >
                             <Text style={[styles.clientBusinessName, { color: colors.foreground }]}>{job.clientName}</Text>
                             <View style={styles.clientRatingLine}>
                                 <Ionicons name="star" size={13} color={colors.warning} />
                                 <Text style={[styles.ratingValueLabel, { color: colors.mutedForeground }]}>{job.clientRating} rating</Text>
-                                <Text style={[styles.postTimestamp, { color: colors.mutedForeground }]}> • Posted {job.postedAt}</Text>
+                                <Text style={[styles.postTimestamp, { color: colors.mutedForeground }]}> • Posted {formatRelativeTime(job.postedAt)}</Text>
                             </View>
-                        </View>
+                            {job.clientId ? (
+                                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "600", marginTop: 4 }}>View profile</Text>
+                            ) : null}
+                        </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.directChatBtn, { borderColor: colors.primary }]}
                             onPress={() => navigation.navigate("Main", { screen: "Messages" })}
@@ -150,7 +163,12 @@ export default function JobDetailScreen() {
                         {[
                             { icon: "dollar-sign" as const, label: "Budget", value: job.budget, color: colors.primary },
                             { icon: "map-pin" as const, label: "Location", value: job.location, color: colors.success },
-                            { icon: "calendar" as const, label: "Deadline", value: job.deadline, color: colors.warning },
+                            {
+                                icon: "calendar" as const,
+                                label: "Deadline",
+                                value: job.deadline ? formatSafeLocaleDate(job.deadline) : "Not set",
+                                color: colors.warning,
+                            },
                             { icon: "users" as const, label: "Applicants", value: `${job.applicants} applied`, color: colors.purpleAccent },
                         ].map(item => (
                             <View key={item.label} style={[styles.metricGridCell, { borderColor: colors.border }]}>

@@ -39,6 +39,10 @@ export interface User {
     isSubscribed?: boolean;
     chatUnlockCount?: number;
     isProfileComplete?: boolean;
+    hourlyRate?: number;
+    portfolioItems?: { title?: string; imageUrl?: string; link?: string }[];
+    freelancerReviews?: { clientName: string; rating: number; comment?: string; createdAt?: string }[];
+    isAvailableForHire?: boolean;
 }
 
 export interface Job {
@@ -50,6 +54,7 @@ export interface Job {
     deadline: string;
     description: string;
     skills: string[];
+    clientId?: string;
     clientName: string;
     clientAvatar?: string;
     clientRating: number;

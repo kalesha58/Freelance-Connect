@@ -29,6 +29,22 @@ const userSchema = new mongoose.Schema({
         description: String
     }],
     rating: { type: Number, default: 0 },
+    /** Hourly rate in USD for freelancer marketplace display */
+    hourlyRate: { type: Number, default: 0 },
+    /** Shown on freelancer profile as headline (e.g. “Senior UI/UX Designer”) */
+    portfolioItems: [{
+        title: { type: String, default: '' },
+        imageUrl: { type: String, default: '' },
+        link: { type: String, default: '' }
+    }],
+    /** Reviews left by hiring partners / clients — shown on public freelancer profile */
+    freelancerReviews: [{
+        clientName: { type: String, required: true },
+        rating: { type: Number, min: 1, max: 5, required: true },
+        comment: { type: String, default: '' },
+        createdAt: { type: Date, default: Date.now }
+    }],
+    isAvailableForHire: { type: Boolean, default: true },
     projectsCompleted: { type: Number, default: 0 },
     earnings: { type: Number, default: 0 },
     followers: { type: Number, default: 0 },

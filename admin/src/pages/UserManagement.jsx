@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_LIST_POLL_MS } from '../hooks/useAdminLiveRefresh';
 import { 
     Trash2, 
     User, 
@@ -12,7 +13,8 @@ import {
     X,
     Check,
     AlertCircle,
-    Plus
+    Plus,
+    Pencil
 } from 'lucide-react';
 import Modal from '../components/Modal';
 
@@ -26,29 +28,103 @@ const UserManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', role: 'freelancer', password: 'Welcome123!' });
     const [submitting, setSubmitting] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(null);
+    const [editFreelancerOpen, setEditFreelancerOpen] = useState(false);
+    const [editFreelancerUser, setEditFreelancerUser] = useState(null);
+    const [freelancerProfileForm, setFreelancerProfileForm] = useState({
+        tagline: '',
+        bio: '',
+        hourlyRate: 0,
+        isAvailableForHire: true,
+        portfolioItems: [{ title: '', imageUrl: '', link: '' }],
+        freelancerReviews: [{ clientName: '', rating: 5, comment: '' }]
+    });
+    const [savingFreelancer, setSavingFreelancer] = useState(false);
 
-    const fetchUsers = async () => {
+    const openFreelancerEditor = (user) => {
+        setEditFreelancerUser(user);
+        const portfolio = (user.portfolioItems && user.portfolioItems.length > 0)
+            ? user.portfolioItems.map((p) => ({ title: p.title || '', imageUrl: p.imageUrl || '', link: p.link || '' }))
+            : [{ title: '', imageUrl: '', link: '' }];
+        const reviews = (user.freelancerReviews && user.freelancerReviews.length > 0)
+            ? user.freelancerReviews.map((r) => ({
+                clientName: r.clientName || '',
+                rating: r.rating ?? 5,
+                comment: r.comment || ''
+            }))
+            : [{ clientName: '', rating: 5, comment: '' }];
+        setFreelancerProfileForm({
+            tagline: user.tagline || '',
+            bio: user.bio || '',
+            hourlyRate: user.hourlyRate ?? 0,
+            isAvailableForHire: user.isAvailableForHire !== false,
+            portfolioItems: portfolio,
+            freelancerReviews: reviews
+        });
+        setEditFreelancerOpen(true);
+    };
+
+    const handleSaveFreelancerProfile = async (e) => {
+        e.preventDefault();
+        if (!editFreelancerUser) return;
+        setSavingFreelancer(true);
         try {
-            setLoading(true);
-            const response = await api.get('/api/admin/users');
-            setUsers(response.data);
+            const portfolioItems = freelancerProfileForm.portfolioItems.filter(
+                (p) => (p.title && p.title.trim()) || (p.imageUrl && p.imageUrl.trim())
+            );
+            const freelancerReviews = freelancerProfileForm.freelancerReviews
+                .filter((r) => r.clientName && r.clientName.trim() && r.comment && r.comment.trim())
+                .map((r) => ({
+                    clientName: r.clientName.trim(),
+                    rating: Math.min(5, Math.max(1, Number(r.rating) || 5)),
+                    comment: r.comment.trim()
+                }));
+            await api.put(`/api/admin/users/${editFreelancerUser._id}`, {
+                tagline: freelancerProfileForm.tagline.trim(),
+                bio: freelancerProfileForm.bio.trim(),
+                hourlyRate: Number(freelancerProfileForm.hourlyRate) || 0,
+                isAvailableForHire: freelancerProfileForm.isAvailableForHire,
+                portfolioItems,
+                freelancerReviews
+            });
+            setEditFreelancerOpen(false);
+            setEditFreelancerUser(null);
+            await fetchUsers(true);
         } catch (err) {
-            setError('Failed to load user data.');
+            alert(err.response?.data?.message || 'Failed to save profile.');
         } finally {
-            setLoading(false);
+            setSavingFreelancer(false);
         }
     };
 
-    useEffect(() => {
-        fetchUsers();
+    const fetchUsers = useCallback(async (silent = false) => {
+        try {
+            if (!silent) setLoading(true);
+            const response = await api.get('/api/admin/users');
+            setUsers(response.data);
+            setLastUpdated(new Date());
+            setError('');
+        } catch (loadErr) {
+            setError(loadErr.response?.data?.message || 'Failed to load user data.');
+        } finally {
+            if (!silent) setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchUsers(false);
+    }, [fetchUsers]);
+
+    useAdminLiveRefresh(() => {
+        fetchUsers(true);
+    }, ADMIN_LIST_POLL_MS);
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
         setSubmitting(true);
         try {
             await api.post('/api/admin/users', formData);
-            await fetchUsers();
+            await fetchUsers(true);
             setIsModalOpen(false);
             setFormData({ name: '', email: '', role: 'freelancer', password: 'Welcome123!' });
         } catch (err) {
@@ -64,8 +140,8 @@ const UserManagement = () => {
         try {
             await api.delete(`/api/admin/users/${id}`);
             setUsers(users.filter(u => u._id !== id));
-        } catch (err) {
-            alert('Failed to delete user.');
+        } catch (deleteErr) {
+            alert(deleteErr.response?.data?.message || 'Failed to delete user.');
         }
     };
 
@@ -105,19 +181,42 @@ const UserManagement = () => {
 
     return (
         <div className="animate-fade-in">
-            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {error ? (
+                <div
+                    role="alert"
+                    style={{
+                        marginBottom: '1rem',
+                        padding: '0.75rem 1rem',
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        color: 'var(--danger)',
+                        fontSize: '0.9rem',
+                    }}
+                >
+                    {error}
+                </div>
+            ) : null}
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', fontWeight: '800' }}>User Management</h2>
                     <p style={{ color: 'var(--text-muted)' }}>Manage platform participants and permissions</p>
                 </div>
-                <button 
-                    onClick={() => setIsModalOpen(true)}
-                    className="btn btn-primary" 
-                    style={{ transition: 'var(--transition)' }}
-                >
-                    <Plus size={18} style={{ marginRight: '0.5rem' }} />
-                    Add New User
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                    {lastUpdated && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Auto-refresh · Last sync {formatAdminLastUpdated(lastUpdated)}
+                        </span>
+                    )}
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="btn btn-primary" 
+                        style={{ transition: 'var(--transition)' }}
+                    >
+                        <Plus size={18} style={{ marginRight: '0.5rem' }} />
+                        Add New User
+                    </button>
+                </div>
             </header>
 
             <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
@@ -181,6 +280,7 @@ const UserManagement = () => {
                             <tr style={{ backgroundColor: '#f8fafc', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>User Profile</th>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Role</th>
+                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Freelancer</th>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Joined Date</th>
                                 <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}></th>
@@ -221,6 +321,13 @@ const UserManagement = () => {
                                             <span style={{ fontSize: '0.875rem' }}>{user.role}</span>
                                         </div>
                                     </td>
+                                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                        {user.role === 'freelancer' ? (
+                                            <span>${user.hourlyRate ?? 0}/hr · {Array.isArray(user.freelancerReviews) ? user.freelancerReviews.length : 0} reviews</span>
+                                        ) : (
+                                            <span>—</span>
+                                        )}
+                                    </td>
                                     <td style={{ padding: '1rem 1.5rem' }}>
                                         <span style={{
                                             padding: '0.25rem 0.75rem',
@@ -241,6 +348,17 @@ const UserManagement = () => {
                                     </td>
                                     <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
                                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                            {user.role === 'freelancer' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openFreelancerEditor(user)}
+                                                    className="btn"
+                                                    style={{ padding: '0.4rem', color: 'var(--primary)', backgroundColor: 'transparent' }}
+                                                    title="Edit freelancer profile (portfolio & reviews)"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                            )}
                                             <button 
                                                 onClick={() => handleDelete(user._id)}
                                                 className="btn" 
@@ -338,6 +456,180 @@ const UserManagement = () => {
                             disabled={submitting}
                         >
                             {submitting ? 'Creating User...' : 'Create Account'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal
+                isOpen={editFreelancerOpen}
+                onClose={() => { setEditFreelancerOpen(false); setEditFreelancerUser(null); }}
+                title={editFreelancerUser ? `Freelancer profile — ${editFreelancerUser.name}` : 'Freelancer profile'}
+            >
+                <form id="admin-freelancer-profile-form" onSubmit={handleSaveFreelancerProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Headline (tagline)</label>
+                        <input
+                            className="form-input"
+                            value={freelancerProfileForm.tagline}
+                            onChange={(e) => setFreelancerProfileForm({ ...freelancerProfileForm, tagline: e.target.value })}
+                            placeholder="e.g. Senior React Native Developer"
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Bio</label>
+                        <textarea
+                            className="form-input"
+                            style={{ minHeight: '80px', paddingTop: '0.75rem' }}
+                            value={freelancerProfileForm.bio}
+                            onChange={(e) => setFreelancerProfileForm({ ...freelancerProfileForm, bio: e.target.value })}
+                        />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Hourly rate (USD)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                className="form-input"
+                                value={freelancerProfileForm.hourlyRate === 0 ? '' : freelancerProfileForm.hourlyRate}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    setFreelancerProfileForm({
+                                        ...freelancerProfileForm,
+                                        hourlyRate: v === '' ? 0 : Number(v)
+                                    });
+                                }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={freelancerProfileForm.isAvailableForHire}
+                                    onChange={(e) => setFreelancerProfileForm({ ...freelancerProfileForm, isAvailableForHire: e.target.checked })}
+                                />
+                                Available for hire
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Portfolio items</label>
+                            <button
+                                type="button"
+                                className="btn"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                                onClick={() => setFreelancerProfileForm({
+                                    ...freelancerProfileForm,
+                                    portfolioItems: [...freelancerProfileForm.portfolioItems, { title: '', imageUrl: '', link: '' }]
+                                })}
+                            >
+                                + Add item
+                            </button>
+                        </div>
+                        {freelancerProfileForm.portfolioItems.map((p, idx) => (
+                            <div key={idx} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.5rem' }}>
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Title"
+                                    value={p.title}
+                                    onChange={(e) => {
+                                        const next = [...freelancerProfileForm.portfolioItems];
+                                        next[idx] = { ...next[idx], title: e.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, portfolioItems: next });
+                                    }}
+                                />
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Image URL"
+                                    value={p.imageUrl}
+                                    onChange={(e) => {
+                                        const next = [...freelancerProfileForm.portfolioItems];
+                                        next[idx] = { ...next[idx], imageUrl: e.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, portfolioItems: next });
+                                    }}
+                                />
+                                <input
+                                    className="form-input"
+                                    placeholder="Link (optional)"
+                                    value={p.link}
+                                    onChange={(e) => {
+                                        const next = [...freelancerProfileForm.portfolioItems];
+                                        next[idx] = { ...next[idx], link: e.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, portfolioItems: next });
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Client reviews</label>
+                            <button
+                                type="button"
+                                className="btn"
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                                onClick={() => setFreelancerProfileForm({
+                                    ...freelancerProfileForm,
+                                    freelancerReviews: [...freelancerProfileForm.freelancerReviews, { clientName: '', rating: 5, comment: '' }]
+                                })}
+                            >
+                                + Add review
+                            </button>
+                        </div>
+                        {freelancerProfileForm.freelancerReviews.map((r, idx) => (
+                            <div key={idx} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.5rem' }}>
+                                <input
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Client / company name"
+                                    value={r.clientName}
+                                    onChange={(e) => {
+                                        const next = [...freelancerProfileForm.freelancerReviews];
+                                        next[idx] = { ...next[idx], clientName: e.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, freelancerReviews: next });
+                                    }}
+                                />
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="5"
+                                    className="form-input"
+                                    style={{ marginBottom: '0.5rem' }}
+                                    placeholder="Rating 1–5"
+                                    value={r.rating}
+                                    onChange={(e) => {
+                                        const next = [...freelancerProfileForm.freelancerReviews];
+                                        next[idx] = { ...next[idx], rating: Number(e.target.value) };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, freelancerReviews: next });
+                                    }}
+                                />
+                                <textarea
+                                    className="form-input"
+                                    style={{ minHeight: '60px' }}
+                                    placeholder="Comment"
+                                    value={r.comment}
+                                    onChange={(e) => {
+                                        const next = [...freelancerProfileForm.freelancerReviews];
+                                        next[idx] = { ...next[idx], comment: e.target.value };
+                                        setFreelancerProfileForm({ ...freelancerProfileForm, freelancerReviews: next });
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                        <button type="button" onClick={() => { setEditFreelancerOpen(false); setEditFreelancerUser(null); }} className="btn" style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none' }}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={savingFreelancer}>
+                            {savingFreelancer ? 'Saving…' : 'Save profile'}
                         </button>
                     </div>
                 </form>

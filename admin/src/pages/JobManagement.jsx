@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_LIST_POLL_MS } from '../hooks/useAdminLiveRefresh';
+import { formatJobCardDate } from '../utils/formatDisplayDate';
 import { 
     Trash2, 
     Briefcase, 
@@ -34,26 +36,32 @@ const JobManagement = () => {
         clientId: '',
         isRemote: true
     });
+    const [lastUpdated, setLastUpdated] = useState(null);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const [jobsRes, usersRes] = await Promise.all([
                 api.get('/api/admin/jobs'),
                 api.get('/api/admin/users')
             ]);
             setJobs(jobsRes.data);
             setUsers(usersRes.data.filter(u => u.role === 'hiring'));
+            setLastUpdated(new Date());
         } catch (err) {
             console.error(err);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        fetchData(false);
+    }, [fetchData]);
+
+    useAdminLiveRefresh(() => {
+        fetchData(true);
+    }, ADMIN_LIST_POLL_MS);
 
     const handleCreateJob = async (e) => {
         e.preventDefault();
@@ -61,7 +69,7 @@ const JobManagement = () => {
         setSubmitting(true);
         try {
             await api.post('/api/admin/jobs', formData);
-            await fetchData();
+            await fetchData(true);
             setIsModalOpen(false);
             setFormData({
                 title: '', budget: '', budgetType: 'fixed', location: 'Remote',
@@ -79,8 +87,8 @@ const JobManagement = () => {
         try {
             await api.delete(`/api/admin/jobs/${id}`);
             setJobs(jobs.filter(j => j._id !== id));
-        } catch (err) {
-            alert('Error deleting job.');
+        } catch (deleteErr) {
+            alert(deleteErr.response?.data?.message || 'Error deleting job.');
         }
     };
 
@@ -109,18 +117,25 @@ const JobManagement = () => {
 
     return (
         <div className="animate-fade-in">
-            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', fontWeight: '800' }}>Job Listings</h2>
                     <p style={{ color: 'var(--text-muted)' }}>Monitor and manage all job postings</p>
                 </div>
-                <button 
-                    onClick={() => setIsModalOpen(true)}
-                    className="btn btn-primary"
-                >
-                    <Plus size={18} style={{ marginRight: '0.5rem' }} />
-                    Post New Job
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                    {lastUpdated && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Auto-refresh · Last sync {formatAdminLastUpdated(lastUpdated)}
+                        </span>
+                    )}
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="btn btn-primary"
+                    >
+                        <Plus size={18} style={{ marginRight: '0.5rem' }} />
+                        Post New Job
+                    </button>
+                </div>
             </header>
 
             <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
@@ -198,17 +213,17 @@ const JobManagement = () => {
 
                                 <div>
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.25rem' }}>{job.title}</h3>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>{job.company}</p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>{job.clientName}</p>
                                     
                                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                             <MapPin size={14} /> {job.location}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            <DollarSign size={14} /> {job.salary}
+                                            <DollarSign size={14} /> {job.budget}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            <Clock size={14} /> {new Date(job.createdAt).toLocaleDateString()}
+                                            <Clock size={14} /> {formatJobCardDate(job)}
                                         </div>
                                     </div>
 
@@ -261,8 +276,18 @@ const JobManagement = () => {
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 title="Post New Job Listing"
+                headerActions={
+                    <button
+                        type="submit"
+                        form="admin-create-job-form"
+                        className="btn btn-primary"
+                        disabled={submitting}
+                    >
+                        {submitting ? 'Posting...' : 'Post Job'}
+                    </button>
+                }
             >
-                <form onSubmit={handleCreateJob} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <form id="admin-create-job-form" onSubmit={handleCreateJob} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Job Title</label>
@@ -328,12 +353,9 @@ const JobManagement = () => {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn" style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none' }}>
+                    <div style={{ marginTop: '1rem' }}>
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn" style={{ width: '100%', backgroundColor: '#f1f5f9', border: 'none' }}>
                             Cancel
-                        </button>
-                        <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={submitting}>
-                            {submitting ? 'Posting...' : 'Post Job'}
                         </button>
                     </div>
                 </form>

@@ -15,6 +15,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { formatSafeLocaleDate } from "@/utils/formatRelativeTime";
 
 /**
  * Type for Applicants route parameters.
@@ -111,7 +112,7 @@ export default function ApplicantsScreen() {
                             </View>
                             <View style={styles.bidContextBox}>
                                 <Text style={[styles.bidValueLabel, { color: colors.primary }]}>{item.status === 'hired' ? 'HIRED' : ''}</Text>
-                                <Text style={[styles.submissionAgeLabel, { color: colors.mutedForeground }]}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+                                <Text style={[styles.submissionAgeLabel, { color: colors.mutedForeground }]}>{formatSafeLocaleDate(item.createdAt)}</Text>
                             </View>
                         </View>
 

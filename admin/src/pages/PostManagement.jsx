@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_LIST_POLL_MS } from '../hooks/useAdminLiveRefresh';
+import { formatDisplayDate } from '../utils/formatDisplayDate';
 import { 
     Trash2, 
     MessageSquare, 
@@ -35,26 +37,32 @@ const PostManagement = () => {
         type: 'social',
         tags: ''
     });
+    const [lastUpdated, setLastUpdated] = useState(null);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const [postsRes, usersRes] = await Promise.all([
                 api.get('/api/admin/posts'),
                 api.get('/api/admin/users')
             ]);
             setPosts(postsRes.data);
             setUsers(usersRes.data);
+            setLastUpdated(new Date());
         } catch (err) {
             console.error(err);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        fetchData(false);
+    }, [fetchData]);
+
+    useAdminLiveRefresh(() => {
+        fetchData(true);
+    }, ADMIN_LIST_POLL_MS);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -94,7 +102,7 @@ const PostManagement = () => {
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
             };
             await api.post('/api/admin/posts', payload);
-            await fetchData();
+            await fetchData(true);
             setIsModalOpen(false);
             setFormData({ userId: '', caption: '', imageUrl: '', type: 'social', tags: '' });
             setImagePreview(null);
@@ -110,8 +118,8 @@ const PostManagement = () => {
         try {
             await api.delete(`/api/admin/posts/${id}`);
             setPosts(posts.filter(p => p._id !== id));
-        } catch (err) {
-            alert('Error deleting post.');
+        } catch (deleteErr) {
+            alert(deleteErr.response?.data?.message || 'Error deleting post.');
         }
     };
 
@@ -140,18 +148,25 @@ const PostManagement = () => {
 
     return (
         <div className="animate-fade-in">
-            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', fontWeight: '800' }}>Community Posts</h2>
                     <p style={{ color: 'var(--text-muted)' }}>Moderate community discussions and content</p>
                 </div>
-                <button 
-                    onClick={() => setIsModalOpen(true)}
-                    className="btn btn-primary"
-                >
-                    <Plus size={18} style={{ marginRight: '0.5rem' }} />
-                    Create New Post
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                    {lastUpdated && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Auto-refresh · Last sync {formatAdminLastUpdated(lastUpdated)}
+                        </span>
+                    )}
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="btn btn-primary"
+                    >
+                        <Plus size={18} style={{ marginRight: '0.5rem' }} />
+                        Create New Post
+                    </button>
+                </div>
             </header>
 
             <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
@@ -225,7 +240,7 @@ const PostManagement = () => {
                                         <div>
                                             <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{post.userName || 'Anonymous'}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                <Clock size={12} /> {new Date(post.createdAt).toLocaleDateString()}
+                                                <Clock size={12} /> {formatDisplayDate(post.createdAt)}
                                             </div>
                                         </div>
                                     </div>
@@ -274,8 +289,18 @@ const PostManagement = () => {
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 title="Create Community Post"
+                headerActions={
+                    <button
+                        type="submit"
+                        form="admin-create-post-form"
+                        className="btn btn-primary"
+                        disabled={submitting}
+                    >
+                        {submitting ? 'Creating...' : 'Create Post'}
+                    </button>
+                }
             >
-                <form onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <form id="admin-create-post-form" onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Post Author</label>
@@ -388,12 +413,9 @@ const PostManagement = () => {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn" style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none' }}>
+                    <div style={{ marginTop: '1rem' }}>
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn" style={{ width: '100%', backgroundColor: '#f1f5f9', border: 'none' }}>
                             Cancel
-                        </button>
-                        <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={submitting}>
-                            {submitting ? 'Creating...' : 'Create Post'}
                         </button>
                     </div>
                 </form>

@@ -5,6 +5,7 @@ const {
     getStats,
     getUsers,
     createUser,
+    updateUser,
     deleteUser,
     getJobs,
     createJob,
@@ -23,6 +24,7 @@ router.get('/stats', adminProtect, getStats);
 
 router.get('/users', adminProtect, getUsers);
 router.post('/users', adminProtect, createUser);
+router.put('/users/:id', adminProtect, updateUser);
 router.delete('/users/:id', adminProtect, deleteUser);
 
 router.get('/jobs', adminProtect, getJobs);

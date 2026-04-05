@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, headerActions }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -12,7 +13,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div style={{
             position: 'fixed',
             top: 0,
@@ -66,29 +67,41 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    gap: '1rem',
                     backgroundColor: '#fff',
                     flexShrink: 0
                 }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0, color: 'var(--text-main)' }}>
+                    <h3 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        margin: 0,
+                        color: 'var(--text-main)',
+                        flex: 1,
+                        minWidth: 0
+                    }}>
                         {title}
                     </h3>
-                    <button 
-                        onClick={onClose}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-light)',
-                            cursor: 'pointer',
-                            padding: '0.5rem',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'var(--transition)'
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                        {headerActions}
+                        <button 
+                            type="button"
+                            onClick={onClose}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-light)',
+                                cursor: 'pointer',
+                                padding: '0.5rem',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'var(--transition)'
+                            }}
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Body */}
@@ -114,7 +127,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                     animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}} />
-        </div>
+        </div>,
+        document.body
     );
 };
 

@@ -81,6 +81,73 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const ALLOWED_USER_UPDATES = [
+    'name',
+    'bio',
+    'tagline',
+    'location',
+    'skills',
+    'services',
+    'hourlyRate',
+    'portfolioItems',
+    'freelancerReviews',
+    'isAvailableForHire',
+    'projectsCompleted',
+    'rating',
+    'avatar',
+    'isProfileComplete'
+];
+
+const updateUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const updates = {};
+        for (const key of ALLOWED_USER_UPDATES) {
+            if (req.body[key] !== undefined) {
+                updates[key] = req.body[key];
+            }
+        }
+
+        if (updates.freelancerReviews && Array.isArray(updates.freelancerReviews)) {
+            updates.freelancerReviews = updates.freelancerReviews.map((r) => ({
+                clientName: r.clientName,
+                rating: Number(r.rating),
+                comment: r.comment || '',
+                createdAt: r.createdAt ? new Date(r.createdAt) : new Date()
+            }));
+            const revs = updates.freelancerReviews;
+            if (revs.length > 0) {
+                const sum = revs.reduce((acc, r) => acc + r.rating, 0);
+                updates.rating = Math.round((sum / revs.length) * 10) / 10;
+            } else {
+                updates.rating = 0;
+            }
+        }
+
+        if (updates.portfolioItems && Array.isArray(updates.portfolioItems)) {
+            updates.portfolioItems = updates.portfolioItems.map((p) => ({
+                title: p.title || '',
+                imageUrl: p.imageUrl || '',
+                link: p.link || ''
+            }));
+        }
+
+        const updated = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        res.json(updated);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 // Job Management
 const getJobs = async (req, res) => {
     try {
@@ -212,6 +279,7 @@ module.exports = {
     getStats,
     getUsers,
     createUser,
+    updateUser,
     deleteUser,
     getJobs,
     createJob,

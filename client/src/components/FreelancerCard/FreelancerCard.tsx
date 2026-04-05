@@ -2,8 +2,6 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-
 import { useColors } from "@/hooks/useColors";
 
 /**
@@ -13,6 +11,7 @@ export interface IFreelancerProfile {
     id: string;
     name: string;
     avatar?: string;
+    title?: string;
     rating: number;
     skills: string[];
     bio: string;
@@ -20,6 +19,8 @@ export interface IFreelancerProfile {
     location: string;
     isTopRated?: boolean;
     completedProjects?: number;
+    /** Number of client reviews (from API freelancerReviews) */
+    reviewsCount?: number;
 }
 
 /**
@@ -63,6 +64,11 @@ export function FreelancerCard({ freelancer, onPress, onHire }: IFreelancerCardP
                     </View>
                     <View style={styles.headerInfo}>
                         <Text style={[styles.nameText, { color: colors.foreground }]}>{freelancer.name}</Text>
+                        {!!freelancer.title?.trim() && (
+                            <Text style={[styles.taglineText, { color: colors.mutedForeground }]} numberOfLines={1}>
+                                {freelancer.title}
+                            </Text>
+                        )}
                         <View style={styles.locationRow}>
                             <Feather name="map-pin" size={10} color={colors.mutedForeground} />
                             <Text style={[styles.locationText, { color: colors.mutedForeground }]}>{freelancer.location}</Text>
@@ -80,7 +86,13 @@ export function FreelancerCard({ freelancer, onPress, onHire }: IFreelancerCardP
                 <View style={styles.metricItem}>
                     <Ionicons name="star" size={14} color="#FFB01F" />
                     <Text style={[styles.metricValue, { color: colors.foreground }]}>{freelancer.rating}</Text>
-                    <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>({freelancer.completedProjects || 0} jobs)</Text>
+                    <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
+                        (
+                        {freelancer.reviewsCount != null && freelancer.reviewsCount > 0
+                            ? `${freelancer.reviewsCount} reviews`
+                            : `${freelancer.completedProjects || 0} jobs`}
+                        )
+                    </Text>
                 </View>
                 <View style={styles.metricSeparator} />
                 <View style={styles.metricItem}>
@@ -97,7 +109,7 @@ export function FreelancerCard({ freelancer, onPress, onHire }: IFreelancerCardP
 
             {/* Skill Chips */}
             <View style={styles.skillsWrapper}>
-                {freelancer.skills.slice(0, 3).map((skill, idx) => (
+                {freelancer.skills.slice(0, 3).map((skill) => (
                     <View key={skill} style={[styles.skillChip, { backgroundColor: colors.muted + "40" }]}>
                         <Text style={[styles.skillText, { color: colors.mutedForeground }]}>{skill}</Text>
                     </View>
@@ -191,6 +203,11 @@ const styles = StyleSheet.create({
     nameText: {
         fontSize: 16,
         fontWeight: '700',
+        marginBottom: 4,
+    },
+    taglineText: {
+        fontSize: 11,
+        fontWeight: '500',
         marginBottom: 4,
     },
     locationRow: {

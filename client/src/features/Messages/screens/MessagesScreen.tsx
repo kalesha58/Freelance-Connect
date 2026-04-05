@@ -15,6 +15,7 @@ import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { useApp } from "@/context/AppContext";
+import { formatSafeTime } from "@/utils/formatRelativeTime";
 import { useColors } from "@/hooks/useColors";
 
 /**
@@ -124,7 +125,7 @@ export default function MessagesScreen() {
             participantName: otherParticipant?.name || "Unknown",
             avatar: otherParticipant?.avatar,
             lastMessage: c.lastMessage,
-            lastMessageTime: new Date(c.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            lastMessageTime: formatSafeTime(c.lastMessageTime) || "—",
             unreadCount: c.unreadCount || 0,
             isLocked: c.isLocked,
             isOnline: true // Placeholder

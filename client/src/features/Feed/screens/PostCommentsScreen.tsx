@@ -20,6 +20,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import { useApp, Comment, Reply } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -40,14 +41,7 @@ interface ReplyingTo {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function timeAgo(isoString: string) {
-    const diff = Date.now() - new Date(isoString).getTime();
-    const secs = Math.floor(diff / 1000);
-    if (secs < 60) return `${secs}s`;
-    const mins = Math.floor(secs / 60);
-    if (mins < 60) return `${mins}m`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h`;
-    return `${Math.floor(hrs / 24)}d`;
+    return formatRelativeTime(isoString);
 }
 
 // ─── Reply Row ────────────────────────────────────────────────────────────────

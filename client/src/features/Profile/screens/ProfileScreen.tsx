@@ -236,12 +236,6 @@ export default function ProfileScreen() {
                                 <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]} onPress={() => navigation.navigate("ProfileSetup")}>
                                     <Text style={styles.primaryActionBtnText}>Edit Profile</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.secondaryActionBtn, { backgroundColor: colors.muted + "15", borderColor: colors.border }]}
-                                    onPress={signOut}
-                                >
-                                    <Text style={[styles.secondaryActionBtnText, { color: colors.foreground }]}>Sign Out</Text>
-                                </TouchableOpacity>
                             </>
                         ) : (
                             <>

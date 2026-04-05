@@ -87,13 +87,15 @@ export default function HomeScreen() {
             const formatted: IFreelancerProfile[] = data.map((f: any) => ({
                 id: f._id,
                 name: f.name,
-                avatar: f.avatar,
+                title: f.tagline || "",
+                avatar: f.avatar || f.profilePic,
                 bio: f.bio || "No bio provided.",
                 skills: f.skills || [],
                 rating: f.rating || 0,
-                hourlyRate: `$${f.hourlyRate || 0}`,
+                hourlyRate: `$${f.hourlyRate ?? 0}`,
                 location: f.location || "Unknown",
                 completedProjects: f.projectsCompleted || 0,
+                reviewsCount: Array.isArray(f.freelancerReviews) ? f.freelancerReviews.length : 0,
                 isTopRated: (f.rating || 0) >= 4.8
             }));
             setFreelancers(formatted);

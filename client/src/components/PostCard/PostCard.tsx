@@ -13,6 +13,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useNavigation } from "@react-navigation/native";
 
 import { useColors } from "@/hooks/useColors";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { UserRole } from "@/types/auth";
 
 const { width } = Dimensions.get('window');
@@ -149,7 +150,7 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                         <View style={styles.authorBadgeRow}>
                             <View style={[styles.roleIndicatorDot, { backgroundColor: roleDisplayColor }]} />
                             <Text style={[styles.roleLabelText, { color: roleDisplayColor }]}>{formattedRoleLabel}</Text>
-                            <Text style={[styles.postTimestamp, { color: colors.mutedForeground }]}> • {post.createdAt}</Text>
+                            <Text style={[styles.postTimestamp, { color: colors.mutedForeground }]}> • {formatRelativeTime(post.createdAt)}</Text>
                         </View>
                     </View>
                 </View>
