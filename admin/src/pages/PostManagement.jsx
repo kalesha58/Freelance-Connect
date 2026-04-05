@@ -11,8 +11,10 @@ import {
     Clock,
     Share2,
     Plus,
-    X,
-    Filter
+    Filter,
+    Image as ImageIcon,
+    Upload,
+    Loader2
 } from 'lucide-react';
 import Modal from '../components/Modal';
 
@@ -24,6 +26,8 @@ const PostManagement = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
         userId: '',
         caption: '',
@@ -52,9 +56,37 @@ const PostManagement = () => {
         fetchData();
     }, []);
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Visual preview
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
+
+        setUploadingImage(true);
+        const uploadData = new FormData();
+        uploadData.append('image', file);
+
+        try {
+            const response = await api.post('/api/upload', uploadData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setFormData({ ...formData, imageUrl: response.data.url });
+        } catch (err) {
+            console.error('Upload Error:', err);
+            alert('Failed to upload image. Please try again.');
+            setImagePreview(null);
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
     const handleCreatePost = async (e) => {
         e.preventDefault();
         if (!formData.userId) return alert('Please select a User');
+        if (uploadingImage) return alert('Please wait for image to finish uploading');
         setSubmitting(true);
         try {
             const payload = {
@@ -65,6 +97,7 @@ const PostManagement = () => {
             await fetchData();
             setIsModalOpen(false);
             setFormData({ userId: '', caption: '', imageUrl: '', type: 'social', tags: '' });
+            setImagePreview(null);
         } catch (err) {
             alert(err.response?.data?.message || 'Error creating post');
         } finally {
@@ -284,13 +317,65 @@ const PostManagement = () => {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Image URL (Optional)</label>
-                        <input 
-                            className="form-input" 
-                            placeholder="https://images.unsplash.com/..."
-                            value={formData.imageUrl}
-                            onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                        />
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Post Media</label>
+                        <div style={{
+                            border: '2px dashed var(--border)',
+                            borderRadius: '12px',
+                            padding: '1.5rem',
+                            textAlign: 'center',
+                            backgroundColor: '#f8fafc',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            minHeight: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'var(--transition)'
+                        }} onClick={() => document.getElementById('post-image-upload').click()}>
+                            {imagePreview ? (
+                                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                    <img src={imagePreview} style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'contain' }} alt="Preview" />
+                                    {uploadingImage && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: 0, left: 0, right: 0, bottom: 0,
+                                            backgroundColor: 'rgba(255,255,255,0.7)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            borderRadius: '8px'
+                                        }}>
+                                            <Loader2 size={32} className="animate-spin" color="var(--primary)" />
+                                        </div>
+                                    )}
+                                    <div style={{
+                                        marginTop: '0.5rem',
+                                        fontSize: '0.75rem',
+                                        color: 'var(--primary)',
+                                        fontWeight: '600'
+                                    }}>
+                                        Click to change image
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ padding: '0.75rem', backgroundColor: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-sm)', color: 'var(--text-light)' }}>
+                                        <ImageIcon size={24} />
+                                    </div>
+                                    <div>
+                                        <p style={{ margin: 0, fontWeight: '600', fontSize: '0.9rem' }}>Upload some media</p>
+                                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>JPG, PNG or WEBP (Max 5MB)</p>
+                                    </div>
+                                </div>
+                            )}
+                            <input 
+                                id="post-image-upload"
+                                type="file" 
+                                hidden 
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                            />
+                        </div>
                     </div>
 
                     <div>
