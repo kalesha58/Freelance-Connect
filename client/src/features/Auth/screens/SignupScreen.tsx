@@ -36,6 +36,7 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [referredByCode, setReferredByCode] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [errors, setErrors] = useState<SignupErrors>({});
     const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
         setLoading(true);
 
         try {
-            await signUp(name, email, password, role);
+            await signUp(name, email, password, role, referredByCode);
             // AppContext will set user once signed in, switching them to Main stack automatically
         } catch (error: any) {
             setLoading(false);
@@ -181,6 +182,15 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                         error={errors.confirmPassword}
                         isPassword
                         leftIcon="shield"
+                    />
+
+                    <Input
+                        label="Referral Code (Optional)"
+                        placeholder="E.g. johnsmith1234"
+                        value={referredByCode}
+                        onChangeText={(t) => setReferredByCode(t)}
+                        leftIcon="user-plus"
+                        autoCapitalize="none"
                     />
 
                     <TouchableOpacity

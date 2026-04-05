@@ -15,7 +15,8 @@ const jobSchema = new mongoose.Schema({
     category: { type: String, required: true },
     postedAt: { type: Date, default: Date.now },
     applicants: { type: Number, default: 0 },
-    isRemote: { type: Boolean, default: true }
+    isRemote: { type: Boolean, default: true },
+    status: { type: String, enum: ['open', 'pending', 'closed'], default: 'open' }
 });
 
 module.exports = mongoose.model('Job', jobSchema);

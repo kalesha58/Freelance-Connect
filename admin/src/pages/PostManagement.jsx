@@ -290,14 +290,24 @@ const PostManagement = () => {
                 onClose={() => setIsModalOpen(false)} 
                 title="Create Community Post"
                 headerActions={
-                    <button
-                        type="submit"
-                        form="admin-create-post-form"
-                        className="btn btn-primary"
-                        disabled={submitting}
-                    >
-                        {submitting ? 'Creating...' : 'Create Post'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="btn"
+                            style={{ backgroundColor: '#f1f5f9', border: 'none' }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            form="admin-create-post-form"
+                            className="btn btn-primary"
+                            disabled={submitting}
+                        >
+                            {submitting ? 'Creating...' : 'Create Post'}
+                        </button>
+                    </div>
                 }
             >
                 <form id="admin-create-post-form" onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

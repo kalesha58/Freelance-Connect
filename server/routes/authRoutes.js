@@ -36,7 +36,7 @@ router.post('/complete-profile', protect, async (req, res) => {
 // @route   POST /api/auth/signup
 // @access  Public
 router.post('/signup', async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, referredByCode } = req.body;
 
     try {
         const userExists = await User.findOne({ email });
@@ -45,11 +45,23 @@ router.post('/signup', async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        let referredById = null;
+        if (referredByCode) {
+            const referrer = await User.findOne({ referralCode: referredByCode });
+            if (referrer) {
+                referredById = referrer._id;
+            }
+        }
+
+        const referralCode = name.replace(/\s+/g, '').toLowerCase() + Math.floor(1000 + Math.random() * 9000);
+
         const user = await User.create({
             name,
             email,
             password,
-            role
+            role,
+            referralCode,
+            referredBy: referredById
         });
 
         if (user) {
@@ -59,7 +71,8 @@ router.post('/signup', async (req, res) => {
                 email: user.email,
                 role: user.role,
                 token: generateToken(user._id),
-                isProfileComplete: user.isProfileComplete
+                isProfileComplete: user.isProfileComplete,
+                referralCode: user.referralCode
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });

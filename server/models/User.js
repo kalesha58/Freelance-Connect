@@ -50,6 +50,8 @@ const userSchema = new mongoose.Schema({
     followers: { type: Number, default: 0 },
     following: { type: Number, default: 0 },
     isProfileComplete: { type: Boolean, default: false },
+    referralCode: { type: String, unique: true, sparse: true },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -22,6 +22,7 @@ export type RootStackParamList = {
     CreatePost: undefined;
     PostComments: { postId: string; postOwnerId: string; caption: string; userName: string; userAvatar?: string; likesCount: number };
     Settings: undefined;
+    Referral: undefined;
     Ratings: undefined;
     Notifications: undefined;
     Help: undefined;

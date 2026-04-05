@@ -13,6 +13,7 @@ export interface User {
     bio?: string;
     tagline?: string;
     location?: string;
+    referralCode?: string;
     companyName?: string;
     companyWebsite?: string;
     industry?: string;
@@ -118,7 +119,7 @@ interface AppContextType {
     posts: Post[];
     conversations: Conversation[];
     signIn: (emailOrPhone: string, password: string) => Promise<void>;
-    signUp: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
+    signUp: (name: string, email: string, password: string, role: UserRole, referredByCode?: string) => Promise<void>;
     signOut: () => Promise<void>;
     fetchPosts: () => Promise<void>;
     toggleLike: (postId: string) => Promise<void>;
@@ -228,11 +229,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const signUp = async (name: string, email: string, password: string, role: UserRole) => {
+    const signUp = async (name: string, email: string, password: string, role: UserRole, referredByCode?: string) => {
         try {
             const data = await apiClient("/auth/signup", {
                 method: "POST",
-                body: { name, email, password, role },
+                body: { name, email, password, role, referredByCode },
             });
 
             await AsyncStorage.setItem("tasker_token", data.token);

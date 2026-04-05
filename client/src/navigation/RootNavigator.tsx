@@ -29,6 +29,7 @@ import FilterModal from '@/features/Jobs/screens/FilterModal';
 import { CreatePostScreen, PostCommentsScreen } from '@/features/Feed/screens';
 import ProfileSetupScreen from '@/features/Profile/screens/ProfileSetupScreen';
 import SettingsScreen from '@/features/Profile/screens/SettingsScreen';
+import ReferralScreen from '@/features/Profile/screens/ReferralScreen';
 import RatingsScreen from '@/features/Profile/screens/RatingsScreen';
 import NotificationsScreen from '@/features/Common/screens/NotificationsScreen';
 import HelpScreen from '@/features/Common/screens/HelpScreen';
@@ -84,6 +85,7 @@ export const RootNavigator = () => {
                     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="PostComments" component={PostCommentsScreen} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="Settings" component={SettingsScreen} />
+                    <Stack.Screen name="Referral" component={ReferralScreen} />
                     <Stack.Screen name="Ratings" component={RatingsScreen} />
                     <Stack.Screen name="Notifications" component={NotificationsScreen} />
                     <Stack.Screen name="Help" component={HelpScreen} />

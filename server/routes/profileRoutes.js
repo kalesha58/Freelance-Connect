@@ -6,8 +6,13 @@ const { protect } = require('../middleware/authMiddleware');
 // Get profile of the current authenticated user
 router.get('/me', protect, async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.user._id).lean();
         if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        // Fetch referrals
+        const referrals = await User.find({ referredBy: req.user._id }).select('name email createdAt').lean();
+        user.referralsList = referrals;
+        
         res.json(user);
     } catch (err) {
         res.status(500).json({ message: err.message });

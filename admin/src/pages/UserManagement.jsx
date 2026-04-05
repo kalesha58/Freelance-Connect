@@ -304,7 +304,7 @@ const UserManagement = () => {
                             <tr style={{ backgroundColor: '#f8fafc', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>User Profile</th>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Role</th>
-                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Freelancer</th>
+                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stats / Details</th>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
                                 <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Joined Date</th>
                                 <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}></th>
@@ -348,6 +348,11 @@ const UserManagement = () => {
                                     <td style={{ padding: '1rem 1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                         {user.role === 'freelancer' ? (
                                             <span>${user.hourlyRate ?? 0}/hr · {Array.isArray(user.freelancerReviews) ? user.freelancerReviews.length : 0} reviews</span>
+                                        ) : (user.role === 'requester' || user.role === 'hiring') && user.totalJobs !== undefined ? (
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <span title="Total generated jobs" style={{ color: 'var(--text-dark)', fontWeight: '600' }}>📝 {user.totalJobs} Jobs</span>
+                                                <span title="Pending or Open jobs" style={{ color: 'var(--warning)', fontWeight: '600' }}>⏳ {user.pendingJobs} Pending</span>
+                                            </div>
                                         ) : (
                                             <span>—</span>
                                         )}
@@ -797,6 +802,20 @@ const UserManagement = () => {
                             {savingFreelancer ? 'Saving…' : 'Save profile'}
                         </button>
                     </div>
+
+                    {editFreelancerUser && editFreelancerUser.referralsList && editFreelancerUser.referralsList.length > 0 && (
+                        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                            <h4 style={{ fontSize: '0.875rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-dark)' }}>Users Referred by this Freelancer</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {editFreelancerUser.referralsList.map(ref => (
+                                    <div key={ref._id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', backgroundColor: 'var(--bg-light)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '0.875rem' }}>
+                                        <span style={{ fontWeight: 600 }}>{ref.name}</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>{ref.email}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </form>
             </Modal>
         </div>

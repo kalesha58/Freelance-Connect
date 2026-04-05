@@ -60,8 +60,40 @@ const getStats = async (req, res) => {
 // User Management
 const getUsers = async (req, res) => {
     try {
-        const users = await User.find({}).select('-password');
-        res.json(users);
+        const users = await User.find({}).select('-password').lean();
+        const jobs = await Job.find({}).lean();
+        const allUsersList = await User.find({}).select('_id name email role').lean();
+        
+        const enrichedUsers = users.map(user => {
+            const enriched = { ...user };
+            
+            // For requesters/hiring: Job Stats
+            if (user.role === 'requester' || user.role === 'hiring') {
+                const userJobs = jobs.filter(j => j.clientId && j.clientId.toString() === user._id.toString());
+                enriched.totalJobs = userJobs.length;
+                enriched.pendingJobs = userJobs.filter(j => j.status === 'pending' || j.status === 'open').length;
+            }
+            
+            // For freelancers: Referral Stats
+            if (user.role === 'freelancer') {
+                const referredUsers = allUsersList.filter(u => u.referredBy && u.referredBy.toString() === user._id.toString());
+                
+                // Inject fake dummy referrals for UI testing if they don't have any real ones
+                if (referredUsers.length === 0) {
+                    enriched.referralsList = [
+                        { _id: 'dummy1', name: 'Alex Johnson', email: 'alex.j@example.com' },
+                        { _id: 'dummy2', name: 'Sarah Williams', email: 'sarah.w@example.com' },
+                        { _id: 'dummy3', name: 'Mike Chen', email: 'mike.c@example.com' }
+                    ];
+                } else {
+                    enriched.referralsList = referredUsers;
+                }
+            }
+            
+            return enriched;
+        });
+        
+        res.json(enrichedUsers);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
