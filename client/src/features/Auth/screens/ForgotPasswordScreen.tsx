@@ -10,6 +10,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/navigation/types';
 import Header from '@/components/Header';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
@@ -22,6 +23,7 @@ type Props = {
 };
 
 const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
+    const insets = useSafeAreaInsets();
     const { forgotPassword } = useApp();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [error, setError] = useState('');
@@ -61,7 +63,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
                 title="Forgot Password"
             />
 
-            <View style={styles.content}>
+            <View style={[styles.content, { paddingBottom: Spacing['2xl'] + insets.bottom }]}>
                 <View style={styles.iconBox}>
                     <Text style={styles.icon}>🔐</Text>
                 </View>

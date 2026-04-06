@@ -19,6 +19,7 @@ import Button from '@/components/Button';
 import ProgressBar from '@/components/ProgressBar';
 import useOTPTimer from '@/hooks/useOTPTimer';
 import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/context/AppContext';
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 };
 
 const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
+    const insets = useSafeAreaInsets();
     const { signUp, verifyOTP } = useApp();
     const { email, flow } = route.params;
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
@@ -121,7 +123,10 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
 
             <ScrollView
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[
+                    styles.content,
+                    { paddingBottom: Spacing['2xl'] + insets.bottom }
+                ]}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >

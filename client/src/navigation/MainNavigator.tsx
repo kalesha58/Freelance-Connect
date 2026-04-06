@@ -5,6 +5,7 @@ import { BlurView } from '@react-native-community/blur';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import DashboardScreen from '@/features/Dashboard/screens/DashboardScreen';
 import FeedScreen from '@/features/Feed/screens/FeedScreen';
@@ -20,6 +21,7 @@ const Tab = createBottomTabNavigator();
  * Implements premium aesthetics with optional blur on iOS and centralized theming.
  */
 export const MainTabNavigator = () => {
+    const insets = useSafeAreaInsets();
     const colors = useColors();
     const isIOS = Platform.OS === 'ios';
 
@@ -35,8 +37,8 @@ export const MainTabNavigator = () => {
                     borderTopWidth: 1,
                     borderTopColor: colors.border,
                     elevation: 0,
-                    height: 60 + (isIOS ? 20 : 0),
-                    paddingBottom: isIOS ? 25 : 10,
+                    height: (isIOS ? 80 : 65) + insets.bottom,
+                    paddingBottom: insets.bottom > 0 ? insets.bottom : (isIOS ? 20 : 10),
                 },
                 tabBarBackground: () =>
                     isIOS ? (

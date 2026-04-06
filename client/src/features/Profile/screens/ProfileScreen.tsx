@@ -165,7 +165,10 @@ export default function ProfileScreen() {
 
             <ScrollView
                 style={styles.mainView}
-                contentContainerStyle={[styles.scrollContentLayout, { marginTop: -20 }]}
+                contentContainerStyle={[
+                    styles.scrollContentLayout,
+                    { marginTop: -20, paddingBottom: 100 + insets.bottom }
+                ]}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Modern Identity & Stats Row (Instagram Inspired) */}

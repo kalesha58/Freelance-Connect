@@ -330,7 +330,10 @@ export default function HomeScreen() {
                     );
                 }}
                 ListHeaderComponent={isHiringRole ? RequesterHeader : FreelancerHeader}
-                contentContainerStyle={[styles.mainListContent, { paddingBottom: 100 }]}
+                contentContainerStyle={[
+                    styles.mainListContent,
+                    { paddingBottom: 80 + insets.bottom }
+                ]}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={() => (
                     <View style={styles.emptyResultsBox}>

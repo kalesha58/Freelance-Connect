@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     View,
     Text,
@@ -30,6 +31,7 @@ interface Requirement {
 }
 
 const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
+    const insets = useSafeAreaInsets();
     const { resetPassword } = useApp();
     const { email, otp } = route.params;
     const [newPassword, setNewPassword] = useState('');
@@ -97,7 +99,10 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
             <Header onBack={() => navigation.goBack()} title="New Password" />
 
             <ScrollView
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[
+                    styles.content,
+                    { paddingBottom: Spacing['2xl'] + insets.bottom }
+                ]}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >

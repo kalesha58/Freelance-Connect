@@ -12,6 +12,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@/navigation/types';
 import Header from '@/components/Header';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import SocialButton from '@/components/SocialButton';
@@ -29,6 +30,7 @@ type UserRole = 'freelancer' | 'hiring';
 
 const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
     // Default to freelancer if not provided
+    const insets = useSafeAreaInsets();
     const [role, setRole] = useState<UserRole>((route.params?.role as UserRole) || 'freelancer');
     const { signUp } = useApp();
 
@@ -87,7 +89,10 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
 
             <ScrollView
                 style={styles.scroll}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[
+                    styles.content,
+                    { paddingBottom: Spacing['3xl'] + insets.bottom }
+                ]}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >

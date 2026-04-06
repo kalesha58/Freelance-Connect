@@ -16,6 +16,7 @@ import Header from '@/components/Header';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import SocialButton from '@/components/SocialButton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
 import { validateLogin, LoginErrors } from '@/utils/validation';
 import { useApp } from '@/context/AppContext';
@@ -26,6 +27,7 @@ type Props = {
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const { signIn } = useApp();
+    const insets = useSafeAreaInsets();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
@@ -77,7 +79,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
             <ScrollView
                 style={styles.scroll}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[
+                    styles.content,
+                    { paddingBottom: Spacing['3xl'] + insets.bottom }
+                ]}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >

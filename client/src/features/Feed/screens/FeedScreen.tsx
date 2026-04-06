@@ -81,7 +81,10 @@ export default function FeedScreen() {
                         tintColor={colors.primary}
                     />
                 }
-                contentContainerStyle={[styles.feedListContent, { paddingBottom: 100 }]}
+                contentContainerStyle={[
+                    styles.feedListContent,
+                    { paddingBottom: 80 + insets.bottom }
+                ]}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={() => (
                     <View style={styles.emptyFeedPlaceholder}>

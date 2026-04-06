@@ -33,7 +33,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 
     const result = await cloudinary.uploader.upload(dataUri, {
       folder: 'freelance_connect',
-      transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
+      transformation: 'c_limit,w_1000,h_1000',
       resource_type: 'image',
     });
 
