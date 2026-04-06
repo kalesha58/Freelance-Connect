@@ -31,14 +31,21 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 
     const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
 
+    // Do not pass `transformation` here — it is included in the signed payload and
+    // often triggers Cloudinary "Invalid Signature" with the Node SDK on serverless.
+    // Resize at delivery time (URL transforms) or use a Dashboard upload preset if needed.
     const result = await cloudinary.uploader.upload(dataUri, {
       folder: 'freelance_connect',
-      transformation: 'c_limit,w_1000,h_1000',
       resource_type: 'image',
     });
 
+    const deliveryUrl = cloudinary.url(result.public_id, {
+      secure: true,
+      transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
+    });
+
     res.status(200).json({
-      url: result.secure_url,
+      url: deliveryUrl,
       public_id: result.public_id,
     });
   } catch (error) {
