@@ -163,9 +163,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (token) {
                 const userData = await apiClient("/auth/me");
                 setUser(userData);
-                fetchPosts(userData._id);
-                fetchJobs();
-                fetchConversations();
+                // Await these to ensure isLoading stays true until data is ready
+                await Promise.all([
+                    fetchPosts(userData._id),
+                    fetchJobs(),
+                    fetchConversations()
+                ]);
             }
         } catch (e) {
             console.log("Failed to load user:", e);
