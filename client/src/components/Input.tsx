@@ -31,7 +31,7 @@ const Input: React.FC<Props> = ({
     ...rest
 }) => {
     const [isFocused, setIsFocused] = useState(false);
-    const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     const hasError = !!error;
 
@@ -78,7 +78,7 @@ const Input: React.FC<Props> = ({
                         activeOpacity={0.7}
                     >
                         <Feather
-                            name={isPasswordVisible ? 'eye-off' : 'eye'}
+                            name={isPasswordVisible ? 'eye' : 'eye-off'}
                             size={18}
                             color={Colors.mutedForeground}
                         />
