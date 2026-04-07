@@ -10,6 +10,8 @@ import {
     StatusBar,
     Dimensions,
     Modal,
+    Alert,
+    ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -21,6 +23,8 @@ const MCI = MaterialCommunityIcons;
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { PostCard } from "@/components/PostCard/PostCard";
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { uploadImage } from "@/utils/apiClient";
 
 const { width } = Dimensions.get('window');
 
@@ -38,9 +42,10 @@ export default function ProfileScreen() {
     const route = useRoute<ProfileRouteProp>();
     const { id: targetUserId } = route.params || {};
 
-    const { user: currentUser, signOut, posts: allPosts } = useApp();
+    const { user: currentUser, signOut, posts: allPosts, updateProfile } = useApp();
     const [targetUser, setTargetUser] = useState<any>(null);
     const [loading, setLoading] = useState(!!targetUserId);
+    const [isUploading, setIsUploading] = useState(false);
 
     // If viewing own profile, use currentUser, else use targetUser
     const user = targetUserId ? targetUser : currentUser;
@@ -88,6 +93,60 @@ export default function ProfileScreen() {
         };
         setSelectedPost(fullPost);
         setIsSheetVisible(true);
+    };
+
+    const handleUpdateAvatar = async () => {
+        Alert.alert(
+            "Update Profile Picture",
+            "Choose an option",
+            [
+                {
+                    text: "Take Photo",
+                    onPress: () => pickImage(true),
+                },
+                {
+                    text: "Choose from Library",
+                    onPress: () => pickImage(false),
+                },
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+            ]
+        );
+    };
+
+    const pickImage = async (useCamera: boolean) => {
+        const options: any = {
+            mediaType: 'photo',
+            quality: 0.7,
+            maxWidth: 1000,
+            maxHeight: 1000,
+        };
+
+        try {
+            const result = useCamera ? await launchCamera(options) : await launchImageLibrary(options);
+            if (result.didCancel || !result.assets || result.assets.length === 0) return;
+
+            const imageUri = result.assets[0].uri;
+            if (!imageUri) return;
+
+            setIsUploading(true);
+            const uploadResult = await uploadImage(imageUri);
+            
+            // Update profile with both fields to ensure compatibility
+            await updateProfile({ 
+                profilePic: uploadResult.url, 
+                avatar: uploadResult.url 
+            });
+
+            Alert.alert("Success", "Profile picture updated successfully!");
+        } catch (error: any) {
+            console.error("Update Avatar Error:", error);
+            Alert.alert("Error", error.message || "Failed to update profile picture");
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const portfolioPosts = user ? allPosts.filter(p => p.userId === user._id && p.type === "portfolio") : [];
@@ -176,17 +235,31 @@ export default function ProfileScreen() {
                     <View style={styles.topInfoRow}>
                         <View style={styles.avatarWrapper}>
                             <View style={[styles.avatarBorder, { borderColor: roleAccentColor }]}>
-                                {user.avatar ? (
-                                    <Image source={{ uri: user.avatar }} style={styles.mainAvatarImg} />
+                                {isUploading ? (
+                                    <View style={[styles.mainAvatarImg, { backgroundColor: colors.muted + "20", alignItems: 'center', justifyContent: 'center' }]}>
+                                        <ActivityIndicator color={colors.primary} />
+                                    </View>
+                                ) : user.avatar || user.profilePic ? (
+                                    <Image source={{ uri: user.avatar || user.profilePic }} style={styles.mainAvatarImg} />
                                 ) : (
                                     <View style={[styles.avatarFallback, { backgroundColor: roleAccentColor }]}>
                                         <Text style={styles.avatarInitialText}>{user.name.charAt(0)}</Text>
                                     </View>
                                 )}
                             </View>
-                            <TouchableOpacity style={[styles.editAvatarBadge, { backgroundColor: colors.primary }]}>
-                                <Feather name="camera" size={12} color="#fff" />
-                            </TouchableOpacity>
+                            {isOwnProfile && (
+                                <TouchableOpacity 
+                                    style={[styles.editAvatarBadge, { backgroundColor: colors.primary }]}
+                                    onPress={handleUpdateAvatar}
+                                    disabled={isUploading}
+                                >
+                                    {isUploading ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Feather name="camera" size={12} color="#fff" />
+                                    )}
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         <View style={styles.statsRow}>
