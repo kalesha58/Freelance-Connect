@@ -160,7 +160,7 @@ export default function ProfileSetupScreen() {
 
         try {
             await updateProfile(profileData);
-            navigation.navigate("Profile");
+            navigation.navigate("Main", { screen: "Profile" });
         } catch (error) {
             console.error("Update Profile Error:", error);
         }
