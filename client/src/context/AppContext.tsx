@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { apiClient } from "@/utils/apiClient";
+import database from '@react-native-firebase/database';
 
 export type UserRole = "freelancer" | "requester" | "hiring" | null;
 
@@ -103,6 +104,7 @@ export interface Post {
     createdAt: string;
 }
 
+// Conversation type kept for any legacy code that may reference it
 export interface Conversation {
     _id: string;
     participants: any[];
@@ -119,7 +121,6 @@ interface AppContextType {
     isLoading: boolean;
     jobs: Job[];
     posts: Post[];
-    conversations: Conversation[];
     signIn: (emailOrPhone: string, password: string) => Promise<void>;
     signUp: (name: string, email: string, password: string, role: UserRole, referredByCode?: string) => Promise<void>;
     signOut: () => Promise<void>;
@@ -132,17 +133,14 @@ interface AppContextType {
     forgotPassword: (emailOrPhone: string) => Promise<void>;
     verifyOTP: (email: string, otp: string) => Promise<void>;
     resetPassword: (emailOrPhone: string, otp: string, password: string) => Promise<void>;
-    fetchConversations: () => Promise<void>;
-    fetchMessages: (conversationId: string) => Promise<any[]>;
-    sendMessage: (receiverId: string, text: string) => Promise<void>;
     applyToJob: (jobId: string, coverLetter: string) => Promise<void>;
     fetchApplicants: (jobId: string) => Promise<any[]>;
     updateApplicationStatus: (applicationId: string, status: string) => Promise<void>;
     searchFreelancers: (query?: string, category?: string) => Promise<any[]>;
-    unlockChat: (conversationId: string) => void;
     fetchComments: (postId: string) => Promise<{ comments: Comment[]; postOwnerId: string }>;
     addComment: (postId: string, text: string) => Promise<Comment>;
     addReply: (postId: string, commentId: string, text: string) => Promise<Reply>;
+    fetchAllUsers: () => Promise<any[]>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -152,7 +150,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [posts, setPosts] = useState<Post[]>([]);
-    const [conversations, setConversations] = useState<Conversation[]>([]);
+    // presenceRef holds the RTDB connected listener so we can detach on sign-out
+    const presenceRef = useRef<any>(null);
 
     useEffect(() => {
         loadUser();
@@ -164,11 +163,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (token) {
                 const userData = await apiClient("/auth/me");
                 setUser(userData);
-                // Await these to ensure isLoading stays true until data is ready
+                // Firebase presence is handled by FirebaseProvider via currentUserId prop
                 await Promise.all([
                     fetchPosts(userData._id),
                     fetchJobs(),
-                    fetchConversations()
                 ]);
             }
         } catch (e) {
@@ -209,14 +207,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const fetchConversations = async () => {
-        try {
-            const data = await apiClient("/chat/conversations");
-            setConversations(data);
-        } catch (error) {
-            console.error("Fetch Conversations Error:", error);
-        }
-    };
 
     const signIn = async (emailOrPhone: string, password: string) => {
         try {
@@ -229,6 +219,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setUser(data);
             fetchPosts(data._id);
             fetchJobs();
+            // Firebase presence is set automatically via FirebaseProvider
         } catch (error) {
             throw error;
         }
@@ -245,6 +236,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setUser(data);
             fetchPosts(data._id);
             fetchJobs();
+            // Firebase presence is set automatically via FirebaseProvider
         } catch (error) {
             throw error;
         }
@@ -263,6 +255,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signOut = async () => {
+        // Clean up RTDB presence listener if set
+        if (presenceRef.current) {
+            database().ref('.info/connected').off('value', presenceRef.current);
+            presenceRef.current = null;
+        }
         await AsyncStorage.removeItem("tasker_token");
         setUser(null);
     };
@@ -350,16 +347,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
-    const fetchMessages = async (conversationId: string) => {
-        return await apiClient(`/chat/conversations/${conversationId}/messages`);
-    };
-
-    const sendMessage = async (receiverId: string, text: string) => {
-        await apiClient("/chat/messages", {
-            method: "POST",
-            body: { receiverId, text },
-        });
-        fetchConversations();
+    // Fetch all users except self — for NewChat screen
+    const fetchAllUsers = async () => {
+        return await apiClient('/users/all');
     };
 
     const applyToJob = async (jobId: string, coverLetter: string) => {
@@ -389,15 +379,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return await apiClient(`/users/freelancers?${queryParams.toString()}`);
     };
 
-    const unlockChat = (conversationId: string) => {
-        setConversations(prev =>
-            prev.map(c =>
-                c._id === conversationId
-                    ? { ...c, isLocked: false }
-                    : c
-            )
-        );
-    };
+    // unlockChat is deprecated — kept as no-op for any remnant references
+    const unlockChat = (_conversationId: string) => {};
 
     // ── Comment API Helpers ──────────────────────────────────────────────────
 
@@ -437,19 +420,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 isLoading,
                 jobs,
                 posts,
-                conversations,
                 signIn,
                 signUp,
                 signOut,
                 fetchPosts,
                 fetchJobs,
-                fetchConversations,
-                fetchMessages,
                 addJob,
                 forgotPassword,
                 verifyOTP,
                 resetPassword,
-                sendMessage,
                 applyToJob,
                 fetchApplicants,
                 updateApplicationStatus,
@@ -457,10 +436,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 toggleLike,
                 addPost,
                 updateProfile,
-                unlockChat,
                 fetchComments,
                 addComment,
                 addReply,
+                fetchAllUsers,
             }}
         >
             {children}

@@ -8,6 +8,8 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
+# NOTE: Do NOT use use_modular_headers! globally — it breaks gRPC-C++, abseil, BoringSSL-GRPC.
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -17,6 +19,14 @@ end
 target 'freelance' do
   config = use_native_modules!
 
+  # Firebase Swift pods require these 4 to expose module maps.
+  # FirebaseFirestoreInternal is declared separately from RNFBFirestore's dependency chain
+  # to avoid the "framework not found" linker error: it must NOT be linked twice.
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'leveldb-library', :modular_headers => true
+  pod 'FirebaseAppCheckInterop', :modular_headers => true
+  pod 'FirebaseFirestoreInternal', :modular_headers => true
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -24,11 +34,77 @@ target 'freelance' do
   )
 
   post_install do |installer|
+    # Fix FirebaseCoreInternal (Swift pod that depends on GoogleUtilities).
+    # DEFINES_MODULE=YES is needed even though GoogleUtilities has :modular_headers above,
+    # because FirebaseCoreInternal itself also needs to be a module.
+    installer.pods_project.targets.each do |target|
+      if target.name == 'FirebaseCoreInternal'
+        target.build_configurations.each do |cfg|
+          cfg.build_settings['DEFINES_MODULE'] = 'YES'
+        end
+      end
+
+      # Suppress the "framework not found" linker issue for FirebaseFirestoreInternal
+      # by ensuring it doesn't get linked as a dynamic framework (it's already static).
+      if target.name == 'FirebaseFirestoreInternal'
+        target.build_configurations.each do |cfg|
+          cfg.build_settings['MACH_O_TYPE'] = 'staticlib'
+        end
+      end
+    end
+
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # RN New Architecture + Firebase / keyboard-controller: Clang treats non-modular
+    # framework includes as errors (-Werror=non-modular-include-in-framework-module).
+    # Allow non-modular includes so Pods compile (official workaround for Firebase + RN).
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |cfg|
+        cfg.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        # AsyncStorage legacy .mm + New Architecture: Clang reports incompatible pointer
+        # warnings (e.g. bridged NSArray generics vs id) that break builds when elevated.
+        if target.name == 'AsyncStorage'
+          cfg.build_settings['GCC_WARN_INCOMPATIBLE_POINTER_TYPES'] = 'NO'
+        end
+      end
+    end
+
+    # Same flag on the app project (aggregate_targets.user_project is sometimes nil in RN setups).
+    installer.aggregate_targets.each do |aggregate_target|
+      user_project = aggregate_target.user_project
+      next unless user_project
+
+      user_project.native_targets.each do |user_target|
+        user_target.build_configurations.each do |cfg|
+          cfg.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        end
+      end
+    end
+
+    app_project_path = File.join(__dir__, 'freelance.xcodeproj')
+    if File.directory?(app_project_path)
+      app_project = Xcodeproj::Project.open(app_project_path)
+      app_project.targets.each do |t|
+        t.build_configurations.each do |cfg|
+          cfg.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        end
+      end
+      app_project.save
+    end
+
+    # CocoaPods merges a bogus -weak_framework for FirebaseFirestoreInternal; the pod is a
+    # static archive (-lFirebaseFirestoreInternal). There is no FirebaseFirestoreInternal.framework,
+    # so the linker fails with "framework 'FirebaseFirestoreInternal' not found".
+    pods_freelance_xcconfigs = Dir[File.join(__dir__, 'Pods', 'Target Support Files', 'Pods-freelance', 'Pods-freelance.*.xcconfig')]
+    pods_freelance_xcconfigs.each do |path|
+      contents = File.read(path)
+      patched = contents.gsub(/-weak_framework "FirebaseFirestoreInternal"\s*/, '')
+      File.write(path, patched) if patched != contents
+    end
   end
 end
