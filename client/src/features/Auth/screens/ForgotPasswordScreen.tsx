@@ -13,7 +13,8 @@ import Header from '@/components/Header';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { Typography, Spacing, BorderRadius } from '@/theme';
+import { useColors } from '@/hooks/useColors';
 import { isValidEmailOrPhone } from '@/utils/validation';
 
 import { useApp } from '@/context/AppContext';
@@ -24,6 +25,7 @@ type Props = {
 
 const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const colors = useColors();
     const { forgotPassword } = useApp();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [error, setError] = useState('');
@@ -53,10 +55,10 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+            <StatusBar barStyle={colors.background === '#F8FAFC' ? 'dark-content' : 'light-content'} backgroundColor={colors.background} />
 
             <Header
                 onBack={() => navigation.goBack()}
@@ -64,12 +66,12 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
             />
 
             <View style={[styles.content, { paddingBottom: Spacing['2xl'] + insets.bottom }]}>
-                <View style={styles.iconBox}>
+                <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
                     <Text style={styles.icon}>🔐</Text>
                 </View>
 
-                <Text style={styles.heading}>Reset Password</Text>
-                <Text style={styles.description}>
+                <Text style={[styles.heading, { color: colors.text }]}>Reset Password</Text>
+                <Text style={[styles.description, { color: colors.textSecondary }]}>
                     Enter your registered email or phone number. We'll send you a one-time
                     code to reset your password.
                 </Text>
@@ -91,8 +93,8 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
                     leftIcon="mail"
                 />
 
-                <View style={styles.infoBox}>
-                    <Text style={styles.infoText}>
+                <View style={[styles.infoBox, { backgroundColor: colors.primaryLight }]}>
+                    <Text style={[styles.infoText, { color: colors.primary }]}>
                         💡 We'll send a 6-digit verification code to confirm your identity.
                     </Text>
                 </View>
@@ -113,7 +115,6 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
     },
     content: {
         flex: 1,
@@ -125,7 +126,6 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 18,
-        backgroundColor: Colors.primaryLight,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: Spacing.lg,
@@ -136,24 +136,20 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: Typography['2xl'],
         fontWeight: Typography.bold,
-        color: Colors.text,
         marginBottom: Spacing.sm,
     },
     description: {
         fontSize: Typography.base,
-        color: Colors.textSecondary,
         lineHeight: Typography.base * Typography.relaxed,
         marginBottom: Spacing.xl,
     },
     infoBox: {
-        backgroundColor: Colors.primaryLight,
         borderRadius: BorderRadius.md,
         padding: Spacing.md,
         marginTop: Spacing.xs,
     },
     infoText: {
         fontSize: Typography.sm,
-        color: Colors.primary,
         lineHeight: Typography.sm * Typography.relaxed,
     },
     spacer: { flex: 1 },

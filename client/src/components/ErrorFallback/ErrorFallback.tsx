@@ -94,13 +94,13 @@ export function ErrorFallback({ error, resetError }: IErrorFallbackProps) {
                     style={({ pressed }) => [
                         styles.primaryAction,
                         {
-                            backgroundColor: colors.primary,
+                            backgroundColor: colors.buttonPrimary,
                             opacity: pressed ? 0.9 : 1,
                             transform: [{ scale: pressed ? 0.98 : 1 }],
                         },
                     ]}
                 >
-                    <Text style={styles.actionLabel}>Try Again</Text>
+                    <Text style={[styles.actionLabel, { color: colors.onButtonPrimary }]}>Try Again</Text>
                 </Pressable>
             </View>
 
@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     actionLabel: {
-        color: '#fff',
         fontWeight: "600",
         textAlign: "center",
         fontSize: 16,

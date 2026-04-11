@@ -141,7 +141,7 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                     {post.userAvatar ? (
                         <Image source={{ uri: post.userAvatar }} style={styles.profileAvatarImg} />
                     ) : (
-                        <View style={[styles.profileAvatarPlaceholder, { backgroundColor: colors.primary }]}>
+                        <View style={[styles.profileAvatarPlaceholder, { backgroundColor: colors.headerBackground }]}>
                             <Text style={styles.avatarLabel}>{post.userName.charAt(0)}</Text>
                         </View>
                     )}

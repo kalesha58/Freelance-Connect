@@ -8,7 +8,8 @@ import {
     View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { Colors, Typography, Spacing, BorderRadius } from '../theme';
+import { Typography, Spacing, BorderRadius } from '../theme';
+import { useColors } from '../hooks/useColors';
 
 interface Props extends TextInputProps {
     label?: string;
@@ -24,40 +25,42 @@ const Input: React.FC<Props> = ({
     hint,
     isPassword,
     leftIcon,
-    secureTextEntry,
     onFocus,
     onBlur,
     style,
     ...rest
 }) => {
+    const colors = useColors();
     const [isFocused, setIsFocused] = useState(false);
-    const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     const hasError = !!error;
 
     return (
         <View style={[styles.container, style]}>
-            {label && <Text style={styles.label}>{label}</Text>}
+            {label && <Text style={[styles.label, { color: colors.foreground }]}>{label}</Text>}
 
             <View
                 style={[
                     styles.inputContainer,
-                    isFocused && styles.focused,
-                    hasError && styles.error,
-                    { backgroundColor: Colors.muted },
+                    hasError
+                        ? { borderColor: colors.destructive, backgroundColor: colors.muted }
+                        : isFocused
+                            ? { borderColor: colors.primary, backgroundColor: colors.card }
+                            : { borderColor: 'transparent', backgroundColor: colors.muted },
                 ]}
             >
                 {leftIcon && (
                     <Feather
                         name={leftIcon}
                         size={18}
-                        color={isFocused ? Colors.primary : Colors.mutedForeground}
+                        color={isFocused ? colors.primary : colors.mutedForeground}
                         style={styles.leftIcon}
                     />
                 )}
 
                 <TextInput
-                    style={[styles.input, { color: Colors.foreground }]}
+                    style={[styles.input, { color: colors.foreground }]}
                     onFocus={(e) => {
                         setIsFocused(true);
                         onFocus?.(e);
@@ -67,8 +70,8 @@ const Input: React.FC<Props> = ({
                         onBlur?.(e);
                     }}
                     secureTextEntry={isPassword && !isPasswordVisible}
-                    placeholderTextColor={Colors.mutedForeground}
-                    selectionColor={Colors.primary}
+                    placeholderTextColor={colors.mutedForeground}
+                    selectionColor={colors.primary}
                     {...rest}
                 />
 
@@ -78,16 +81,16 @@ const Input: React.FC<Props> = ({
                         activeOpacity={0.7}
                     >
                         <Feather
-                            name={isPasswordVisible ? 'eye-off' : 'eye'}
+                            name={isPasswordVisible ? 'eye' : 'eye-off'}
                             size={18}
-                            color={Colors.mutedForeground}
+                            color={colors.mutedForeground}
                         />
                     </TouchableOpacity>
                 )}
             </View>
 
-            {hasError && <Text style={styles.errorText}>{error}</Text>}
-            {hint && !hasError && <Text style={styles.hintText}>{hint}</Text>}
+            {hasError && <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>}
+            {hint && !hasError && <Text style={[styles.hintText, { color: colors.mutedForeground }]}>{hint}</Text>}
         </View>
     );
 };
@@ -100,7 +103,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: Typography.sm,
         fontWeight: Typography.semibold,
-        color: Colors.foreground,
         marginBottom: Spacing.sm,
     },
     inputContainer: {
@@ -117,22 +119,12 @@ const styles = StyleSheet.create({
         fontSize: Typography.base,
         height: '100%',
     },
-    focused: {
-        borderColor: Colors.primary,
-        backgroundColor: '#fff',
-    },
-    error: {
-        borderColor: Colors.destructive,
-        backgroundColor: '#FEF2F2',
-    },
     errorText: {
         fontSize: Typography.xs,
-        color: Colors.destructive,
         marginTop: 4,
     },
     hintText: {
         fontSize: Typography.xs,
-        color: Colors.mutedForeground,
         marginTop: 4,
     },
     leftIcon: {

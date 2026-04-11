@@ -13,6 +13,7 @@ import { formatRelativeTime } from "@/utils/formatRelativeTime";
  */
 export interface IJob {
     id: string;
+    _id?: string;
     title: string;
     clientName: string;
     clientRating: string;
@@ -37,7 +38,10 @@ export function JobCard({ job }: IJobCardProps) {
     const navigation = useNavigation<any>();
 
     const handlePress = () => {
-        navigation.navigate("JobDetail", { id: job.id });
+        const jobId = job._id || job.id;
+        if (jobId) {
+            navigation.navigate("JobDetail", { id: jobId });
+        }
     };
 
     return (
@@ -108,7 +112,7 @@ export function JobCard({ job }: IJobCardProps) {
             {/* Footer: Client Info */}
             <View style={[styles.footer, { borderTopColor: colors.border + "50" }]}>
                 <View style={styles.clientInfo}>
-                    <View style={[styles.clientAvatar, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.clientAvatar, { backgroundColor: colors.headerBackground }]}>
                         <Text style={styles.avatarLabel}>{job.clientName.charAt(0)}</Text>
                         <View style={[styles.onlineIndicator, { backgroundColor: colors.success }]} />
                     </View>
@@ -124,8 +128,8 @@ export function JobCard({ job }: IJobCardProps) {
                         </View>
                     </View>
                 </View>
-                <TouchableOpacity style={[styles.applyBtn, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.applyBtnText}>Apply Now</Text>
+                <TouchableOpacity style={[styles.applyBtn, { backgroundColor: colors.buttonPrimary }]}>
+                    <Text style={[styles.applyBtnText, { color: colors.onButtonPrimary }]}>Apply Now</Text>
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>
@@ -315,7 +319,6 @@ const styles = StyleSheet.create({
         borderRadius: 14,
     },
     applyBtnText: {
-        color: "#fff",
         fontSize: 13,
         fontWeight: '700',
     },

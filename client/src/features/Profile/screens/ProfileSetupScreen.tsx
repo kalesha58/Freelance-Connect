@@ -158,7 +158,12 @@ export default function ProfileSetupScreen() {
             profileData.experience = experience;
         }
 
-        await updateProfile(profileData);
+        try {
+            await updateProfile(profileData);
+            navigation.navigate("Profile");
+        } catch (error) {
+            console.error("Update Profile Error:", error);
+        }
     };
 
     const renderStepContent = () => {
@@ -285,8 +290,8 @@ export default function ProfileSetupScreen() {
                                 value={newService}
                                 onChangeText={setNewService}
                             />
-                            <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.primary }]} onPress={addService}>
-                                <Feather name="plus" size={24} color="#fff" />
+                            <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.buttonPrimary }]} onPress={addService}>
+                                <Feather name="plus" size={24} color={colors.onButtonPrimary} />
                             </TouchableOpacity>
                         </View>
                         <View style={styles.tagCloud}>
@@ -442,14 +447,14 @@ export default function ProfileSetupScreen() {
                     <React.Fragment key={index}>
                         <View style={[
                             styles.stepIcon,
-                            { backgroundColor: index <= currentStep ? colors.primary : colors.muted + "20" }
+                            { backgroundColor: index <= currentStep ? colors.headerBackground : colors.muted + "20" }
                         ]}>
                             <Feather name={step.icon as any} size={16} color={index <= currentStep ? "#fff" : colors.mutedForeground} />
                         </View>
                         {index < STEPS.length - 1 && (
                             <View style={[
                                 styles.stepLine,
-                                { backgroundColor: index < currentStep ? colors.primary : colors.muted + "20" }
+                                { backgroundColor: index < currentStep ? colors.headerBackground : colors.muted + "20" }
                             ]} />
                         )}
                     </React.Fragment>
@@ -472,15 +477,18 @@ export default function ProfileSetupScreen() {
                 <TouchableOpacity
                     style={[
                         styles.nextBtn,
-                        { backgroundColor: isNextDisabled() ? colors.muted + "40" : colors.primary, flex: 1 }
+                        { backgroundColor: isNextDisabled() ? colors.muted + "40" : colors.buttonPrimary, flex: 1 }
                     ]}
                     onPress={handleNext}
                     disabled={isNextDisabled()}
                 >
-                    <Text style={[styles.nextBtnText, { opacity: isNextDisabled() ? 0.7 : 1 }]}>
+                    <Text style={[styles.nextBtnText, {
+                        opacity: isNextDisabled() ? 0.7 : 1,
+                        color: isNextDisabled() ? colors.mutedForeground : colors.onButtonPrimary,
+                    }]}>
                         {currentStep === STEPS.length - 1 ? "Finish" : "Next Step"}
                     </Text>
-                    <Feather name="arrow-right" size={18} color="#fff" style={{ marginLeft: 8, opacity: isNextDisabled() ? 0.5 : 1 }} />
+                    <Feather name="arrow-right" size={18} color={isNextDisabled() ? colors.mutedForeground : colors.onButtonPrimary} style={{ marginLeft: 8, opacity: isNextDisabled() ? 0.5 : 1 }} />
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>
@@ -581,5 +589,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    nextBtnText: { fontSize: 16, fontWeight: '700' },
 });

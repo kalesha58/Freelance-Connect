@@ -43,8 +43,8 @@ export default function SettingsScreen() {
 
     return (
         <View style={[styles.settingsRoot, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-            <View style={[styles.settingsHeaderBar, { backgroundColor: colors.primary, paddingTop: topInsetOffset + 6 }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.settingsHeaderBar, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 6 }]}>
                 <TouchableOpacity
                     style={[styles.circularNavBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
                     onPress={() => navigation.goBack()}
@@ -61,7 +61,7 @@ export default function SettingsScreen() {
                         style={[styles.profileBriefCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                         activeOpacity={0.8}
                     >
-                        <View style={[styles.bigAvatarCircle, { backgroundColor: colors.primary }]}>
+                        <View style={[styles.bigAvatarCircle, { backgroundColor: colors.headerBackground }]}>
                             <Text style={styles.bigAvatarLabel}>{user.name.charAt(0)}</Text>
                         </View>
                         <View style={{ flex: 1 }}>

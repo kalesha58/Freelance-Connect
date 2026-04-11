@@ -52,7 +52,7 @@ export function FreelancerCard({ freelancer, onPress, onHire }: IFreelancerCardP
                         {freelancer.avatar ? (
                             <Image source={{ uri: freelancer.avatar }} style={styles.avatarImg} />
                         ) : (
-                            <View style={[styles.avatarFallback, { backgroundColor: colors.primary }]}>
+                            <View style={[styles.avatarFallback, { backgroundColor: colors.headerBackground }]}>
                                 <Text style={styles.avatarInitial}>{freelancer.name.charAt(0)}</Text>
                             </View>
                         )}
@@ -125,10 +125,10 @@ export function FreelancerCard({ freelancer, onPress, onHire }: IFreelancerCardP
                     <Text style={[styles.outlineBtnText, { color: colors.foreground }]}>View Profile</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
+                    style={[styles.primaryBtn, { backgroundColor: colors.buttonPrimary }]}
                     onPress={onHire}
                 >
-                    <Text style={styles.primaryBtnText}>Hire Now</Text>
+                    <Text style={[styles.primaryBtnText, { color: colors.onButtonPrimary }]}>Hire Now</Text>
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>
@@ -306,7 +306,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     primaryBtnText: {
-        color: "#fff",
         fontSize: 14,
         fontWeight: '700',
     },

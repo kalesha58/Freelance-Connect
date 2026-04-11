@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing } from '../theme';
+import { Typography, Spacing } from '../theme';
+import { useColors } from '../hooks/useColors';
 
 interface Props {
     title?: string;
@@ -23,9 +24,11 @@ const Header: React.FC<Props> = ({
     title,
     onBack,
     rightElement,
-    backgroundColor = Colors.primary,
-    tintColor = Colors.white,
+    backgroundColor: backgroundColorProp,
+    tintColor = '#FFFFFF',
 }) => {
+    const colors = useColors();
+    const backgroundColor = backgroundColorProp ?? colors.headerBackground;
     const insets = useSafeAreaInsets();
     const isIOS = Platform.OS === 'ios';
 

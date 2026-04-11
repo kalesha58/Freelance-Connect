@@ -4,7 +4,8 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../theme';
+import { Typography, Spacing, BorderRadius } from '../theme';
+import { useColors } from '../hooks/useColors';
 
 interface Props {
     currentStep: number;
@@ -17,26 +18,27 @@ const ProgressBar: React.FC<Props> = ({
     totalSteps,
     showLabel = true,
 }) => {
+    const colors = useColors();
     const progress = (currentStep / totalSteps) * 100;
 
     return (
         <View style={styles.container}>
             {showLabel && (
                 <View style={styles.header}>
-                    <Text style={[styles.label, { color: Colors.textSecondary }]}>
+                    <Text style={[styles.label, { color: colors.mutedForeground }]}>
                         Step {currentStep} of {totalSteps}
                     </Text>
-                    <Text style={[styles.percentage, { color: Colors.primary }]}>
+                    <Text style={[styles.percentage, { color: colors.primary }]}>
                         {Math.round(progress)}%
                     </Text>
                 </View>
             )}
 
-            <View style={[styles.track, { backgroundColor: Colors.border }]}>
+            <View style={[styles.track, { backgroundColor: colors.border }]}>
                 <View
                     style={[
                         styles.fill,
-                        { width: `${progress}%`, backgroundColor: Colors.primary },
+                        { width: `${progress}%`, backgroundColor: colors.primary },
                     ]}
                 />
             </View>

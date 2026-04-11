@@ -58,7 +58,7 @@ export default function JobDetailScreen() {
     const [isSaved, setIsSaved] = useState(false);
     const [isApplying, setIsApplying] = useState(false);
 
-    const job = jobs.find(j => j._id === id);
+    const job = jobs.find(j => (j._id === id || j.id === id));
 
     const handleApply = async () => {
         if (!job) return;
@@ -88,8 +88,8 @@ export default function JobDetailScreen() {
 
     return (
         <View style={[styles.jobDetailRoot, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topInsetPadding + 12, paddingBottom: 40 }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetPadding + 12, paddingBottom: 40 }]}>
                 <View style={styles.topActionBar}>
                     <TouchableOpacity
                         style={[styles.actionCircularBtn, { backgroundColor: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' }]}
@@ -206,21 +206,21 @@ export default function JobDetailScreen() {
                 paddingBottom: Platform.OS === "ios" ? insets.bottom + 10 : 24,
             }]}>
                 <TouchableOpacity
-                    style={[styles.primaryApplyAction, { backgroundColor: hasApplied ? colors.success : (isApplying ? colors.muted : colors.primary) }]}
+                    style={[styles.primaryApplyAction, { backgroundColor: hasApplied ? colors.success : (isApplying ? colors.muted : colors.buttonPrimary) }]}
                     onPress={handleApply}
                     disabled={hasApplied || isApplying}
                     activeOpacity={0.85}
                 >
                     {isApplying ? (
-                        <Text style={styles.primaryApplyLabel}>Applying...</Text>
+                        <Text style={[styles.primaryApplyLabel, { color: colors.foreground }]}>Applying...</Text>
                     ) : (
                         hasApplied ? (
                             <>
                                 <Feather name="check" size={18} color="#fff" />
-                                <Text style={styles.primaryApplyLabel}>Applied Successfully</Text>
+                                <Text style={[styles.primaryApplyLabel, { color: '#fff' }]}>Applied Successfully</Text>
                             </>
                         ) : (
-                            <Text style={styles.primaryApplyLabel}>Apply Now</Text>
+                            <Text style={[styles.primaryApplyLabel, { color: colors.onButtonPrimary }]}>Apply Now</Text>
                         )
                     )}
                 </TouchableOpacity>
@@ -284,5 +284,5 @@ const styles = StyleSheet.create({
     skillTagLabel: { fontSize: 13, fontWeight: '600' },
     fixedBottomAction: { padding: 20, borderTopWidth: 1, position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10, shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 10 },
     primaryApplyAction: { borderRadius: 18, paddingVertical: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
-    primaryApplyLabel: { color: "#fff", fontSize: 17, fontWeight: '800' },
+    primaryApplyLabel: { fontSize: 17, fontWeight: '800' },
 });

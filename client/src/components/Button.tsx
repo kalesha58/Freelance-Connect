@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     ViewStyle,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../theme';
+import { Typography, Spacing, BorderRadius } from '../theme';
+import { useColors } from '../hooks/useColors';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 
@@ -27,6 +28,7 @@ const Button: React.FC<Props> = ({
     disabled = false,
     style,
 }) => {
+    const colors = useColors();
     const isPrimary = variant === 'primary';
     const isOutline = variant === 'outline';
     const isDestructive = variant === 'destructive';
@@ -35,8 +37,8 @@ const Button: React.FC<Props> = ({
         <TouchableOpacity
             style={[
                 styles.button,
-                isPrimary && { backgroundColor: Colors.primary },
-                isOutline && { backgroundColor: 'transparent', borderWidth: 1, borderColor: Colors.border },
+                isPrimary && { backgroundColor: colors.buttonPrimary },
+                isOutline && { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
                 isDestructive && { backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FECACA' },
                 disabled && { opacity: 0.5 },
                 style,
@@ -46,14 +48,14 @@ const Button: React.FC<Props> = ({
             activeOpacity={0.8}
         >
             {loading ? (
-                <ActivityIndicator color={isPrimary ? '#fff' : Colors.primary} size="small" />
+                <ActivityIndicator color={isPrimary ? colors.onButtonPrimary : colors.primary} size="small" />
             ) : (
                 <Text
                     style={[
                         styles.text,
-                        isPrimary && { color: '#fff' },
-                        isOutline && { color: Colors.primary },
-                        isDestructive && { color: Colors.destructive },
+                        isPrimary && { color: colors.onButtonPrimary },
+                        isOutline && { color: colors.primary },
+                        isDestructive && { color: colors.destructive },
                     ]}
                 >
                     {title}

@@ -1,18 +1,13 @@
-import { COLORS_DARK, COLORS_LIGHT } from './colors';
+import { COLORS_LIGHT } from './colors';
 
+/**
+ * @deprecated Use the `useColors()` hook instead for theme-aware colors.
+ * This static object only provides light mode colors and will not update when the theme changes.
+ */
 export const Colors = {
     ...COLORS_LIGHT,
-    text: COLORS_LIGHT.foreground,
-    textSecondary: COLORS_LIGHT.mutedForeground,
-    textTertiary: '#94A3B8',
-    surface: COLORS_LIGHT.background,
-    primaryLight: COLORS_LIGHT.blueLight,
-    error: COLORS_LIGHT.destructive,
-    white: '#FFFFFF',
     background: COLORS_LIGHT.background,
-    secondary: COLORS_LIGHT.success, // Mapping secondary to success as per user screens usage
-    secondaryLight: '#F0FDF4',
-    warning: COLORS_LIGHT.warning,
+    white: '#FFFFFF',
 };
 
 export const Spacing = {

@@ -56,8 +56,8 @@ export default function DashboardScreen() {
             }]}
             showsVerticalScrollIndicator={false}
         >
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: insets.top }]}>
                 <View style={styles.titleRow}>
                     <View>
                         <Text style={[styles.dashboardHeading, { color: '#fff' }]}>Dashboard</Text>
@@ -72,7 +72,7 @@ export default function DashboardScreen() {
                 </View>
             </View>
 
-            <View style={[styles.earningsBannerSurface, { backgroundColor: isHiring ? colors.primary : colors.navyDeep }]}>
+            <View style={[styles.earningsBannerSurface, { backgroundColor: isHiring ? colors.headerBackground : colors.navyDeep }]}>
                 <View>
                     <Text style={styles.metricsLabelText}>{isHiring ? "Total Spend" : "Total Earnings"}</Text>
                     <Text style={styles.metricsValueTitle}>${earnings.toLocaleString()}</Text>

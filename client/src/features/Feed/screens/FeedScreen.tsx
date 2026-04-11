@@ -15,6 +15,7 @@ import Feather from "react-native-vector-icons/Feather";
 
 import { IPost, PostCard } from "@/components/PostCard/PostCard";
 import { useColors } from "@/hooks/useColors";
+import { PostCardSkeleton } from "@/components/SkeletonLoader";
 
 import { useApp } from "@/context/AppContext";
 
@@ -26,7 +27,7 @@ export default function FeedScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { posts, fetchPosts, toggleLike } = useApp();
+    const { posts, fetchPosts, toggleLike, isLoading } = useApp();
     const [refreshing, setRefreshing] = useState(false);
 
     const onRefresh = async () => {
@@ -37,10 +38,10 @@ export default function FeedScreen() {
 
     return (
         <View style={[styles.feedRootView, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
 
             {/* Solid Brand Header (Instagram Style Header) */}
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: insets.top }]}>
                 <View style={styles.headerTitleRow}>
                     <Text style={[styles.screenHeading, { color: '#fff' }]}>Community</Text>
                     <View style={styles.headerActionGroup}>
@@ -77,8 +78,8 @@ export default function FeedScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={[colors.primary]}
-                        tintColor={colors.primary}
+                        colors={[colors.headerBackground]}
+                        tintColor={colors.headerBackground}
                     />
                 }
                 contentContainerStyle={[
@@ -86,13 +87,24 @@ export default function FeedScreen() {
                     { paddingBottom: 80 + insets.bottom }
                 ]}
                 showsVerticalScrollIndicator={false}
-                ListEmptyComponent={() => (
-                    <View style={styles.emptyFeedPlaceholder}>
-                        <Feather name="image" size={48} color={colors.mutedForeground} />
-                        <Text style={[styles.emptyFeedTitle, { color: colors.foreground }]}>No posts yet</Text>
-                        <Text style={[styles.emptyFeedCopy, { color: colors.mutedForeground }]}>Be the first to share something!</Text>
-                    </View>
-                )}
+                ListEmptyComponent={() => {
+                    if (isLoading) {
+                        return (
+                            <View style={{ paddingVertical: 10 }}>
+                                <PostCardSkeleton />
+                                <PostCardSkeleton />
+                                <PostCardSkeleton />
+                            </View>
+                        );
+                    }
+                    return (
+                        <View style={styles.emptyFeedPlaceholder}>
+                            <Feather name="image" size={48} color={colors.mutedForeground} />
+                            <Text style={[styles.emptyFeedTitle, { color: colors.foreground }]}>No posts yet</Text>
+                            <Text style={[styles.emptyFeedCopy, { color: colors.mutedForeground }]}>Be the first to share something!</Text>
+                        </View>
+                    );
+                }}
             />
         </View>
     );

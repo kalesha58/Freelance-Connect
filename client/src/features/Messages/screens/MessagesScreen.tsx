@@ -46,7 +46,7 @@ function ConversationItem({ convo, onPress }: { convo: IConversation; onPress: (
             activeOpacity={0.85}
         >
             <View style={styles.avatarContainer}>
-                <View style={[styles.participantAvatar, { backgroundColor: convo.isLocked ? colors.muted : colors.primary }]}>
+                <View style={[styles.participantAvatar, { backgroundColor: convo.isLocked ? colors.muted : colors.headerBackground }]}>
                     {convo.isLocked ? (
                         <Feather name="lock" size={18} color={colors.mutedForeground} />
                     ) : (
@@ -88,7 +88,7 @@ function ConversationItem({ convo, onPress }: { convo: IConversation; onPress: (
                         </Text>
                     )}
                     {convo.unreadCount > 0 && (
-                        <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>
+                        <View style={[styles.unreadBadge, { backgroundColor: colors.headerBackground }]}>
                             <Text style={styles.unreadCountLabel}>{convo.unreadCount}</Text>
                         </View>
                     )}
@@ -137,8 +137,8 @@ export default function MessagesScreen() {
 
     const ListHeader = () => (
         <View style={styles.headerArea}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topInsetOffset + 12 }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 12 }]}>
                 <View style={styles.titleBar}>
                     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
                         <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingBottom: 5 }}>
@@ -181,10 +181,10 @@ export default function MessagesScreen() {
                 </TouchableOpacity>
 
                 {lockedChats.length > 0 && (
-                    <View style={[styles.upgradeBanner, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.upgradeBanner, { backgroundColor: colors.headerBackground }]}>
                         <View style={styles.bannerInfo}>
                             <View style={styles.bannerIconBox}>
-                                <Ionicons name="sparkles" size={16} color={colors.primary} />
+                                <Ionicons name="sparkles" size={16} color={colors.headerBackground} />
                             </View>
                             <View>
                                 <Text style={styles.bannerTitle}>Pro Conversations</Text>
@@ -192,7 +192,7 @@ export default function MessagesScreen() {
                             </View>
                         </View>
                         <TouchableOpacity style={styles.bannerBtn}>
-                            <Text style={[styles.bannerBtnText, { color: colors.primary }]}>Upgrade</Text>
+                            <Text style={[styles.bannerBtnText, { color: colors.headerBackground }]}>Upgrade</Text>
                         </TouchableOpacity>
                     </View>
                 )}

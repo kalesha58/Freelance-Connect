@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://freelance-connect.vercel.app/api'; // Replace with your backend URL
+// Use your local IP address for mobile devices, or 'http://localhost:5001/api' for iOS simulator
+// and 'http://10.0.2.2:5001/api' for Android emulator.
+const BASE_URL = 'https://freelance-connect.vercel.app/api'; 
+// const BASE_URL = 'http://localhost:5001/api'; 
 
 interface RequestOptions extends RequestInit {
     body?: any;

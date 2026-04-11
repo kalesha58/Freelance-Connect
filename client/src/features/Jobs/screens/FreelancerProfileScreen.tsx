@@ -115,7 +115,7 @@ export default function FreelancerProfileScreen() {
                     {avatarUri ? (
                         <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
                     ) : (
-                        <View style={[styles.avatarCircleSurface, { backgroundColor: colors.primary }]}>
+                        <View style={[styles.avatarCircleSurface, { backgroundColor: colors.headerBackground }]}>
                             <Text style={styles.avatarInitialLabel}>{profile.name.charAt(0)}</Text>
                         </View>
                     )}
@@ -250,11 +250,11 @@ export default function FreelancerProfileScreen() {
                     <Text style={[styles.secondaryContactLabel, { color: colors.primary }]}>Messages</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.primaryHireActionBtn, { backgroundColor: colors.primary }]}
+                    style={[styles.primaryHireActionBtn, { backgroundColor: colors.buttonPrimary }]}
                     onPress={() => navigation.navigate("HireConfirm", { freelancerId: profile._id })}
                     activeOpacity={0.85}
                 >
-                    <Text style={styles.primaryHireActionLabel}>Hire {profile.name.split(" ")[0]}</Text>
+                    <Text style={[styles.primaryHireActionLabel, { color: colors.onButtonPrimary }]}>Hire {profile.name.split(" ")[0]}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -318,5 +318,5 @@ const styles = StyleSheet.create({
     secondaryContactActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1.5, borderRadius: 14, paddingVertical: 14 },
     secondaryContactLabel: { fontSize: 15, fontWeight: "600" },
     primaryHireActionBtn: { flex: 2, borderRadius: 14, paddingVertical: 14, alignItems: "center", justifyContent: "center" },
-    primaryHireActionLabel: { color: "#fff", fontSize: 15, fontWeight: "700" },
+    primaryHireActionLabel: { fontSize: 15, fontWeight: "700" },
 });

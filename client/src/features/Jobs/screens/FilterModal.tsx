@@ -120,16 +120,16 @@ export default function FilterModal() {
                         <TouchableOpacity
                             key={cat}
                             style={[styles.chip, {
-                                backgroundColor: selectedCat.includes(cat) ? colors.primary : colors.card,
-                                borderColor: selectedCat.includes(cat) ? colors.primary : colors.border,
+                                backgroundColor: selectedCat.includes(cat) ? colors.buttonPrimary : colors.card,
+                                borderColor: selectedCat.includes(cat) ? colors.buttonPrimary : colors.border,
                             }]}
                             onPress={() => toggleCategorySelection(cat)}
                             activeOpacity={0.7}
                         >
-                            <Text style={[styles.chipText, { color: selectedCat.includes(cat) ? "#fff" : colors.foreground }]}>
+                            <Text style={[styles.chipText, { color: selectedCat.includes(cat) ? colors.onButtonPrimary : colors.foreground }]}>
                                 {cat}
                             </Text>
-                            {selectedCat.includes(cat) && <Ionicons name="checkmark-circle" size={14} color="#fff" style={{ marginLeft: 6 }} />}
+                            {selectedCat.includes(cat) && <Ionicons name="checkmark-circle" size={14} color={colors.onButtonPrimary} style={{ marginLeft: 6 }} />}
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -245,11 +245,11 @@ export default function FilterModal() {
             {/* Apply Button Footer */}
             <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border, paddingBottom: bottomInsetOffset }]}>
                 <TouchableOpacity
-                    style={[styles.applyBtn, { backgroundColor: colors.primary }]}
+                    style={[styles.applyBtn, { backgroundColor: colors.buttonPrimary }]}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.85}
                 >
-                    <Text style={styles.applyBtnText}>Apply Active Filters</Text>
+                    <Text style={[styles.applyBtnText, { color: colors.onButtonPrimary }]}>Apply Active Filters</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -308,5 +308,5 @@ const styles = StyleSheet.create({
     radioFill: { width: 12, height: 12, borderRadius: 6 },
     footer: { padding: 16, borderTopWidth: 1, position: "absolute", bottom: 0, left: 0, right: 0 },
     applyBtn: { height: 56, borderRadius: 18, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
-    applyBtnText: { color: "#fff", fontSize: 16, fontWeight: '700' },
+    applyBtnText: { fontSize: 16, fontWeight: '700' },
 });

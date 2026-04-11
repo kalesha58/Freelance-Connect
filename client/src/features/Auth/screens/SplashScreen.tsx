@@ -10,7 +10,8 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/navigation/types';
-import { Colors, Typography, Spacing } from '@/theme';
+import { Typography, Spacing } from '@/theme';
+import { useColors } from '@/hooks/useColors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ type Props = {
 };
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
+    const colors = useColors();
     const logoScale = useRef(new Animated.Value(0.3)).current;
     const logoOpacity = useRef(new Animated.Value(0)).current;
     const textOpacity = useRef(new Animated.Value(0)).current;
@@ -104,7 +106,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
     }, []);
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.primary }]}>
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
             <Animated.View
@@ -121,7 +123,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
                 </View>
             </Animated.View>
 
-            <Animated.Text style={[styles.appName, { opacity: textOpacity }]}>
+            <Animated.Text style={[styles.appName, { opacity: textOpacity, color: colors.white }]}>
                 Tasker
             </Animated.Text>
 
@@ -141,7 +143,6 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -169,7 +170,6 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: Typography['4xl'],
         fontWeight: Typography.extrabold,
-        color: Colors.white,
         letterSpacing: -0.5,
     },
     tagline: {

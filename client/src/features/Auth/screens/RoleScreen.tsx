@@ -111,15 +111,15 @@ export default function RoleScreen({ navigation }: { navigation: any }) {
                 ))}
 
                 <TouchableOpacity
-                    style={[styles.confirmBtn, { backgroundColor: selectedRole ? colors.primary : colors.muted }]}
+                    style={[styles.confirmBtn, { backgroundColor: selectedRole ? colors.buttonPrimary : colors.muted }]}
                     onPress={handleRoleFinalization}
                     disabled={!selectedRole}
                     activeOpacity={0.85}
                 >
-                    <Text style={[styles.confirmLabel, { color: selectedRole ? "#fff" : colors.mutedForeground }]}>
+                    <Text style={[styles.confirmLabel, { color: selectedRole ? colors.onButtonPrimary : colors.mutedForeground }]}>
                         Continue
                     </Text>
-                    <Feather name="arrow-right" size={18} color={selectedRole ? "#fff" : colors.mutedForeground} />
+                    <Feather name="arrow-right" size={18} color={selectedRole ? colors.onButtonPrimary : colors.mutedForeground} />
                 </TouchableOpacity>
             </ScrollView>
         </View>

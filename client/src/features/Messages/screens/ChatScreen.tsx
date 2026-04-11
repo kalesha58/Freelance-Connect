@@ -102,14 +102,14 @@ export default function ChatScreen() {
         return (
             <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
                 {!isMe && (
-                    <View style={[styles.authorAvatar, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.authorAvatar, { backgroundColor: colors.headerBackground }]}>
                         <Text style={styles.authorAvatarLabel}>{otherParticipant?.name?.charAt(0) || "?"}</Text>
                     </View>
                 )}
                 <View style={[
                     styles.textBubble,
                     isMe
-                        ? { backgroundColor: colors.primary }
+                        ? { backgroundColor: colors.headerBackground }
                         : { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
                 ]}>
                     <Text style={[styles.bubbleCopy, { color: isMe ? "#fff" : colors.foreground }]}>{item.text}</Text>
@@ -125,7 +125,7 @@ export default function ChatScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Feather name="arrow-left" size={22} color={colors.foreground} />
                 </TouchableOpacity>
-                <View style={[styles.headerAvatarCircle, { backgroundColor: colors.primary }]}>
+                <View style={[styles.headerAvatarCircle, { backgroundColor: colors.headerBackground }]}>
                     <Text style={styles.headerAvatarLabel}>{otherParticipant?.name?.charAt(0) || "?"}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -196,11 +196,11 @@ export default function ChatScreen() {
                                 />
                             </View>
                             <TouchableOpacity
-                                style={[styles.messageSendBtn, { backgroundColor: text.trim() ? colors.primary : colors.muted }]}
+                                style={[styles.messageSendBtn, { backgroundColor: text.trim() ? colors.buttonPrimary : colors.muted }]}
                                 onPress={handleSend}
                                 disabled={!text.trim()}
                             >
-                                <Feather name="send" size={18} color={text.trim() ? "#fff" : colors.mutedForeground} />
+                                <Feather name="send" size={18} color={text.trim() ? colors.onButtonPrimary : colors.mutedForeground} />
                             </TouchableOpacity>
                         </View>
                     </KeyboardAvoidingView>
