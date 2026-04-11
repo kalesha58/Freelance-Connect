@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "668723967309",
+    "project_id": "skill-link-281a0",
+    "storage_bucket": "skill-link-281a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668723967309:android:d9a85372d7152824cd7304",
+        "android_client_info": {
+          "package_name": "com.freelance.skill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDruaQtbqHHeQrGQZLaXazXpB7RRbhfcSo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
