@@ -26,7 +26,7 @@ import { PostCardSkeleton } from "@/components/SkeletonLoader";
 import CustomActionSheet from "@/components/CustomActionSheet";
 import { useApp } from "@/context/AppContext";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { uploadImage } from "@/utils/apiClient";
+import { uploadImage, apiClient } from "@/utils/apiClient";
 import { formatNumber, formatCurrency } from "@/utils/formatters";
 
 const { width } = Dimensions.get('window');
@@ -168,7 +168,7 @@ export default function ProfileScreen() {
 
     return (
         <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
             {/* Minimal Brand Header */}
             <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 12, paddingBottom: 25 }]}>

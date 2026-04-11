@@ -106,7 +106,10 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={[styles.roleTitle, { color: colors.textSecondary }]}>I want to join as a:</Text>
                     <View style={[styles.roleSwitch, { backgroundColor: colors.border + '40' }]}>
                         <TouchableOpacity
-                            style={[styles.roleOption, role === 'freelancer' && styles.roleActive]}
+                            style={[
+                                styles.roleOption, 
+                                role === 'freelancer' && [styles.roleActive, { backgroundColor: colors.card }]
+                            ]}
                             onPress={() => setRole('freelancer')}
                             activeOpacity={0.8}
                         >
@@ -115,7 +118,10 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.roleOption, role === 'hiring' && styles.roleActive]}
+                            style={[
+                                styles.roleOption, 
+                                role === 'hiring' && [styles.roleActive, { backgroundColor: colors.card }]
+                            ]}
                             onPress={() => setRole('hiring')}
                             activeOpacity={0.8}
                         >
@@ -204,8 +210,12 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                         onPress={() => setTermsAccepted(!termsAccepted)}
                         activeOpacity={0.7}
                     >
-                        <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
-                            {termsAccepted && <Text style={styles.checkmark}>✓</Text>}
+                        <View style={[
+                            styles.checkbox, 
+                            { borderColor: colors.border },
+                            termsAccepted && [styles.checkboxChecked, { backgroundColor: colors.primary, borderColor: colors.primary }]
+                        ]}>
+                            {termsAccepted && <Text style={[styles.checkmark, { color: '#fff' }]}>✓</Text>}
                         </View>
                         <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             I agree to the{' '}
@@ -275,12 +285,11 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.sm,
     },
     roleActive: {
-        background: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     roleText: {
         fontSize: Typography.sm,

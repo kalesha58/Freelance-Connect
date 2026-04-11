@@ -50,8 +50,14 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    const raw = error?.message || String(error);
+    const isInvalidSignature =
+      typeof raw === 'string' &&
+      raw.toLowerCase().includes('invalid signature');
     res.status(500).json({
-      message: error.message || 'Upload failed',
+      message: isInvalidSignature
+        ? 'Cloudinary Invalid Signature: set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET on the server (e.g. Vercel) to the exact values from one Cloudinary account — API Secret must match that API Key; no extra quotes or spaces. Then redeploy.'
+        : raw || 'Upload failed',
     });
   }
 });
