@@ -1,4 +1,4 @@
-package com.freelance
+package com.freelance.skill
 
 import android.app.Application
 import com.facebook.react.PackageList

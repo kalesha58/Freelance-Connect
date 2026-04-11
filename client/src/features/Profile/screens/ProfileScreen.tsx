@@ -20,11 +20,14 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 const MCI = MaterialCommunityIcons;
 
-import { useApp } from "@/context/AppContext";
+import { IPost, PostCard } from "@/components/PostCard/PostCard";
 import { useColors } from "@/hooks/useColors";
-import { PostCard } from "@/components/PostCard/PostCard";
+import { PostCardSkeleton } from "@/components/SkeletonLoader";
+import CustomActionSheet from "@/components/CustomActionSheet";
+import { useApp } from "@/context/AppContext";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { uploadImage } from "@/utils/apiClient";
+import { formatNumber, formatCurrency } from "@/utils/formatters";
 
 const { width } = Dimensions.get('window');
 
@@ -42,10 +45,11 @@ export default function ProfileScreen() {
     const route = useRoute<ProfileRouteProp>();
     const { id: targetUserId } = route.params || {};
 
-    const { user: currentUser, signOut, posts: allPosts, updateProfile } = useApp();
+    const { user: currentUser, signOut, posts: allPosts, updateProfile, isLoading } = useApp();
     const [targetUser, setTargetUser] = useState<any>(null);
     const [loading, setLoading] = useState(!!targetUserId);
     const [isUploading, setIsUploading] = useState(false);
+    const [isAvatarSheetVisible, setIsAvatarSheetVisible] = useState(false);
 
     // If viewing own profile, use currentUser, else use targetUser
     const user = targetUserId ? targetUser : currentUser;
@@ -60,10 +64,7 @@ export default function ProfileScreen() {
     const loadTargetUser = async () => {
         setLoading(true);
         try {
-            // We'll use a fetch call here. In a real app, this should be in AppContext.
-            // For now, we'll implement it locally or add to AppContext.
-            const response = await fetch(`https://freelance-connect.vercel.app/api/users/${targetUserId}`);
-            const data = await response.json();
+            const data = await apiClient(`/profile/${targetUserId}`);
             setTargetUser(data);
         } catch (error) {
             console.error("Load Target User Error:", error);
@@ -96,24 +97,7 @@ export default function ProfileScreen() {
     };
 
     const handleUpdateAvatar = async () => {
-        Alert.alert(
-            "Update Profile Picture",
-            "Choose an option",
-            [
-                {
-                    text: "Take Photo",
-                    onPress: () => pickImage(true),
-                },
-                {
-                    text: "Choose from Library",
-                    onPress: () => pickImage(false),
-                },
-                {
-                    text: "Cancel",
-                    style: "cancel",
-                },
-            ]
-        );
+        setIsAvatarSheetVisible(true);
     };
 
     const pickImage = async (useCamera: boolean) => {
@@ -170,10 +154,10 @@ export default function ProfileScreen() {
                 <Ionicons name="person-circle-outline" size={80} color={colors.mutedForeground} />
                 <Text style={[styles.loginPrompt, { color: colors.foreground }]}>Sign in to view your profile</Text>
                 <TouchableOpacity
-                    style={[styles.loginBtn, { backgroundColor: colors.primary }]}
+                    style={[styles.loginBtn, { backgroundColor: colors.buttonPrimary }]}
                     onPress={() => navigation.navigate("Login")}
                 >
-                    <Text style={styles.loginBtnLabel}>Sign In</Text>
+                    <Text style={[styles.loginBtnLabel, { color: colors.onButtonPrimary }]}>Sign In</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -184,10 +168,10 @@ export default function ProfileScreen() {
 
     return (
         <View style={[styles.mainContainer, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
 
             {/* Minimal Brand Header */}
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topInsetOffset + 12, paddingBottom: 25 }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 12, paddingBottom: 25 }]}>
                 <View style={styles.headerContent}>
                     {(!isOwnProfile || navigation.canGoBack()) && (
                         <TouchableOpacity
@@ -249,7 +233,7 @@ export default function ProfileScreen() {
                             </View>
                             {isOwnProfile && (
                                 <TouchableOpacity 
-                                    style={[styles.editAvatarBadge, { backgroundColor: colors.primary }]}
+                                    style={[styles.editAvatarBadge, { backgroundColor: colors.headerBackground }]}
                                     onPress={handleUpdateAvatar}
                                     disabled={isUploading}
                                 >
@@ -264,9 +248,9 @@ export default function ProfileScreen() {
 
                         <View style={styles.statsRow}>
                             {[
-                                { label: "Followers", value: "2.4K" },
-                                { label: "Completed", value: "18" },
-                                { label: "Earnings", value: "$4.2K" },
+                                { label: "Followers", value: formatNumber(user.followers || 0) },
+                                { label: "Completed", value: formatNumber(user.projectsCompleted || 0) },
+                                { label: "Earnings", value: formatCurrency(user.earnings || 0) },
                             ].map((stat) => (
                                 <View key={stat.label} style={styles.statItem}>
                                     <Text style={[styles.statValueCompact, { color: colors.foreground }]}>{stat.value}</Text>
@@ -300,26 +284,26 @@ export default function ProfileScreen() {
                         ) : null}
 
                         <Text style={[styles.bioBodyText, { color: colors.foreground }]}>
-                            {user.bio || (user.role === 'freelancer' 
-                                ? "Crafting digital experiences with passion. Senior UI/UX Designer & Frontend Developer specialized in mobile applications."
-                                : "Looking for top-tier talent to collaborate on exciting projects and drive innovation.")}
+                            {user.bio || (isOwnProfile 
+                                ? "You haven't added a bio yet. Tell the world about your skills!" 
+                                : "This user hasn't added a bio yet.")}
                         </Text>
                     </View>
 
                     <View style={styles.profileActionRow}>
                         {isOwnProfile ? (
                             <>
-                                <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]} onPress={() => navigation.navigate("ProfileSetup")}>
-                                    <Text style={styles.primaryActionBtnText}>Edit Profile</Text>
+                                <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.buttonPrimary }]} onPress={() => navigation.navigate("ProfileSetup")}>
+                                    <Text style={[styles.primaryActionBtnText, { color: colors.onButtonPrimary }]}>Edit Profile</Text>
                                 </TouchableOpacity>
                             </>
                         ) : (
                             <>
                                 <TouchableOpacity
-                                    style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]}
+                                    style={[styles.primaryActionBtn, { backgroundColor: colors.buttonPrimary }]}
                                     onPress={() => navigation.navigate("Main", { screen: "Messages", params: { screen: "Chat", params: { id: user?._id } } })}
                                 >
-                                    <Text style={styles.primaryActionBtnText}>Message</Text>
+                                    <Text style={[styles.primaryActionBtnText, { color: colors.onButtonPrimary }]}>Message</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={[styles.secondaryActionBtn, { backgroundColor: colors.muted + "15", borderColor: colors.border }]}>
                                     <Text style={[styles.secondaryActionBtnText, { color: colors.foreground }]}>Hire Now</Text>
@@ -428,8 +412,8 @@ export default function ProfileScreen() {
                             <View style={styles.emptyGridState}>
                                 <Feather name="plus-circle" size={40} color={colors.mutedForeground} />
                                 <Text style={[styles.emptyGridText, { color: colors.mutedForeground }]}>Add your first portfolio piece</Text>
-                                <TouchableOpacity style={[styles.addPostBtn, { backgroundColor: colors.primary }]} onPress={() => navigation.navigate("CreatePost")}>
-                                    <Text style={styles.addPostBtnLabel}>Add Work</Text>
+                                <TouchableOpacity style={[styles.addPostBtn, { backgroundColor: colors.buttonPrimary }]} onPress={() => navigation.navigate("CreatePost")}>
+                                    <Text style={[styles.addPostBtnLabel, { color: colors.onButtonPrimary }]}>Add Work</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -498,22 +482,48 @@ export default function ProfileScreen() {
                         <View style={[styles.sheetHandle, { backgroundColor: colors.border }]} />
                         <View style={styles.sheetHeader}>
                             <Text style={[styles.sheetTitle, { color: colors.foreground }]}>Post Details</Text>
-                            <TouchableOpacity onPress={() => setIsSheetVisible(false)} style={styles.sheetCloseBtn}>
-                                <Ionicons name="close" size={24} color={colors.foreground} />
-                            </TouchableOpacity>
                         </View>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {selectedPost && (
-                                <PostCard
-                                    post={selectedPost}
-                                    onLike={() => { }} // Local state update could be added if needed
+                                <PostCard 
+                                    post={selectedPost} 
+                                    onLike={() => {}} // Read-only in detail for now
                                 />
                             )}
-                            <View style={{ height: 100 }} />
+                            <View style={{ height: 20 }} />
                         </ScrollView>
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            {/* Custom ActionSheet for Avatar Update */}
+            <CustomActionSheet
+                visible={isAvatarSheetVisible}
+                onClose={() => setIsAvatarSheetVisible(false)}
+                title="Update Profile Picture"
+                description="Choose how you'd like to update your professional avatar"
+                actions={[
+                    { 
+                        label: "Take Photo", 
+                        icon: "camera", 
+                        onPress: () => pickImage(true) 
+                    },
+                    { 
+                        label: "Choose from Library", 
+                        icon: "image", 
+                        onPress: () => pickImage(false) 
+                    },
+                    {
+                        label: "Remove Photo",
+                        icon: "trash-2",
+                        destructive: true,
+                        onPress: () => {
+                            // Logic to remove photo can go here
+                            updateProfile({ avatar: "", profilePic: "" });
+                        }
+                    }
+                ]}
+            />
         </View>
     );
 }
@@ -549,7 +559,7 @@ const styles = StyleSheet.create({
     emptyView: { flex: 1, alignItems: "center", justifyContent: "center", gap: 20 },
     loginPrompt: { fontSize: 18, fontWeight: '600' },
     loginBtn: { paddingHorizontal: 36, paddingVertical: 14, borderRadius: 16 },
-    loginBtnLabel: { color: "#fff", fontSize: 16, fontWeight: '700' },
+    loginBtnLabel: { fontSize: 16, fontWeight: '700' },
     identityCard: {
         backgroundColor: '#fff',
         borderRadius: 24,
@@ -659,7 +669,6 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     addPostBtnLabel: {
-        color: '#fff',
         fontSize: 14,
         fontWeight: '700',
     },
@@ -779,7 +788,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     primaryActionBtnText: {
-        color: "#fff",
         fontSize: 14,
         fontWeight: '700',
     },

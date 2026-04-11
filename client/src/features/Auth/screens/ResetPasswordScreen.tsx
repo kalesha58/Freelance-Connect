@@ -17,7 +17,8 @@ import { RootStackParamList } from '@/navigation/types';
 import Header from '@/components/Header';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { Typography, Spacing, BorderRadius } from '@/theme';
+import { useColors } from '@/hooks/useColors';
 import { isValidPassword, passwordsMatch } from '@/utils/validation';
 
 type Props = {
@@ -32,6 +33,7 @@ interface Requirement {
 
 const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
     const insets = useSafeAreaInsets();
+    const colors = useColors();
     const { resetPassword } = useApp();
     const { email, otp } = route.params;
     const [newPassword, setNewPassword] = useState('');
@@ -91,10 +93,10 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+            <StatusBar barStyle={colors.background === '#F8FAFC' ? 'dark-content' : 'light-content'} backgroundColor={colors.background} />
 
             <Header onBack={() => navigation.goBack()} title="New Password" />
 
@@ -110,8 +112,8 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.icon}>🔒</Text>
                 </View>
 
-                <Text style={styles.heading}>Set New Password</Text>
-                <Text style={styles.description}>
+                <Text style={[styles.heading, { color: colors.text }]}>Set New Password</Text>
+                <Text style={[styles.description, { color: colors.textSecondary }]}>
                     Create a strong password you haven't used before.
                 </Text>
 
@@ -145,14 +147,14 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
                 />
 
                 {/* Requirements checklist */}
-                <View style={styles.requirementsBox}>
-                    <Text style={styles.requirementsTitle}>Password requirements</Text>
+                <View style={[styles.requirementsBox, { backgroundColor: colors.secondaryLight }]}>
+                    <Text style={[styles.requirementsTitle, { color: colors.secondary }]}>Password requirements</Text>
                     {requirements.map((req, i) => (
                         <View key={i} style={styles.reqRow}>
                             <View style={[styles.reqDot, req.met && styles.reqDotMet]}>
                                 <Text style={styles.reqCheck}>{req.met ? '✓' : '·'}</Text>
                             </View>
-                            <Text style={[styles.reqLabel, req.met && styles.reqLabelMet]}>
+                            <Text style={[styles.reqLabel, { color: colors.textSecondary }, req.met && { color: colors.secondary }]}>
                                 {req.label}
                             </Text>
                         </View>
@@ -173,7 +175,7 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1 },
     content: {
         flexGrow: 1,
         paddingHorizontal: Spacing.xl,
@@ -183,7 +185,6 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 18,
-        backgroundColor: Colors.primaryLight,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: Spacing.base,
@@ -193,12 +194,10 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: Typography['2xl'],
         fontWeight: Typography.bold,
-        color: Colors.text,
         marginBottom: Spacing.xs,
     },
     description: {
         fontSize: Typography.base,
-        color: Colors.textSecondary,
         marginBottom: Spacing.xl,
         lineHeight: Typography.base * 1.6,
     },
@@ -224,21 +223,17 @@ const styles = StyleSheet.create({
         width: 18,
         height: 18,
         borderRadius: 9,
-        backgroundColor: Colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
     reqDotMet: {
-        backgroundColor: Colors.success,
     },
     reqCheck: {
         fontSize: 10,
-        color: Colors.white,
         fontWeight: Typography.bold,
     },
     reqLabel: {
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
     },
     reqLabelMet: {
         color: '#166534',

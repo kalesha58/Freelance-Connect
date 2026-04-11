@@ -5,7 +5,6 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    StatusBar,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -15,11 +14,11 @@ import { RootStackParamList } from '@/navigation/types';
 import Header from '@/components/Header';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import SocialButton from '@/components/SocialButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { Typography, Spacing } from '@/theme';
 import { validateLogin, LoginErrors } from '@/utils/validation';
 import { useApp } from '@/context/AppContext';
+import { useColors } from '@/hooks/useColors';
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -27,6 +26,7 @@ type Props = {
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const { signIn } = useApp();
+    const colors = useColors();
     const insets = useSafeAreaInsets();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [password, setPassword] = useState('');
@@ -58,13 +58,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         }
     };
 
-    const handleGoogleLogin = () => {
-        Alert.alert('Google Sign In', 'Coming soon!');
-    };
 
     return (
         <KeyboardAvoidingView
-            style={[styles.container, { backgroundColor: Colors.background }]}
+            style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
 
@@ -88,11 +85,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             >
                 {/* Hero section */}
                 <View style={styles.hero}>
-                    <View style={styles.logoMini}>
+                    <View style={[styles.logoMini, { backgroundColor: colors.headerBackground }]}>
                         <Text style={styles.logoText}>T</Text>
                     </View>
-                    <Text style={styles.heading}>Welcome back</Text>
-                    <Text style={styles.subheading}>
+                    <Text style={[styles.heading, { color: colors.foreground }]}>Welcome back</Text>
+                    <Text style={[styles.subheading, { color: colors.mutedForeground }]}>
                         Sign in to your Tasker account
                     </Text>
                 </View>
@@ -137,14 +134,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                             onPress={() => setRememberMe(!rememberMe)}
                             activeOpacity={0.7}
                         >
-                            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                            <View style={[
+                                styles.checkbox,
+                                { borderColor: colors.border },
+                                rememberMe && { backgroundColor: colors.headerBackground, borderColor: colors.headerBackground },
+                            ]}>
                                 {rememberMe && <Text style={styles.checkmark}>✓</Text>}
                             </View>
-                            <Text style={styles.rememberText}>Remember me</Text>
+                            <Text style={[styles.rememberText, { color: colors.mutedForeground }]}>Remember me</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                            <Text style={styles.forgotText}>Forgot Password?</Text>
+                            <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot Password?</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -157,46 +158,23 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     style={styles.loginBtn}
                 />
 
-                {/* Divider */}
-                <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-                    <View style={styles.dividerLine} />
-                </View>
-
-                {/* Social login */}
-                <SocialButton
-                    title="Continue with Google"
-                    icon="🔵"
-                    onPress={handleGoogleLogin}
-                />
-
-                {/* Apple (iOS only) */}
-                {Platform.OS === 'ios' && (
-                    <SocialButton
-                        title="Continue with Apple"
-                        icon="🍎"
-                        onPress={() => Alert.alert('Apple Sign In', 'Coming soon!')}
-                        style={styles.appleBtn}
-                    />
-                )}
 
                 {/* Sign up link */}
                 <View style={styles.signupRow}>
-                    <Text style={styles.noAccountText}>Don't have an account? </Text>
+                    <Text style={[styles.noAccountText, { color: colors.mutedForeground }]}>Don't have an account? </Text>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Signup', { role: 'freelancer' })}
                     >
-                        <Text style={styles.signupAction}>Create Account</Text>
+                        <Text style={[styles.signupAction, { color: colors.primary }]}>Create Account</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Terms notice */}
-                <Text style={styles.terms}>
+                <Text style={[styles.terms, { color: colors.mutedForeground }]}>
                     By logging in, you agree to our{' '}
-                    <Text style={styles.termsLink}>Terms of Service</Text>
+                    <Text style={{ color: colors.primary }}>Terms of Service</Text>
                     {' '}and{' '}
-                    <Text style={styles.termsLink}>Privacy Policy</Text>
+                    <Text style={{ color: colors.primary }}>Privacy Policy</Text>
                 </Text>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -206,11 +184,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
     },
     signupLink: {
         fontSize: Typography.base,
-        color: Colors.primary,
         fontWeight: Typography.semibold,
     },
     scroll: { flex: 1 },
@@ -227,7 +203,6 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 16,
-        backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: Spacing.base,
@@ -235,17 +210,15 @@ const styles = StyleSheet.create({
     logoText: {
         fontSize: Typography['2xl'],
         fontWeight: Typography.extrabold,
-        color: Colors.white,
+        color: '#FFFFFF',
     },
     heading: {
         fontSize: Typography['3xl'],
         fontWeight: Typography.bold,
-        color: Colors.text,
         marginBottom: Spacing.xs,
     },
     subheading: {
         fontSize: Typography.base,
-        color: Colors.textSecondary,
     },
     form: {
         gap: 0,
@@ -268,50 +241,23 @@ const styles = StyleSheet.create({
         height: 18,
         borderRadius: 4,
         borderWidth: 1.5,
-        borderColor: Colors.border,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    checkboxChecked: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
-    },
     checkmark: {
-        color: Colors.white,
+        color: '#FFFFFF',
         fontSize: 10,
         fontWeight: Typography.bold,
     },
     rememberText: {
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
     },
     forgotText: {
         fontSize: Typography.sm,
-        color: Colors.primary,
         fontWeight: Typography.medium,
     },
     loginBtn: {
         marginBottom: Spacing.lg,
-    },
-    divider: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: Spacing.base,
-        gap: Spacing.sm,
-    },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: Colors.border,
-    },
-    dividerText: {
-        fontSize: Typography.xs,
-        color: Colors.textTertiary,
-        fontWeight: Typography.medium,
-        letterSpacing: 0.5,
-    },
-    appleBtn: {
-        marginTop: Spacing.sm,
     },
     signupRow: {
         flexDirection: 'row',
@@ -321,23 +267,17 @@ const styles = StyleSheet.create({
     },
     noAccountText: {
         fontSize: Typography.base,
-        color: Colors.textSecondary,
     },
     signupAction: {
         fontSize: Typography.base,
-        color: Colors.primary,
         fontWeight: Typography.semibold,
     },
     terms: {
         fontSize: Typography.xs,
-        color: Colors.textTertiary,
         textAlign: 'center',
         marginTop: Spacing.base,
         lineHeight: Typography.xs * Typography.relaxed,
         paddingHorizontal: Spacing.lg,
-    },
-    termsLink: {
-        color: Colors.primary,
     },
 });
 

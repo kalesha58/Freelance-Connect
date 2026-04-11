@@ -59,7 +59,7 @@ function ReplyRow({ reply, postOwnerId, colors }: ReplyRowProps) {
             {reply.userAvatar ? (
                 <Image source={{ uri: reply.userAvatar }} style={replyStyles.avatar} />
             ) : (
-                <View style={[replyStyles.avatarPlaceholder, { backgroundColor: colors.primary }]}>
+                <View style={[replyStyles.avatarPlaceholder, { backgroundColor: colors.headerBackground }]}>
                     <Text style={replyStyles.avatarLetter}>{reply.userName?.charAt(0) ?? "?"}</Text>
                 </View>
             )}
@@ -67,7 +67,7 @@ function ReplyRow({ reply, postOwnerId, colors }: ReplyRowProps) {
                 <View style={replyStyles.nameRow}>
                     <Text style={[replyStyles.name, { color: colors.foreground }]}>{reply.userName}</Text>
                     {isOwner && (
-                        <View style={[replyStyles.authorBadge, { backgroundColor: colors.primary + '20', borderColor: colors.primary + '50' }]}>
+                        <View style={[replyStyles.authorBadge, { backgroundColor: colors.headerBackground + '20', borderColor: colors.primary + '50' }]}>
                             <Text style={[replyStyles.authorBadgeText, { color: colors.primary }]}>Author</Text>
                         </View>
                     )}
@@ -124,7 +124,7 @@ function CommentRow({ comment, postOwnerId, colors, onReply, currentUserId }: Co
                 {comment.userAvatar ? (
                     <Image source={{ uri: comment.userAvatar }} style={commentStyles.avatar} />
                 ) : (
-                    <View style={[commentStyles.avatarPlaceholder, { backgroundColor: colors.primary }]}>
+                    <View style={[commentStyles.avatarPlaceholder, { backgroundColor: colors.headerBackground }]}>
                         <Text style={commentStyles.avatarLetter}>{comment.userName?.charAt(0) ?? "?"}</Text>
                     </View>
                 )}
@@ -134,7 +134,7 @@ function CommentRow({ comment, postOwnerId, colors, onReply, currentUserId }: Co
                         <View style={commentStyles.nameRow}>
                             <Text style={[commentStyles.name, { color: colors.foreground }]}>{comment.userName}</Text>
                             {isOwner && (
-                                <View style={[commentStyles.authorBadge, { backgroundColor: colors.primary + '20', borderColor: colors.primary + '55' }]}>
+                                <View style={[commentStyles.authorBadge, { backgroundColor: colors.headerBackground + '20', borderColor: colors.primary + '55' }]}>
                                     <Text style={[commentStyles.authorBadgeText, { color: colors.primary }]}>Author</Text>
                                 </View>
                             )}
@@ -301,7 +301,7 @@ export default function PostCommentsScreen() {
                 {params.userAvatar ? (
                     <Image source={{ uri: params.userAvatar }} style={styles.previewAvatar} />
                 ) : (
-                    <View style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.headerBackground }]}>
                         <Text style={styles.previewAvatarText}>{params.userName?.charAt(0) ?? "?"}</Text>
                     </View>
                 )}
@@ -350,7 +350,7 @@ export default function PostCommentsScreen() {
 
             {/* ── Replying-to chip ── */}
             {replyingTo && (
-                <View style={[styles.replyChip, { backgroundColor: colors.primary + '18', borderColor: colors.primary + '40' }]}>
+                <View style={[styles.replyChip, { backgroundColor: colors.headerBackground + '18', borderColor: colors.primary + '40' }]}>
                     <Feather name="corner-down-right" size={14} color={colors.primary} />
                     <Text style={[styles.replyChipText, { color: colors.primary }]}>
                         Replying to <Text style={{ fontWeight: "700" }}>@{replyingTo.userName}</Text>
@@ -373,7 +373,7 @@ export default function PostCommentsScreen() {
                 {user?.avatar ? (
                     <Image source={{ uri: user.avatar }} style={styles.inputAvatar} />
                 ) : (
-                    <View style={[styles.inputAvatarPlaceholder, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.inputAvatarPlaceholder, { backgroundColor: colors.headerBackground }]}>
                         <Text style={styles.inputAvatarText}>{user?.name?.charAt(0) ?? "?"}</Text>
                     </View>
                 )}
@@ -402,7 +402,7 @@ export default function PostCommentsScreen() {
                     style={[
                         styles.sendBtn,
                         {
-                            backgroundColor: inputText.trim() ? colors.primary : colors.border,
+                            backgroundColor: inputText.trim() ? colors.buttonPrimary : colors.border,
                             opacity: inputText.trim() ? 1 : 0.6,
                         }
                     ]}
@@ -411,9 +411,9 @@ export default function PostCommentsScreen() {
                     activeOpacity={0.8}
                 >
                     {sending ? (
-                        <ActivityIndicator color="#fff" size="small" />
+                        <ActivityIndicator color={colors.onButtonPrimary} size="small" />
                     ) : (
-                        <Ionicons name="send" size={16} color="#fff" />
+                        <Ionicons name="send" size={16} color={inputText.trim() ? colors.onButtonPrimary : colors.mutedForeground} />
                     )}
                 </TouchableOpacity>
             </View>

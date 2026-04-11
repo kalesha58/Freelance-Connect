@@ -48,10 +48,10 @@ export default function MyJobsScreen() {
                 </TouchableOpacity>
                 <Text style={[styles.myJobsTitleHeading, { color: colors.foreground }]}>My Jobs</Text>
                 <TouchableOpacity
-                    style={[styles.quickAddActionBtn, { backgroundColor: colors.primary }]}
+                    style={[styles.quickAddActionBtn, { backgroundColor: colors.buttonPrimary }]}
                     onPress={() => navigation.navigate("CreateJob")}
                 >
-                    <Feather name="plus" size={20} color="#fff" />
+                    <Feather name="plus" size={20} color={colors.onButtonPrimary} />
                 </TouchableOpacity>
             </View>
 
@@ -65,8 +65,8 @@ export default function MyJobsScreen() {
                         <Text style={[styles.tabLabelText, { color: activeTab === tabKey ? colors.primary : colors.mutedForeground }]}>
                             {tabKey.charAt(0).toUpperCase() + tabKey.slice(1)} Jobs
                         </Text>
-                        <View style={[styles.stateCountBadge, { backgroundColor: activeTab === tabKey ? colors.primary : colors.muted }]}>
-                            <Text style={[styles.badgeDigitLabel, { color: activeTab === tabKey ? "#fff" : colors.mutedForeground }]}>
+                        <View style={[styles.stateCountBadge, { backgroundColor: activeTab === tabKey ? colors.buttonPrimary : colors.muted }]}>
+                            <Text style={[styles.badgeDigitLabel, { color: activeTab === tabKey ? colors.onButtonPrimary : colors.mutedForeground }]}>
                                 {(tabKey === "active" ? ACTIVE_JOBS : COMPLETED_JOBS).length}
                             </Text>
                         </View>
@@ -126,10 +126,10 @@ export default function MyJobsScreen() {
                         <Text style={[styles.emptyListTitle, { color: colors.foreground }]}>No {activeTab} jobs</Text>
                         {activeTab === "active" && (
                             <TouchableOpacity
-                                style={[styles.callToPostActionBtn, { backgroundColor: colors.primary }]}
+                                style={[styles.callToPostActionBtn, { backgroundColor: colors.buttonPrimary }]}
                                 onPress={() => navigation.navigate("CreateJob")}
                             >
-                                <Text style={styles.callToPostLabel}>Post Your First Job</Text>
+                                <Text style={[styles.callToPostLabel, { color: colors.onButtonPrimary }]}>Post Your First Job</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -169,5 +169,5 @@ const styles = StyleSheet.create({
     emptyListPlaceholder: { alignItems: "center", paddingTop: 60, gap: 12 },
     emptyListTitle: { fontSize: 18, fontWeight: '700' },
     callToPostActionBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 },
-    callToPostLabel: { color: "#fff", fontSize: 14, fontWeight: '700' },
+    callToPostLabel: { fontSize: 14, fontWeight: '700' },
 });

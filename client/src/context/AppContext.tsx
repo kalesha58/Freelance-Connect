@@ -49,6 +49,7 @@ export interface User {
 
 export interface Job {
     _id: string;
+    id?: string;
     title: string;
     budget: string;
     budgetType: "fixed" | "hourly";

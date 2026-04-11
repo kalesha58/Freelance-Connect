@@ -18,7 +18,8 @@ import OTPInput from '@/components/OTPInput';
 import Button from '@/components/Button';
 import ProgressBar from '@/components/ProgressBar';
 import useOTPTimer from '@/hooks/useOTPTimer';
-import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { Typography, Spacing, BorderRadius } from '@/theme';
+import { useColors } from '@/hooks/useColors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/context/AppContext';
 
@@ -29,6 +30,7 @@ type Props = {
 
 const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
     const insets = useSafeAreaInsets();
+    const colors = useColors();
     const { signUp, verifyOTP } = useApp();
     const { email, flow } = route.params;
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
@@ -108,14 +110,16 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
 
     return (
         <KeyboardAvoidingView
-            style={[styles.container, { backgroundColor: Colors.background }]}
+            style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+            <StatusBar barStyle={colors.background === '#F8FAFC' ? 'dark-content' : 'light-content'} backgroundColor={colors.background} />
 
             <Header
                 onBack={() => navigation.goBack()}
                 title="Verify OTP"
                 rightElement={<Text style={{ fontSize: 13, color: '#fff', fontWeight: '500' }}>Step 2 of 2</Text>}
+                tintColor="#FFFFFF"
             />
 
             <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
@@ -131,16 +135,16 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Icon */}
-                <View style={styles.iconWrap}>
+                <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
                     <Text style={styles.icon}>📩</Text>
                 </View>
 
                 {/* Title & description */}
-                <Text style={styles.heading}>Check your inbox</Text>
-                <Text style={styles.description}>
+                <Text style={[styles.heading, { color: colors.text }]}>Check your inbox</Text>
+                <Text style={[styles.description, { color: colors.textSecondary }]}>
                     We've sent a 6-digit verification code to
                 </Text>
-                <Text style={styles.email}>{maskedEmail}</Text>
+                <Text style={[styles.email, { color: colors.text }]}>{maskedEmail}</Text>
 
                 {/* Demo hint */}
                 <View style={styles.demoHint}>
@@ -160,7 +164,7 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
                     />
 
                     {otpError && (
-                        <Text style={styles.errorText}>
+                        <Text style={[styles.errorText, { color: colors.error }]}>
                             Incorrect code. Please check and try again.
                         </Text>
                     )}
@@ -169,24 +173,28 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
                 {/* Timer */}
                 <View style={styles.timerRow}>
                     {!isExpired ? (
-                        <Text style={styles.timerText}>
+                        <Text style={[styles.timerText, { color: colors.textSecondary }]}>
                             Code expires in{' '}
-                            <Text style={styles.timerCount}>{formatTime(timeLeft)}</Text>
+                            <Text style={[styles.timerCount, { color: colors.primary }]}>{formatTime(timeLeft)}</Text>
                         </Text>
                     ) : (
-                        <Text style={styles.timerExpired}>Code has expired</Text>
+                        <Text style={[styles.timerExpired, { color: colors.error }]}>Code has expired</Text>
                     )}
                 </View>
 
                 {/* Resend */}
                 <View style={styles.resendRow}>
-                    <Text style={styles.resendLabel}>Didn't receive the code? </Text>
+                    <Text style={[styles.resendLabel, { color: colors.textSecondary }]}>Didn't receive the code? </Text>
                     <TouchableOpacity
                         onPress={handleResend}
                         disabled={!isExpired || resendLoading}
                         activeOpacity={0.7}
                     >
-                        <Text style={[styles.resendBtn, (!isExpired || resendLoading) && styles.resendDisabled]}>
+                        <Text style={[
+                            styles.resendBtn,
+                            { color: colors.primary },
+                            (!isExpired || resendLoading) && { color: colors.textTertiary }
+                        ]}>
                             {resendLoading ? 'Sending...' : 'Resend OTP'}
                         </Text>
                     </TouchableOpacity>
@@ -199,7 +207,8 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
                             key={i}
                             style={[
                                 styles.progressDot,
-                                i < filledCount && styles.progressDotFilled,
+                                { borderColor: colors.border, backgroundColor: colors.border },
+                                i < filledCount && { backgroundColor: colors.primary, borderColor: colors.primary },
                             ]}
                         />
                     ))}
@@ -221,9 +230,9 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
                     style={styles.changeRow}
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={styles.changeText}>
+                    <Text style={[styles.changeText, { color: colors.textSecondary }]}>
                         Wrong {email.includes('@') ? 'email' : 'number'}?{' '}
-                        <Text style={styles.changeLink}>Change it</Text>
+                        <Text style={[styles.changeLink, { color: colors.primary }]}>Change it</Text>
                     </Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -234,7 +243,6 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
     },
     content: {
         flexGrow: 1,
@@ -246,7 +254,6 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 24,
-        backgroundColor: Colors.primaryLight,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: Spacing.xl,
@@ -258,19 +265,16 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: Typography['2xl'],
         fontWeight: Typography.bold,
-        color: Colors.text,
         marginBottom: Spacing.sm,
         textAlign: 'center',
     },
     description: {
         fontSize: Typography.base,
-        color: Colors.textSecondary,
         textAlign: 'center',
     },
     email: {
         fontSize: Typography.base,
         fontWeight: Typography.semibold,
-        color: Colors.text,
         marginTop: 4,
         marginBottom: Spacing.base,
         textAlign: 'center',
@@ -295,7 +299,6 @@ const styles = StyleSheet.create({
     },
     errorText: {
         fontSize: Typography.sm,
-        color: Colors.error,
         textAlign: 'center',
         marginTop: Spacing.sm,
     },
@@ -304,16 +307,13 @@ const styles = StyleSheet.create({
     },
     timerText: {
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
         textAlign: 'center',
     },
     timerCount: {
-        color: Colors.primary,
         fontWeight: Typography.semibold,
     },
     timerExpired: {
         fontSize: Typography.sm,
-        color: Colors.error,
         textAlign: 'center',
     },
     resendRow: {
@@ -323,15 +323,12 @@ const styles = StyleSheet.create({
     },
     resendLabel: {
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
     },
     resendBtn: {
         fontSize: Typography.sm,
-        color: Colors.primary,
         fontWeight: Typography.semibold,
     },
     resendDisabled: {
-        color: Colors.textTertiary,
     },
     progressDots: {
         flexDirection: 'row',
@@ -342,13 +339,9 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         borderRadius: 5,
-        backgroundColor: Colors.border,
         borderWidth: 1.5,
-        borderColor: Colors.border,
     },
     progressDotFilled: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
     },
     spacer: { flex: 1, minHeight: Spacing.xl },
     verifyBtn: {
@@ -360,11 +353,9 @@ const styles = StyleSheet.create({
     },
     changeText: {
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
         textAlign: 'center',
     },
     changeLink: {
-        color: Colors.primary,
         fontWeight: Typography.medium,
     },
 });

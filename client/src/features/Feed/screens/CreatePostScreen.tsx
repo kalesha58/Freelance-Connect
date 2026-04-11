@@ -149,13 +149,13 @@ export default function CreatePostScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 {/* Clean Header */}
-                <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: colors.primary }]}>
+                <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: colors.headerBackground }]}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
                         <Feather name="x" size={24} color="#fff" />
                     </TouchableOpacity>

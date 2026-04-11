@@ -15,11 +15,11 @@ import Header from '@/components/Header';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import SocialButton from '@/components/SocialButton';
 import ProgressBar from '@/components/ProgressBar';
-import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { Typography, Spacing, BorderRadius } from '@/theme';
 import { validateSignup, SignupErrors } from '@/utils/validation';
 import { useApp } from '@/context/AppContext';
+import { useColors } from '@/hooks/useColors';
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'Signup'>;
@@ -31,6 +31,7 @@ type UserRole = 'freelancer' | 'hiring';
 const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
     // Default to freelancer if not provided
     const insets = useSafeAreaInsets();
+    const colors = useColors();
     const [role, setRole] = useState<UserRole>((route.params?.role as UserRole) || 'freelancer');
     const { signUp } = useApp();
 
@@ -67,16 +68,16 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const passwordStrength = () => {
         if (!password) return null;
-        if (password.length < 6) return { label: 'Too short', color: Colors.error };
-        if (password.length < 8) return { label: 'Weak', color: Colors.warning };
-        if (password.length < 12) return { label: 'Good', color: Colors.secondary };
-        return { label: 'Strong', color: Colors.success };
+        if (password.length < 6) return { label: 'Too short', color: colors.error };
+        if (password.length < 8) return { label: 'Weak', color: colors.warning };
+        if (password.length < 12) return { label: 'Good', color: colors.secondary };
+        return { label: 'Strong', color: colors.success };
     };
 
     const strength = passwordStrength();
 
     return (
-        <View style={[styles.container, { backgroundColor: Colors.background }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
 
             <Header
                 title="Create Account"
@@ -97,19 +98,19 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                 keyboardShouldPersistTaps="handled"
             >
 
-                <Text style={styles.heading}>Create Account</Text>
-                <Text style={styles.subheading}>Enter your details to get started</Text>
+                <Text style={[styles.heading, { color: colors.text }]}>Create Account</Text>
+                <Text style={[styles.subheading, { color: colors.textSecondary }]}>Enter your details to get started</Text>
 
                 {/* Role Switcher */}
                 <View style={styles.roleContainer}>
-                    <Text style={styles.roleTitle}>I want to join as a:</Text>
-                    <View style={styles.roleSwitch}>
+                    <Text style={[styles.roleTitle, { color: colors.textSecondary }]}>I want to join as a:</Text>
+                    <View style={[styles.roleSwitch, { backgroundColor: colors.border + '40' }]}>
                         <TouchableOpacity
                             style={[styles.roleOption, role === 'freelancer' && styles.roleActive]}
                             onPress={() => setRole('freelancer')}
                             activeOpacity={0.8}
                         >
-                            <Text style={[styles.roleText, role === 'freelancer' && styles.roleTextActive]}>
+                            <Text style={[styles.roleText, role === 'freelancer' && { color: colors.primary }]}>
                                 👨‍💻 Freelancer
                             </Text>
                         </TouchableOpacity>
@@ -118,7 +119,7 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                             onPress={() => setRole('hiring')}
                             activeOpacity={0.8}
                         >
-                            <Text style={[styles.roleText, role === 'hiring' && styles.roleTextActive]}>
+                            <Text style={[styles.roleText, role === 'hiring' && { color: colors.primary }]}>
                                 💼 Hiring Partner
                             </Text>
                         </TouchableOpacity>
@@ -206,11 +207,11 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                         <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
                             {termsAccepted && <Text style={styles.checkmark}>✓</Text>}
                         </View>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             I agree to the{' '}
-                            <Text style={styles.link}>Terms & Conditions</Text>
+                            <Text style={[styles.link, { color: colors.primary }]}>Terms & Conditions</Text>
                             {' '}and{' '}
-                            <Text style={styles.link}>Privacy Policy</Text>
+                            <Text style={[styles.link, { color: colors.primary }]}>Privacy Policy</Text>
                         </Text>
                     </TouchableOpacity>
                     {errors.terms && <Text style={styles.errorText}>{errors.terms}</Text>}
@@ -223,22 +224,11 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                     style={styles.submitBtn}
                 />
 
-                <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>OR</Text>
-                    <View style={styles.dividerLine} />
-                </View>
-
-                <SocialButton
-                    title="Continue with Google"
-                    icon="🔵"
-                    onPress={() => Alert.alert('Google Sign In', 'Coming soon!')}
-                />
 
                 <View style={styles.loginRow}>
-                    <Text style={styles.loginText}>Already have an account? </Text>
+                    <Text style={[styles.loginText, { color: colors.textSecondary }]}>Already have an account? </Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                        <Text style={styles.link}>Login</Text>
+                        <Text style={[styles.link, { color: colors.primary }]}>Login</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -247,8 +237,8 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
-    stepText: { fontSize: Typography.sm, color: Colors.textSecondary },
+    container: { flex: 1 },
+    stepText: { fontSize: Typography.sm },
     scroll: { flex: 1 },
     content: {
         paddingHorizontal: Spacing.xl,
@@ -257,12 +247,10 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: Typography['3xl'],
         fontWeight: Typography.bold,
-        color: Colors.text,
         marginBottom: Spacing.xs,
     },
     subheading: {
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
         marginBottom: Spacing.lg,
     },
     roleContainer: {
@@ -271,12 +259,10 @@ const styles = StyleSheet.create({
     roleTitle: {
         fontSize: Typography.sm,
         fontWeight: Typography.semibold,
-        color: Colors.textSecondary,
         marginBottom: Spacing.sm,
     },
     roleSwitch: {
         flexDirection: 'row',
-        backgroundColor: Colors.border + '40',
         padding: 4,
         borderRadius: BorderRadius.md,
         gap: 4,
@@ -289,7 +275,7 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.sm,
     },
     roleActive: {
-        backgroundColor: Colors.white,
+        background: '#fff',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -299,10 +285,8 @@ const styles = StyleSheet.create({
     roleText: {
         fontSize: Typography.sm,
         fontWeight: Typography.medium,
-        color: Colors.textSecondary,
     },
     roleTextActive: {
-        color: Colors.primary,
         fontWeight: Typography.semibold,
     },
     form: { gap: 0 },
@@ -316,7 +300,6 @@ const styles = StyleSheet.create({
     strengthBar: {
         flex: 1,
         height: 4,
-        backgroundColor: Colors.border,
         borderRadius: 2,
         overflow: 'hidden',
     },
@@ -342,52 +325,37 @@ const styles = StyleSheet.create({
         height: 20,
         borderRadius: 5,
         borderWidth: 2,
-        borderColor: Colors.border,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 1,
     },
     checkboxChecked: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
     },
     checkmark: {
-        color: Colors.white,
         fontSize: 11,
         fontWeight: Typography.bold,
     },
     termsText: {
         flex: 1,
         fontSize: Typography.sm,
-        color: Colors.textSecondary,
         lineHeight: Typography.sm * Typography.relaxed,
     },
     link: {
-        color: Colors.primary,
         fontWeight: Typography.medium,
     },
     errorText: {
         fontSize: Typography.xs,
-        color: Colors.error,
         marginTop: -Spacing.sm,
         marginBottom: Spacing.sm,
     },
     submitBtn: { marginTop: Spacing.base },
-    divider: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: Spacing.lg,
-        gap: Spacing.md,
-    },
-    dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-    dividerText: { fontSize: Typography.sm, color: Colors.textSecondary },
     loginRow: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: Spacing.base,
     },
-    loginText: { fontSize: Typography.sm, color: Colors.textSecondary },
+    loginText: { fontSize: Typography.sm },
 });
 
 export default SignupScreen;

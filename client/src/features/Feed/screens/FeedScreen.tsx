@@ -38,10 +38,10 @@ export default function FeedScreen() {
 
     return (
         <View style={[styles.feedRootView, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
 
             {/* Solid Brand Header (Instagram Style Header) */}
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: insets.top }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: insets.top }]}>
                 <View style={styles.headerTitleRow}>
                     <Text style={[styles.screenHeading, { color: '#fff' }]}>Community</Text>
                     <View style={styles.headerActionGroup}>
@@ -78,8 +78,8 @@ export default function FeedScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={[colors.primary]}
-                        tintColor={colors.primary}
+                        colors={[colors.headerBackground]}
+                        tintColor={colors.headerBackground}
                     />
                 }
                 contentContainerStyle={[

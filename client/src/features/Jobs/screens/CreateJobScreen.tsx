@@ -57,10 +57,10 @@ export default function CreateJobScreen() {
             style={[styles.container, { backgroundColor: colors.background }]}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
 
             {/* Immersive Brand Header */}
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topInsetOffset + 6 }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 6 }]}>
                 <View style={styles.headerContent}>
                     <TouchableOpacity
                         style={styles.backBtn}
@@ -74,7 +74,7 @@ export default function CreateJobScreen() {
                         onPress={handlePreview}
                         disabled={!title.trim()}
                     >
-                        <Text style={[styles.previewLabel, { color: title.trim() ? colors.primary : "rgba(255,255,255,0.6)" }]}>Preview</Text>
+                        <Text style={[styles.previewLabel, { color: title.trim() ? colors.headerBackground : "rgba(255,255,255,0.6)" }]}>Preview</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -93,8 +93,8 @@ export default function CreateJobScreen() {
                                 <View style={[
                                     styles.stepCircle,
                                     {
-                                        backgroundColor: isActive ? colors.primary : (isCompleted ? colors.primary : colors.background),
-                                        borderColor: isActive || isCompleted ? colors.primary : colors.border,
+                                        backgroundColor: isActive ? colors.headerBackground : (isCompleted ? colors.headerBackground : colors.background),
+                                        borderColor: isActive || isCompleted ? colors.headerBackground : colors.border,
                                         borderWidth: 2
                                     }
                                 ]}>
@@ -103,7 +103,7 @@ export default function CreateJobScreen() {
                                 {i < 3 && (
                                     <View style={[
                                         styles.stepLine,
-                                        { backgroundColor: i < 1 ? colors.primary : colors.border }
+                                        { backgroundColor: i < 1 ? colors.headerBackground : colors.border }
                                     ]} />
                                 )}
                             </React.Fragment>
@@ -178,12 +178,12 @@ export default function CreateJobScreen() {
                             <TouchableOpacity
                                 key={type}
                                 style={[styles.selectorBtn, {
-                                    backgroundColor: budgetType === type ? colors.primary : colors.background,
-                                    borderColor: budgetType === type ? colors.primary : colors.border,
+                                    backgroundColor: budgetType === type ? colors.buttonPrimary : colors.background,
+                                    borderColor: budgetType === type ? colors.buttonPrimary : colors.border,
                                 }]}
                                 onPress={() => setBudgetType(type)}
                             >
-                                <Text style={[styles.selectorLabel, { color: budgetType === type ? "#fff" : colors.mutedForeground }]}>
+                                <Text style={[styles.selectorLabel, { color: budgetType === type ? colors.onButtonPrimary : colors.mutedForeground }]}>
                                     {type === "fixed" ? "Milestone-Based" : "Time & Material"}
                                 </Text>
                             </TouchableOpacity>
@@ -249,7 +249,7 @@ export default function CreateJobScreen() {
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.submitBtn, { backgroundColor: title.trim() && description.trim() && budget.trim() ? colors.primary : colors.muted }]}
+                    style={[styles.submitBtn, { backgroundColor: title.trim() && description.trim() && budget.trim() ? colors.buttonPrimary : colors.muted }]}
                     onPress={() => {
                         setIsSubmitting(true);
                         setTimeout(() => {
@@ -260,7 +260,7 @@ export default function CreateJobScreen() {
                     disabled={!title.trim() || !description.trim() || !budget.trim()}
                     activeOpacity={0.8}
                 >
-                    <Text style={[styles.submitLabel, { color: title.trim() && description.trim() && budget.trim() ? "#fff" : colors.mutedForeground }]}>
+                    <Text style={[styles.submitLabel, { color: title.trim() && description.trim() && budget.trim() ? colors.onButtonPrimary : colors.mutedForeground }]}>
                         {isSubmitting ? "Finalizing..." : "Review Project Brief"}
                     </Text>
                 </TouchableOpacity>

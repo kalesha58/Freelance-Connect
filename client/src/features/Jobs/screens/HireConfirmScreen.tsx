@@ -65,12 +65,12 @@ export default function HireConfirmScreen() {
                         <Text style={[styles.confVendorTitle, { color: colors.mutedForeground }]}>{freelancer.title}</Text>
                     </View>
                     <TouchableOpacity
-                        style={[styles.primaryChatTransitionBtn, { backgroundColor: colors.primary }]}
+                        style={[styles.primaryChatTransitionBtn, { backgroundColor: colors.buttonPrimary }]}
                         onPress={() => navigation.navigate("Chat", { id: "conv1" })}
                         activeOpacity={0.85}
                     >
-                        <Feather name="message-circle" size={16} color="#fff" />
-                        <Text style={styles.chatTransitionBtnLabel}>Open Chat</Text>
+                        <Feather name="message-circle" size={16} color={colors.onButtonPrimary} />
+                        <Text style={[styles.chatTransitionBtnLabel, { color: colors.onButtonPrimary }]}>Open Chat</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate("Main")}>
                         <Text style={[styles.returnToHomeLabel, { color: colors.mutedForeground }]}>Back to Home</Text>
@@ -96,7 +96,7 @@ export default function HireConfirmScreen() {
             <ScrollView contentContainerStyle={[styles.confirmationContentArea, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
                 <View style={[styles.hiringTargetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <Text style={[styles.hiringTargetContext, { color: colors.mutedForeground }]}>You are hiring</Text>
-                    <View style={[styles.targetAvatarCircle, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.targetAvatarCircle, { backgroundColor: colors.headerBackground }]}>
                         <Text style={styles.targetAvatarInitials}>{freelancer.name.charAt(0)}</Text>
                     </View>
                     <Text style={[styles.targetProfileName, { color: colors.foreground }]}>{freelancer.name}</Text>
@@ -120,7 +120,7 @@ export default function HireConfirmScreen() {
                         { step: "4", text: "Payment is released upon milestone completion", icon: "dollar-sign" as const },
                     ].map(item => (
                         <View key={item.step} style={styles.processStepRow}>
-                            <View style={[styles.stepDigitCircle, { backgroundColor: colors.primary }]}>
+                            <View style={[styles.stepDigitCircle, { backgroundColor: colors.headerBackground }]}>
                                 <Text style={styles.stepDigitLabel}>{item.step}</Text>
                             </View>
                             <Feather name={item.icon} size={16} color={colors.mutedForeground} />
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     confVendorName: { fontSize: 16, fontWeight: '700' },
     confVendorTitle: { fontSize: 13, fontWeight: '400' },
     primaryChatTransitionBtn: { width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 16, paddingVertical: 15 },
-    chatTransitionBtnLabel: { color: "#fff", fontSize: 15, fontWeight: '700' },
+    chatTransitionBtnLabel: { fontSize: 15, fontWeight: '700' },
     returnToHomeLabel: { fontSize: 13, fontWeight: '500' },
     confirmationHeaderBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
     circularBackBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },

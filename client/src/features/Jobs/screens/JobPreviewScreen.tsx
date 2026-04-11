@@ -84,8 +84,8 @@ export default function JobPreviewScreen() {
                                 <View style={[
                                     styles.stepCircle,
                                     {
-                                        backgroundColor: isActive || isCompleted ? colors.primary : colors.background,
-                                        borderColor: isActive || isCompleted ? colors.primary : colors.border,
+                                        backgroundColor: isActive || isCompleted ? colors.headerBackground : colors.background,
+                                        borderColor: isActive || isCompleted ? colors.headerBackground : colors.border,
                                         borderWidth: 2
                                     }
                                 ]}>
@@ -94,7 +94,7 @@ export default function JobPreviewScreen() {
                                 {i < 3 && (
                                     <View style={[
                                         styles.stepLine,
-                                        { backgroundColor: i < 2 ? colors.primary : colors.border }
+                                        { backgroundColor: i < 2 ? colors.headerBackground : colors.border }
                                     ]} />
                                 )}
                             </React.Fragment>
@@ -178,13 +178,13 @@ export default function JobPreviewScreen() {
                     <Text style={[styles.secondaryEditLabel, { color: colors.foreground }]}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.primaryPostActionBtn, { backgroundColor: colors.primary, opacity: isPosting ? 0.7 : 1 }]}
+                    style={[styles.primaryPostActionBtn, { backgroundColor: colors.buttonPrimary, opacity: isPosting ? 0.7 : 1 }]}
                     onPress={handlePost}
                     disabled={isPosting}
                     activeOpacity={0.85}
                 >
-                    <Feather name="send" size={16} color="#fff" />
-                    <Text style={styles.primaryPostActionLabel}>{isPosting ? "Publishing..." : "Post Job"}</Text>
+                    <Feather name="send" size={16} color={colors.onButtonPrimary} />
+                    <Text style={[styles.primaryPostActionLabel, { color: colors.onButtonPrimary }]}>{isPosting ? "Publishing..." : "Post Job"}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     secondaryEditActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1.5, borderRadius: 14, paddingVertical: 14 },
     secondaryEditLabel: { fontSize: 15, fontWeight: '600' },
     primaryPostActionBtn: { flex: 2, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 14 },
-    primaryPostActionLabel: { color: "#fff", fontSize: 15, fontWeight: '700' },
+    primaryPostActionLabel: { fontSize: 15, fontWeight: '700' },
     stepperContainer: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 24 },
     stepCircle: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
     stepNum: { fontSize: 13, fontWeight: '700' },

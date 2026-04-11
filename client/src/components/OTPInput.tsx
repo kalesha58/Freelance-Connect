@@ -6,7 +6,8 @@ import {
     TextInputKeyPressEventData,
     NativeSyntheticEvent,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../theme';
+import { Typography, Spacing, BorderRadius } from '../theme';
+import { useColors } from '../hooks/useColors';
 
 interface Props {
     length: number;
@@ -21,6 +22,7 @@ const OTPInput: React.FC<Props> = ({
     onChange,
     error,
 }) => {
+    const colors = useColors();
     const inputs = useRef<TextInput[]>([]);
 
     const handleChangeText = (text: string, index: number) => {
@@ -46,10 +48,12 @@ const OTPInput: React.FC<Props> = ({
                     key={i}
                     ref={(ref) => { if (ref) inputs.current[i] = ref; }}
                     style={[
-                        styles.input,
-                        value[i] !== '' && styles.active,
-                        error && styles.error,
-                        { borderColor: error ? Colors.destructive : Colors.border },
+                        {
+                            borderColor: error ? colors.destructive : colors.border,
+                            backgroundColor: colors.muted,
+                            color: colors.foreground
+                        },
+                        value[i] !== '' && { borderColor: colors.primary, backgroundColor: colors.card },
                     ]}
                     maxLength={1}
                     keyboardType="number-pad"
@@ -57,7 +61,8 @@ const OTPInput: React.FC<Props> = ({
                     onKeyPress={(e) => handleKeyPress(e, i)}
                     value={value[i]}
                     textAlign="center"
-                    selectionColor={Colors.primary}
+                    selectionColor={colors.primary}
+                    placeholderTextColor={colors.mutedForeground}
                 />
             ))}
         </View>
@@ -78,15 +83,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         fontSize: Typography.xl,
         fontWeight: Typography.bold,
-        backgroundColor: Colors.muted,
-        color: Colors.foreground,
-    },
-    active: {
-        borderColor: Colors.primary,
-        backgroundColor: '#fff',
-    },
-    error: {
-        backgroundColor: '#FEF2F2',
     },
 });
 

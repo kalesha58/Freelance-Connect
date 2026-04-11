@@ -38,6 +38,7 @@ import ReportScreen from '@/features/Common/screens/ReportScreen';
 
 import { MainTabNavigator } from './MainNavigator';
 import { useApp } from '@/context/AppContext';
+import { useColors } from '@/hooks/useColors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -47,6 +48,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  */
 export const RootNavigator = () => {
     const { user } = useApp();
+    const colors = useColors();
 
     return (
         <Stack.Navigator
@@ -54,7 +56,7 @@ export const RootNavigator = () => {
             screenOptions={{
                 headerShown: false,
                 animation: 'fade_from_bottom',
-                contentStyle: { backgroundColor: '#fff' }
+                contentStyle: { backgroundColor: colors.background }
             }}
         >
             {!user ? (

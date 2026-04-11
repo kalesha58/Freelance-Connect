@@ -78,7 +78,7 @@ export default function ApplicantsScreen() {
                     <Text style={[styles.headerHeading, { color: colors.foreground }]}>Applicants</Text>
                     <Text style={[styles.headerContextLabel, { color: colors.mutedForeground }]} numberOfLines={1}>{jobTitle}</Text>
                 </View>
-                <View style={[styles.totalCountBadge, { backgroundColor: colors.primary }]}>
+                <View style={[styles.totalCountBadge, { backgroundColor: colors.headerBackground }]}>
                     <Text style={styles.totalCountVal}>{applicants.length}</Text>
                 </View>
             </View>
@@ -92,7 +92,7 @@ export default function ApplicantsScreen() {
                     <View style={[styles.proposalCardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <View style={styles.proposalCardHeader}>
                             <TouchableOpacity
-                                style={[styles.proposalAvatarCircle, { backgroundColor: colors.primary }]}
+                                style={[styles.proposalAvatarCircle, { backgroundColor: colors.headerBackground }]}
                                 onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
                             >
                                 {item.applicantAvatar ? (

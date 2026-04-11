@@ -6,7 +6,8 @@ import {
     View,
     ViewStyle,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../theme';
+import { Typography, Spacing, BorderRadius } from '../theme';
+import { useColors } from '../hooks/useColors';
 
 interface Props {
     title: string;
@@ -21,16 +22,17 @@ const SocialButton: React.FC<Props> = ({
     onPress,
     style,
 }) => {
+    const colors = useColors();
     return (
         <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#fff', borderColor: Colors.border }, style]}
+            style={[styles.button, { backgroundColor: colors.card, borderColor: colors.border }, style]}
             onPress={onPress}
             activeOpacity={0.75}
         >
             <View style={styles.iconContainer}>
                 <Text style={styles.icon}>{icon}</Text>
             </View>
-            <Text style={[styles.text, { color: Colors.foreground }]}>{title}</Text>
+            <Text style={[styles.text, { color: colors.foreground }]}>{title}</Text>
             <View style={{ width: 24 }} />
         </TouchableOpacity>
     );

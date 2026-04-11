@@ -125,8 +125,8 @@ export default function HomeScreen() {
 
     const RequesterHeader = () => (
         <View style={styles.headerContainer}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
                         <Text style={[styles.roleLabelText, { color: 'rgba(255,255,255,0.7)' }]}>Hiring Partner</Text>
@@ -144,7 +144,7 @@ export default function HomeScreen() {
                             style={[styles.primaryActionBtnSolid, { backgroundColor: '#fff' }]}
                             onPress={() => navigation.navigate("CreateJob")}
                         >
-                            <Feather name="plus" size={21} color={colors.primary} />
+                            <Feather name="plus" size={21} color={colors.headerBackground} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -161,10 +161,10 @@ export default function HomeScreen() {
                         onChangeText={setSearch}
                     />
                     <TouchableOpacity
-                        style={[styles.searchFilterBtn, { backgroundColor: colors.primary }]}
+                        style={[styles.searchFilterBtn, { backgroundColor: colors.buttonPrimary }]}
                         onPress={() => navigation.navigate("FilterModal")}
                     >
-                        <Feather name="sliders" size={16} color="#fff" />
+                        <Feather name="sliders" size={16} color={colors.onButtonPrimary} />
                     </TouchableOpacity>
                 </View>
 
@@ -193,13 +193,13 @@ export default function HomeScreen() {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={[styles.categoryChip, {
-                                backgroundColor: activeFilter === item ? colors.primary : colors.card,
-                                borderColor: activeFilter === item ? colors.primary : colors.border,
+                                backgroundColor: activeFilter === item ? colors.buttonPrimary : colors.card,
+                                borderColor: activeFilter === item ? colors.buttonPrimary : colors.border,
                             }]}
                             onPress={() => setActiveFilter(item)}
                             activeOpacity={0.8}
                         >
-                            <Text style={[styles.categoryChipLabel, { color: activeFilter === item ? "#fff" : colors.foreground }]}>
+                            <Text style={[styles.categoryChipLabel, { color: activeFilter === item ? colors.onButtonPrimary : colors.foreground }]}>
                                 {item}
                             </Text>
                         </TouchableOpacity>
@@ -220,8 +220,8 @@ export default function HomeScreen() {
 
     const FreelancerHeader = () => (
         <View style={styles.headerContainer}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.primary, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
                         <Text style={[styles.roleLabelText, { color: 'rgba(255,255,255,0.7)' }]}>Good morning,</Text>
@@ -248,10 +248,10 @@ export default function HomeScreen() {
                         onChangeText={setSearch}
                     />
                     <TouchableOpacity
-                        style={[styles.searchFilterBtn, { backgroundColor: colors.primary }]}
+                        style={[styles.searchFilterBtn, { backgroundColor: colors.buttonPrimary }]}
                         onPress={() => navigation.navigate("FilterModal")}
                     >
-                        <Feather name="sliders" size={16} color="#fff" />
+                        <Feather name="sliders" size={16} color={colors.onButtonPrimary} />
                     </TouchableOpacity>
                 </View>
 
@@ -280,13 +280,13 @@ export default function HomeScreen() {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={[styles.categoryChip, {
-                                backgroundColor: activeFilter === item ? colors.primary : colors.card,
-                                borderColor: activeFilter === item ? colors.primary : colors.border,
+                                backgroundColor: activeFilter === item ? colors.buttonPrimary : colors.card,
+                                borderColor: activeFilter === item ? colors.buttonPrimary : colors.border,
                             }]}
                             onPress={() => setActiveFilter(item)}
                             activeOpacity={0.8}
                         >
-                            <Text style={[styles.categoryChipLabel, { color: activeFilter === item ? "#fff" : colors.foreground }]}>
+                            <Text style={[styles.categoryChipLabel, { color: activeFilter === item ? colors.onButtonPrimary : colors.foreground }]}>
                                 {item}
                             </Text>
                         </TouchableOpacity>

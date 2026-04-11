@@ -13,7 +13,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/navigation/types';
 import Button from '@/components/Button';
-import { Colors, Typography, Spacing, BorderRadius } from '@/theme';
+import { Typography, Spacing, BorderRadius } from '@/theme';
+import { useColors } from '@/hooks/useColors';
 
 const { width } = Dimensions.get('window');
 
@@ -57,6 +58,7 @@ const slides: Slide[] = [
 ];
 
 const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
+    const colors = useColors();
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef<FlatList>(null);
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -77,21 +79,21 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
     const renderSlide = ({ item }: { item: Slide }) => (
         <View style={styles.slide}>
-            <View style={[styles.illustrationBox, { backgroundColor: item.emojiBackground }]}>
+            <View style={[styles.illustrationBox, { backgroundColor: colors.surface }]}>
                 <Text style={styles.emoji}>{item.emoji}</Text>
             </View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.description}>{item.description}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>{item.description}</Text>
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.surface} />
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={colors.background === '#F8FAFC' ? 'dark-content' : 'light-content'} backgroundColor={colors.background} />
 
             <View style={styles.skipRow}>
                 <TouchableOpacity onPress={handleSkip}>
-                    <Text style={styles.skipText}>Skip</Text>
+                    <Text style={[styles.skipText, { color: colors.primary }]}>Skip</Text>
                 </TouchableOpacity>
             </View>
 
@@ -133,7 +135,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                         return (
                             <Animated.View
                                 key={i}
-                                style={[styles.dot, { width: dotWidth, opacity }]}
+                                style={[styles.dot, { width: dotWidth, opacity, backgroundColor: colors.primary }]}
                             />
                         );
                     })}
@@ -151,7 +153,6 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.surface,
     },
     skipRow: {
         paddingTop: Spacing.xl,
@@ -160,7 +161,6 @@ const styles = StyleSheet.create({
     },
     skipText: {
         fontSize: Typography.base,
-        color: Colors.primary,
         fontWeight: Typography.medium,
     },
     flatList: {
@@ -187,14 +187,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: Typography['2xl'],
         fontWeight: Typography.bold,
-        color: Colors.text,
         textAlign: 'center',
         marginBottom: Spacing.md,
         lineHeight: Typography['2xl'] * Typography.tight,
     },
     description: {
         fontSize: Typography.base,
-        color: Colors.textSecondary,
         textAlign: 'center',
         lineHeight: Typography.base * Typography.relaxed,
         paddingHorizontal: Spacing.md,
@@ -213,7 +211,6 @@ const styles = StyleSheet.create({
     dot: {
         height: 8,
         borderRadius: 4,
-        backgroundColor: Colors.primary,
     },
 });
 
