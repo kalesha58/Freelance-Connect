@@ -2,7 +2,7 @@
 
 **Effective Date:** April 12, 2026
 
-This Privacy Policy describes how [INSERT_YOUR_DEVELOPER_OR_COMPANY_NAME] ("we", "us", or "our") collects, uses, and shares information about you when you use the **Tasker** mobile application (the "App").
+This Privacy Policy describes how **Tasker** ("we", "us", or "our") collects, uses, and shares information about you when you use the **Tasker** mobile application (the "App").
 
 Please read this policy carefully to understand our practices regarding your data. By using the App, you agree to the collection and use of information in accordance with this policy.
 
@@ -58,8 +58,8 @@ We retain your personal information for as long as your account is active or as 
 You have the right to request the deletion of your account and associated personal data at any time. This applies whether you use the App as a **freelancer** or as a **hiring manager** (or equivalent client role): you may request deletion of **your own** account using the same methods below.
 
 *   **In-App Deletion**: You can request account deletion through the "Settings" or "Help & Support" section of the App.
-*   **Web (account deletion information)**: Step-by-step information and contact details are available at **[https://freelance-connect-3uaj.vercel.app/account-deletion-info](https://freelance-connect-3uaj.vercel.app/account-deletion-info)** (when running the web app locally for development, use `http://localhost:5173/account-deletion-info`).
-*   **Manual Request**: You can also email us at **kaleshabox8@gmail.com** with the subject "Data Deletion Request".
+*   **Web (Account Deletion Information)**: Comprehensive instructions and contact options are available at: **[https://freelance-connect-3uaj.vercel.app/account-deletion-info](https://freelance-connect-3uaj.vercel.app/account-deletion-info)**.
+*   **Manual Request**: You can also email us directly at **kaleshabox8@gmail.com** with the subject **"Data Deletion Request"**.
 
 Upon receiving a valid deletion request, we will delete your account and remove your personal information from our active databases within **30 days**, except where we are required by law to retain certain data (e.g., for tax or accounting purposes).
 
@@ -96,5 +96,5 @@ If you have any questions or suggestions about our Privacy Policy, do not hesita
 **Account deletion (web):** [https://freelance-connect-3uaj.vercel.app/account-deletion-info](https://freelance-connect-3uaj.vercel.app/account-deletion-info)
 
 **Email:** kaleshabox8@gmail.com
-**Developer:** [INSERT_YOUR_DEVELOPER_OR_COMPANY_NAME]
-**Address:** [INSERT_YOUR_PHYSICAL_ADDRESS_OR_CITY_IF_APPLICABLE]
+**Developer:** Tasker
+**Address:** [YOUR_CITY_OR_ADDRESS]
