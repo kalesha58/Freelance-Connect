@@ -65,14 +65,11 @@ router.post('/signup', async (req, res) => {
         });
 
         if (user) {
+            const userObj = user.toObject();
+            delete userObj.password;
             res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id),
-                isProfileComplete: user.isProfileComplete,
-                referralCode: user.referralCode
+                ...userObj,
+                token: generateToken(user._id)
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -95,14 +92,11 @@ router.post('/login', async (req, res) => {
         });
 
         if (user && (await user.matchPassword(password))) {
+            const userObj = user.toObject();
+            delete userObj.password;
             res.json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                phone: user.phone,
-                role: user.role,
-                token: generateToken(user._id),
-                isProfileComplete: user.isProfileComplete
+                ...userObj,
+                token: generateToken(user._id)
             });
         } else {
             res.status(401).json({ message: 'Invalid email/phone or password' });
@@ -148,16 +142,10 @@ router.post('/verify-otp', async (req, res) => {
 // @access  Private
 router.get('/me', protect, async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.user._id).select('-password');
 
         if (user) {
-            res.json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                isProfileComplete: user.isProfileComplete
-            });
+            res.json(user);
         } else {
             res.status(404).json({ message: 'User not found' });
         }
