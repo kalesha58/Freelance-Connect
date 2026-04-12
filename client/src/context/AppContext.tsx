@@ -102,6 +102,8 @@ export interface Post {
     tags: string[];
     likes: string[];          // Array of userIds
     likedByMe: boolean;       // Computed on load: does current user's id appear in likes[]?
+    /** Present when GET /posts is called as a freelancer: whether you follow this post's author. */
+    isFollowingAuthor?: boolean;
     comments: Comment[];
     createdAt: string;
 }

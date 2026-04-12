@@ -1,15 +1,50 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Post = require('../models/Post');
-const { protect } = require('../middleware/authMiddleware');
+const Follow = require('../models/Follow');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
 
 // ─────────────────────────────────────────────
-// GET /api/posts  — All posts (Public)
+// GET /api/posts  — All posts; when logged in as freelancer, includes isFollowingAuthor per post
 // ─────────────────────────────────────────────
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 });
-        res.json(posts);
+        const posts = await Post.find().sort({ createdAt: -1 }).lean();
+
+        if (!req.user || req.user.role !== 'freelancer') {
+            return res.json(posts);
+        }
+
+        const myId = String(req.user._id);
+        const candidateIds = new Set();
+        for (const p of posts) {
+            if (p.userRole === 'freelancer' && String(p.userId) !== myId) {
+                candidateIds.add(String(p.userId));
+            }
+        }
+
+        let followSet = new Set();
+        if (candidateIds.size > 0) {
+            const oids = [...candidateIds].map((id) => new mongoose.Types.ObjectId(id));
+            const edges = await Follow.find({
+                followerId: req.user._id,
+                followingId: { $in: oids },
+            })
+                .select('followingId')
+                .lean();
+            followSet = new Set(edges.map((e) => String(e.followingId)));
+        }
+
+        const enriched = posts.map((p) => ({
+            ...p,
+            isFollowingAuthor:
+                p.userRole === 'freelancer' &&
+                String(p.userId) !== myId &&
+                followSet.has(String(p.userId)),
+        }));
+
+        res.json(enriched);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
