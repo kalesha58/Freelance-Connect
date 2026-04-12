@@ -46,7 +46,12 @@ export default function TermsScreen() {
             body: "Your privacy is important to us. We collect only the information necessary to provide our services. We do not sell your personal data to third parties.",
         },
         {
-            title: "6. Limitation of Liability",
+            title: "6. Your data and account deletion",
+            body:
+                "You may request deletion of your account and associated personal data at any time, whether you use Freelance Connect as a freelancer or as a hiring partner. Request deletion in Settings (Request account deletion) or via Help & Support, use the account deletion web page at https://freelance-connect-3uaj.vercel.app/account-deletion-info, or email kaleshabox8@gmail.com with the subject \"Data Deletion Request\". After we receive a valid request, we will remove your account and personal information from our active databases within 30 days, except where the law requires us to keep certain records (for example, tax or accounting).",
+        },
+        {
+            title: "7. Limitation of Liability",
             body: "Freelance Connect is not liable for any indirect, incidental, or consequential damages resulting from your use of the service.",
         },
     ];
@@ -85,7 +90,7 @@ export default function TermsScreen() {
                     <Text style={[styles.contactSecondaryDesc, { color: colors.mutedForeground }]}>
                         If you have any questions about our Terms of Service or Privacy Policy, please contact us at:
                     </Text>
-                    <Text style={[styles.contactEmailActionLabel, { color: colors.primary }]}>legal@freelanceconnect.app</Text>
+                    <Text style={[styles.contactEmailActionLabel, { color: colors.primary }]}>kaleshabox8@gmail.com</Text>
                 </View>
             </ScrollView>
         </View>

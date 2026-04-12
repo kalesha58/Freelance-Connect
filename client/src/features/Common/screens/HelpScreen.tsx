@@ -14,6 +14,7 @@ import Feather from "react-native-vector-icons/Feather";
 import { useColors } from "@/hooks/useColors";
 
 const FAQS = [
+    { q: "How do I delete my account or data?", a: "Open Settings, tap Request account deletion, then send us an email using the button (subject: Data Deletion Request). We process valid requests within 30 days, except where the law requires keeping certain records. This applies to freelancers and hiring partners alike." },
     { q: "How do I apply to a job?", a: "Browse the job feed, tap on any job listing, and press 'Apply Now'. You can include a cover letter and your portfolio link." },
     { q: "How does the payment process work?", a: "Payments are held in escrow when a job starts. Funds are released to you once the client approves your work. Freelance Connect charges a 10% platform fee." },
     { q: "How do I unlock more client chats?", a: "Free accounts can message up to 3 clients. Upgrade to Tasker Pro for unlimited messaging, plus priority job placement and advanced analytics." },
@@ -79,7 +80,7 @@ export default function HelpScreen() {
                 <View style={styles.supportChannelsRow}>
                     {[
                         { icon: "message-circle" as const, label: "Live Chat", sub: "Typically replies in minutes", color: colors.primary },
-                        { icon: "mail" as const, label: "Email Us", sub: "support@freelanceconnect.app", color: colors.purpleAccent },
+                        { icon: "mail" as const, label: "Email Us", sub: "kaleshabox8@gmail.com", color: colors.purpleAccent },
                     ].map(item => (
                         <TouchableOpacity
                             key={item.label}

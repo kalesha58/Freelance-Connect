@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View,
     StatusBar,
+    Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -32,6 +33,13 @@ export default function SettingsScreen() {
     const [notifMessages, setNotifMessages] = useState(true);
     const [notifActivity, setNotifActivity] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+
+    const DELETION_EMAIL = "kaleshabox8@gmail.com";
+    const openDeletionEmail = () => {
+        const subject = encodeURIComponent("Data Deletion Request");
+        Linking.openURL(`mailto:${DELETION_EMAIL}?subject=${subject}`).catch(() => {});
+    };
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
 
@@ -126,13 +134,54 @@ export default function SettingsScreen() {
                 <SettingSection title="LEGAL & SUPPORT" colors={colors}>
                     <SettingRow icon="help-circle" label="Help Center" onPress={() => navigation.navigate("Help")} colors={colors} />
                     <SettingRow icon="flag" label="Report an Issue" onPress={() => navigation.navigate("Report")} colors={colors} />
-                    <SettingRow icon="file-text" label="Terms of Service" onPress={() => navigation.navigate("Terms")} isLast colors={colors} />
+                    <SettingRow icon="file-text" label="Terms of Service" onPress={() => navigation.navigate("Terms")} colors={colors} />
+                    <SettingRow
+                        icon="trash-2"
+                        label="Request account deletion"
+                        sublabel="Email us to remove your data"
+                        onPress={() => setShowDeleteAccountModal(true)}
+                        isDanger
+                        isLast
+                        colors={colors}
+                    />
                 </SettingSection>
 
                 <SettingSection title="ACTIONS" colors={colors}>
                     <SettingRow icon="log-out" label="Sign Out" isDanger onPress={() => setShowLogoutModal(true)} isLast colors={colors} />
                 </SettingSection>
             </ScrollView>
+
+            {showDeleteAccountModal && (
+                <View style={styles.modalBackdropOverlay}>
+                    <View style={[styles.confirmationDialogBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <View style={[styles.dangerIconSurface, { backgroundColor: colors.destructive + "18" }]}>
+                            <Feather name="trash-2" size={28} color={colors.destructive} />
+                        </View>
+                        <Text style={[styles.dialogTitleHeading, { color: colors.foreground }]}>Request account deletion</Text>
+                        <Text style={[styles.dialogContextCopy, { color: colors.mutedForeground }]}>
+                            To delete your account and personal data, send us an email. We process valid requests within 30 days, except where the law requires us to keep certain records (e.g. tax or accounting).
+                        </Text>
+                        <Text style={[styles.deletionEmailHighlight, { color: colors.primary }]}>{DELETION_EMAIL}</Text>
+                        <View style={styles.dialogActionsRow}>
+                            <TouchableOpacity
+                                style={[styles.dismissActionBtn, { borderColor: colors.border }]}
+                                onPress={() => setShowDeleteAccountModal(false)}
+                            >
+                                <Text style={[styles.dismissActionLabel, { color: colors.foreground }]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.primaryLogoutActionBtn, { backgroundColor: colors.destructive }]}
+                                onPress={() => {
+                                    setShowDeleteAccountModal(false);
+                                    openDeletionEmail();
+                                }}
+                            >
+                                <Text style={styles.primaryLogoutActionLabel}>Email us</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
 
             {showLogoutModal && (
                 <View style={styles.modalBackdropOverlay}>
@@ -223,6 +272,7 @@ const styles = StyleSheet.create({
     dangerIconSurface: { width: 64, height: 64, borderRadius: 20, alignItems: "center", justifyContent: "center" },
     dialogTitleHeading: { fontSize: 20, fontWeight: '700' },
     dialogContextCopy: { fontSize: 13, fontWeight: '400', textAlign: "center", lineHeight: 19 },
+    deletionEmailHighlight: { fontSize: 14, fontWeight: '700', textAlign: "center" },
     dialogActionsRow: { flexDirection: "row", gap: 10, marginTop: 4, width: "100%" },
     dismissActionBtn: { flex: 1, borderWidth: 1.5, borderRadius: 14, paddingVertical: 13, alignItems: "center" },
     dismissActionLabel: { fontSize: 15, fontWeight: '600' },
