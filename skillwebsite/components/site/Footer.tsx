@@ -27,6 +27,12 @@ export function Footer() {
               Terms
             </Link>
             <Link
+              href="/account-deletion-info"
+              className="text-muted-foreground transition hover:text-foreground"
+            >
+              Deletion
+            </Link>
+            <Link
               href="/#about"
               className="text-muted-foreground transition hover:text-foreground"
             >

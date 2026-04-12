@@ -33,4 +33,28 @@ const protect = (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+/**
+ * Attaches req.user when a valid Bearer token is present; otherwise req.user stays undefined.
+ * Use for routes that work for guests but can enrich data for logged-in users.
+ */
+const optionalAuth = (req, res, next) => {
+    req.user = null;
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer')) {
+        return next();
+    }
+    const token = req.headers.authorization.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        User.findById(decoded.id)
+            .select('-password')
+            .then((user) => {
+                if (user) req.user = user;
+                next();
+            })
+            .catch(() => next());
+    } catch {
+        next();
+    }
+};
+
+module.exports = { protect, optionalAuth };

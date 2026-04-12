@@ -72,6 +72,7 @@ export default function FeedScreen() {
                             postImage: item.imageUrl // Map backend imageUrl to component postImage
                         } as any}
                         onLike={toggleLike}
+                        onFollowChanged={fetchPosts}
                     />
                 )}
                 refreshControl={

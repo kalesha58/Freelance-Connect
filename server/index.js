@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
@@ -34,6 +36,7 @@ app.use('/api/posts', require('./routes/postRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/follow', require('./routes/followRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/api/routes', (req, res) => {
@@ -53,6 +56,17 @@ app.get('/api/routes', (req, res) => {
 
 app.get('/', (req, res) => {
     res.send('Freelance Connect API is running...');
+});
+
+// Public account-deletion info (served by API deployment when users open this path on the same host as /api)
+app.get('/account-deletion-info', (req, res) => {
+    const htmlPath = path.join(__dirname, 'static', 'account-deletion-info.html');
+    if (fs.existsSync(htmlPath)) {
+        return res.type('html').sendFile(htmlPath);
+    }
+    res.type('html').send(
+        '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Account deletion</title></head><body><p>Email kaleshabox8@gmail.com with subject Data Deletion Request.</p></body></html>'
+    );
 });
 
 // Error handler (multer / Cloudinary / other)

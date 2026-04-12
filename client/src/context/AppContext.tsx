@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { apiClient } from "@/utils/apiClient";
 import database from '@react-native-firebase/database';
 
@@ -102,6 +102,8 @@ export interface Post {
     tags: string[];
     likes: string[];          // Array of userIds
     likedByMe: boolean;       // Computed on load: does current user's id appear in likes[]?
+    /** Present when GET /posts is called as a freelancer: whether you follow this post's author. */
+    isFollowingAuthor?: boolean;
     comments: Comment[];
     createdAt: string;
 }
@@ -130,6 +132,8 @@ interface AppContextType {
     toggleLike: (postId: string) => Promise<void>;
     addPost: (post: Partial<Post>) => Promise<void>;
     updateProfile: (profileData: Partial<User>) => Promise<void>;
+    /** Re-fetch the logged-in user from the API (same shape as app launch). Use after refresh or when opening Profile. */
+    refreshCurrentUser: () => Promise<void>;
     fetchJobs: () => Promise<void>;
     addJob: (jobData: any) => Promise<void>;
     forgotPassword: (emailOrPhone: string) => Promise<void>;
@@ -159,12 +163,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadUser();
     }, []);
 
+    const refreshCurrentUser = useCallback(async () => {
+        try {
+            const token = await AsyncStorage.getItem("tasker_token");
+            if (!token) return;
+            const userData = await apiClient("/profile/me");
+            setUser(userData as User);
+        } catch (e) {
+            console.warn("refreshCurrentUser:", e);
+        }
+    }, []);
+
     const loadUser = async () => {
         try {
             const token = await AsyncStorage.getItem("tasker_token");
             if (token) {
-                const userData = await apiClient("/auth/me");
-                setUser(userData);
+                const userData = await apiClient("/profile/me");
+                setUser(userData as User);
                 // Firebase presence is handled by FirebaseProvider via currentUserId prop
                 await Promise.all([
                     fetchPosts(userData._id),
@@ -210,6 +225,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
 
+    /** Same canonical user shape as cold start — login/signup responses may omit nested profile fields. */
+    const hydrateUserAfterAuth = async (fallback: User | (User & { token?: string })) => {
+        const id = fallback._id;
+        try {
+            const userData = await apiClient("/profile/me");
+            setUser(userData as User);
+            fetchPosts(userData._id);
+        } catch {
+            const { token: _t, ...rest } = fallback as User & { token?: string };
+            setUser(rest as User);
+            fetchPosts(id);
+        }
+        fetchJobs();
+    };
+
     const signIn = async (emailOrPhone: string, password: string) => {
         try {
             const data = await apiClient("/auth/login", {
@@ -218,10 +248,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             });
 
             await AsyncStorage.setItem("tasker_token", data.token);
-            setUser(data);
-            fetchPosts(data._id);
-            fetchJobs();
-            // Firebase presence is set automatically via FirebaseProvider
+            await hydrateUserAfterAuth(data);
         } catch (error) {
             throw error;
         }
@@ -235,10 +262,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             });
 
             await AsyncStorage.setItem("tasker_token", data.token);
-            setUser(data);
-            fetchPosts(data._id);
-            fetchJobs();
-            // Firebase presence is set automatically via FirebaseProvider
+            await hydrateUserAfterAuth(data);
         } catch (error) {
             throw error;
         }
@@ -438,6 +462,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 toggleLike,
                 addPost,
                 updateProfile,
+                refreshCurrentUser,
                 fetchComments,
                 addComment,
                 addReply,

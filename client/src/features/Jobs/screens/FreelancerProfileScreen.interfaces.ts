@@ -38,6 +38,7 @@ export interface IPublicFreelancerProfile {
     hourlyRate?: number;
     skills?: string[];
     projectsCompleted?: number;
+    followers?: number;
     /** External portfolio URL */
     portfolioUrl?: string;
     education?: IEducationEntry[];

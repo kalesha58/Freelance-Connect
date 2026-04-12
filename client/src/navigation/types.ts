@@ -17,14 +17,14 @@ export type RootStackParamList = {
     Applicants: { jobId: string };
     HireConfirm: { applicantId: string; jobId: string };
     FreelancerProfile: { id: string };
-    /** In-app WebView for portfolio / external links */
-    PortfolioWebView: { url: string; title?: string };
     Search: undefined;
     FilterModal: undefined;
     CreatePost: undefined;
     PostComments: { postId: string; postOwnerId: string; caption: string; userName: string; userAvatar?: string; likesCount: number };
     Settings: undefined;
     EditProfile: undefined;
+    /** Freelancer network lists */
+    FollowList: { mode: "following" | "followers" };
     Referral: undefined;
     Ratings: undefined;
     Notifications: undefined;

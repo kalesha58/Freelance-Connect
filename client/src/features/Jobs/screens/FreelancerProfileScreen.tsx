@@ -8,6 +8,8 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Linking,
+    Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -16,6 +18,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 import { apiClient } from "@/utils/apiClient";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { normalizeHttpUrl } from "@/utils/urlHelpers";
@@ -32,10 +35,19 @@ export default function FreelancerProfileScreen() {
     const navigation = useNavigation<any>();
     const route = useRoute<FreelancerProfileRouteProp>();
     const { id } = route.params || {};
+    const { user: currentUser, refreshCurrentUser } = useApp();
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [profile, setProfile] = useState<IPublicFreelancerProfile | null>(null);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
+
+    const showFollow =
+        currentUser?.role === "freelancer" &&
+        !!currentUser?._id &&
+        !!id &&
+        String(currentUser._id) !== String(id);
 
     const loadProfile = useCallback(async () => {
         if (!id) {
@@ -61,12 +73,60 @@ export default function FreelancerProfileScreen() {
         loadProfile();
     }, [loadProfile]);
 
+    useEffect(() => {
+        if (!showFollow || !id) {
+            setIsFollowing(false);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            try {
+                const s = await apiClient(`/follow/status/${id}`);
+                if (!cancelled) setIsFollowing(!!s.isFollowing);
+            } catch {
+                if (!cancelled) setIsFollowing(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [showFollow, id]);
+
+    const toggleFollow = useCallback(async () => {
+        if (!id || followLoading) return;
+        setFollowLoading(true);
+        try {
+            if (isFollowing) {
+                await apiClient(`/follow/${id}`, { method: "DELETE" });
+                setIsFollowing(false);
+                setProfile((p) =>
+                    p ? { ...p, followers: Math.max(0, (p.followers ?? 0) - 1) } : p
+                );
+            } else {
+                await apiClient(`/follow/${id}`, { method: "POST" });
+                setIsFollowing(true);
+                setProfile((p) => (p ? { ...p, followers: (p.followers ?? 0) + 1 } : p));
+            }
+            await refreshCurrentUser();
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Try again.";
+            Alert.alert("Follow", msg);
+        } finally {
+            setFollowLoading(false);
+        }
+    }, [id, followLoading, isFollowing, refreshCurrentUser]);
+
     const openInApp = useCallback(
-        (rawUrl: string, pageTitle?: string) => {
+        (rawUrl: string, _pageTitle?: string) => {
             const u = normalizeHttpUrl(rawUrl);
-            if (u) navigation.navigate("PortfolioWebView", { url: u, title: pageTitle || "Portfolio" });
+            if (u) {
+                Linking.openURL(u).catch(err => {
+                    console.error("Failed to open URL:", err);
+                    Alert.alert("Error", "Could not open link. Please verify the URL.");
+                });
+            }
         },
-        [navigation]
+        []
     );
 
     const topPaddingOffset = Platform.OS === "ios" ? insets.top : 20;
@@ -323,21 +383,58 @@ export default function FreelancerProfileScreen() {
                     },
                 ]}
             >
-                <TouchableOpacity
-                    style={[styles.secondaryContactActionBtn, { borderColor: colors.primary }]}
-                    onPress={() => navigation.navigate("Main", { screen: "Messages" })}
-                    activeOpacity={0.85}
-                >
-                    <Feather name="message-circle" size={18} color={colors.primary} />
-                    <Text style={[styles.secondaryContactLabel, { color: colors.primary }]}>Messages</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.primaryHireActionBtn, { backgroundColor: colors.buttonPrimary }]}
-                    onPress={() => navigation.navigate("HireConfirm", { freelancerId: profile._id })}
-                    activeOpacity={0.85}
-                >
-                    <Text style={[styles.primaryHireActionLabel, { color: colors.onButtonPrimary }]}>Hire {profile.name.split(" ")[0]}</Text>
-                </TouchableOpacity>
+                <View style={styles.bottomActionsRow}>
+                    {showFollow ? (
+                        <TouchableOpacity
+                            style={[
+                                styles.followActionBtn,
+                                {
+                                    borderColor: isFollowing ? colors.border : colors.primary,
+                                    backgroundColor: isFollowing ? colors.muted + "12" : "transparent",
+                                },
+                            ]}
+                            onPress={toggleFollow}
+                            disabled={followLoading}
+                            activeOpacity={0.85}
+                        >
+                            {followLoading ? (
+                                <ActivityIndicator size="small" color={colors.primary} />
+                            ) : (
+                                <>
+                                    <Feather
+                                        name={isFollowing ? "check" : "user-plus"}
+                                        size={16}
+                                        color={isFollowing ? colors.mutedForeground : colors.primary}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.followActionLabel,
+                                            { color: isFollowing ? colors.mutedForeground : colors.primary },
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {isFollowing ? "Following" : "Follow"}
+                                    </Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    ) : null}
+                    <TouchableOpacity
+                        style={[styles.secondaryContactActionBtn, { borderColor: colors.primary, flex: 1 }]}
+                        onPress={() => navigation.navigate("Main", { screen: "Messages" })}
+                        activeOpacity={0.85}
+                    >
+                        <Feather name="message-circle" size={18} color={colors.primary} />
+                        <Text style={[styles.secondaryContactLabel, { color: colors.primary }]}>Messages</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.primaryHireActionBtn, { backgroundColor: colors.buttonPrimary, flex: 1.35 }]}
+                        onPress={() => navigation.navigate("HireConfirm", { freelancerId: profile._id })}
+                        activeOpacity={0.85}
+                    >
+                        <Text style={[styles.primaryHireActionLabel, { color: colors.onButtonPrimary }]}>Hire {profile.name.split(" ")[0]}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -434,9 +531,22 @@ const styles = StyleSheet.create({
     starsDisplayRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
     reviewAgeLabel: { fontSize: 11, fontWeight: "400" },
     reviewBodyCopy: { fontSize: 13, fontWeight: "400", lineHeight: 19 },
-    bottomConversionBar: { flexDirection: "row", padding: 16, gap: 12, borderTopWidth: 1, position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10 },
-    secondaryContactActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1.5, borderRadius: 14, paddingVertical: 14 },
+    bottomConversionBar: { padding: 16, borderTopWidth: 1, position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10 },
+    bottomActionsRow: { flexDirection: "row", alignItems: "center", gap: 8, width: "100%" },
+    followActionBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        paddingVertical: 14,
+        paddingHorizontal: 12,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        minWidth: 100,
+    },
+    followActionLabel: { fontSize: 14, fontWeight: "700" },
+    secondaryContactActionBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1.5, borderRadius: 14, paddingVertical: 14 },
     secondaryContactLabel: { fontSize: 15, fontWeight: "600" },
-    primaryHireActionBtn: { flex: 2, borderRadius: 14, paddingVertical: 14, alignItems: "center", justifyContent: "center" },
+    primaryHireActionBtn: { borderRadius: 14, paddingVertical: 14, alignItems: "center", justifyContent: "center" },
     primaryHireActionLabel: { fontSize: 15, fontWeight: "700" },
 });

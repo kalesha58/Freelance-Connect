@@ -1,5 +1,13 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Image, Dimensions } from "react-native";
+import {
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    Image,
+    ActivityIndicator,
+    Alert,
+} from "react-native";
 import Animated, { 
     useAnimatedStyle, 
     useSharedValue, 
@@ -15,8 +23,8 @@ import { useNavigation } from "@react-navigation/native";
 import { useColors } from "@/hooks/useColors";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { UserRole } from "@/types/auth";
-
-const { width } = Dimensions.get('window');
+import { useApp } from "@/context/AppContext";
+import { apiClient } from "@/utils/apiClient";
 
 /**
  * Interface representing content shared by users in the activity feed.
@@ -37,6 +45,8 @@ export interface IPost {
     isLiked?: boolean;    // legacy fallback
     createdAt: string;
     tags: string[];
+    /** From GET /posts when viewer is a freelancer — whether they follow the author. */
+    isFollowingAuthor?: boolean;
 }
 
 /**
@@ -45,15 +55,24 @@ export interface IPost {
 interface IPostCardProps {
     post: IPost;
     onLike: (id: string) => void;
+    /** Refetch feed after follow/unfollow so counts and flags stay in sync. */
+    onFollowChanged?: () => void | Promise<void>;
 }
 
 /**
  * Component for rendering an Instagram-style community card.
  * Highlights visual content and follows modern social feed patterns.
  */
-function PostCardInner({ post, onLike }: IPostCardProps) {
+function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
     const colors = useColors();
+    const { user, refreshCurrentUser } = useApp();
     const navigation = useNavigation<any>();
+    const [following, setFollowing] = React.useState(post.isFollowingAuthor ?? false);
+    const [followLoading, setFollowLoading] = React.useState(false);
+
+    React.useEffect(() => {
+        setFollowing(post.isFollowingAuthor ?? false);
+    }, [post.isFollowingAuthor, post.userId]);
     const iconScaleValue = useSharedValue(1);
     const bigHeartScale = useSharedValue(0);
     const bigHeartOpacity = useSharedValue(0);
@@ -132,6 +151,36 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
     const likesCount = Array.isArray(rawLikes) ? rawLikes.length : (Number(rawLikes) || 0);
     const commentsCount = Array.isArray(post.comments) ? post.comments.length : (Number(post.comments) || 0);
 
+    const authorId = String(post.userId ?? "");
+    const myId = user?._id ? String(user._id) : "";
+    const showFollow =
+        user?.role === "freelancer" &&
+        post.userRole === "freelancer" &&
+        !!authorId &&
+        !!myId &&
+        authorId !== myId;
+
+    const handleFollowPress = async () => {
+        if (!showFollow || followLoading || !authorId) return;
+        setFollowLoading(true);
+        const next = !following;
+        setFollowing(next);
+        try {
+            if (next) {
+                await apiClient(`/follow/${authorId}`, { method: "POST" });
+            } else {
+                await apiClient(`/follow/${authorId}`, { method: "DELETE" });
+            }
+            await refreshCurrentUser();
+            await onFollowChanged?.();
+        } catch (e: unknown) {
+            setFollowing(!next);
+            const msg = e instanceof Error ? e.message : "Try again.";
+            Alert.alert("Follow", msg);
+        } finally {
+            setFollowLoading(false);
+        }
+    };
 
     return (
         <View style={[styles.cardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -146,7 +195,9 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                         </View>
                     )}
                     <View style={styles.headerMetaData}>
-                        <Text style={[styles.postAuthorName, { color: colors.foreground }]}>{post.userName}</Text>
+                        <Text style={[styles.postAuthorName, { color: colors.foreground }]} numberOfLines={1}>
+                            {post.userName}
+                        </Text>
                         <View style={styles.authorBadgeRow}>
                             <View style={[styles.roleIndicatorDot, { backgroundColor: roleDisplayColor }]} />
                             <Text style={[styles.roleLabelText, { color: roleDisplayColor }]}>{formattedRoleLabel}</Text>
@@ -154,9 +205,37 @@ function PostCardInner({ post, onLike }: IPostCardProps) {
                         </View>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.moreBtn}>
-                    <Feather name="more-horizontal" size={20} color={colors.mutedForeground} />
-                </TouchableOpacity>
+                <View style={styles.headerRightCluster}>
+                    {showFollow && (
+                        <TouchableOpacity
+                            style={[
+                                styles.followPill,
+                                following
+                                    ? { borderColor: colors.border, backgroundColor: colors.card }
+                                    : { borderColor: colors.primary, backgroundColor: colors.card },
+                            ]}
+                            onPress={handleFollowPress}
+                            disabled={followLoading}
+                            activeOpacity={0.7}
+                        >
+                            {followLoading ? (
+                                <ActivityIndicator size="small" color={colors.primary} />
+                            ) : (
+                                <Text
+                                    style={[
+                                        styles.followPillText,
+                                        { color: following ? colors.mutedForeground : colors.primary },
+                                    ]}
+                                >
+                                    {following ? "Following" : "Follow"}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity style={styles.moreBtn}>
+                        <Feather name="more-horizontal" size={20} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Post Content: Image (Instagram Style) */}
@@ -250,9 +329,30 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     userInfoRow: {
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
+        minWidth: 0,
+    },
+    headerRightCluster: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        flexShrink: 0,
+    },
+    followPill: {
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 4,
+        borderWidth: 1,
+        minWidth: 78,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    followPillText: {
+        fontSize: 12,
+        fontWeight: "700",
     },
     profileAvatarPlaceholder: {
         width: 40,
@@ -272,6 +372,8 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     headerMetaData: {
+        flex: 1,
+        minWidth: 0,
         justifyContent: "center",
     },
     postAuthorName: {
