@@ -19,6 +19,11 @@ import { useNavigation } from "@react-navigation/native";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
+function formatFollowCount(n?: number) {
+    if (typeof n === "number" && !Number.isNaN(n)) return String(n);
+    return "0";
+}
+
 export default function EditProfileScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
@@ -211,6 +216,43 @@ export default function EditProfileScreen() {
                                 autoCorrect={false}
                             />
                         </View>
+                    </>
+                )}
+
+                {user?.role === "freelancer" && (
+                    <>
+                        <SectionHeader title="Network" icon="users" colors={colors} />
+                        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, padding: 0 }]}>
+                            <TouchableOpacity
+                                style={[styles.networkRow, { borderBottomColor: colors.border }]}
+                                onPress={() => navigation.navigate("FollowList", { mode: "following" })}
+                            >
+                                <View style={styles.networkRowLeft}>
+                                    <Feather name="user-plus" size={18} color={colors.primary} />
+                                    <Text style={[styles.networkRowLabel, { color: colors.foreground }]}>Following</Text>
+                                </View>
+                                <Text style={[styles.networkRowMeta, { color: colors.mutedForeground }]}>
+                                    {formatFollowCount(user?.following)}
+                                </Text>
+                                <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.networkRow}
+                                onPress={() => navigation.navigate("FollowList", { mode: "followers" })}
+                            >
+                                <View style={styles.networkRowLeft}>
+                                    <Feather name="users" size={18} color={colors.purpleAccent} />
+                                    <Text style={[styles.networkRowLabel, { color: colors.foreground }]}>Followers</Text>
+                                </View>
+                                <Text style={[styles.networkRowMeta, { color: colors.mutedForeground }]}>
+                                    {formatFollowCount(user?.followers)}
+                                </Text>
+                                <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={[styles.networkHint, { color: colors.mutedForeground }]}>
+                            Freelancers you follow and who follow you back. Discover more from Jobs and Community.
+                        </Text>
                     </>
                 )}
 
@@ -480,4 +522,16 @@ const styles = StyleSheet.create({
     modalCancelText: { fontSize: 16, fontWeight: "600" },
     modalSaveBtn: { flex: 2, height: 50, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     modalSaveText: { fontSize: 16, fontWeight: "700" },
+    networkRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        gap: 10,
+    },
+    networkRowLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+    networkRowLabel: { fontSize: 15, fontWeight: "600" },
+    networkRowMeta: { fontSize: 14, fontWeight: "600", marginRight: 4 },
+    networkHint: { fontSize: 12, lineHeight: 17, marginTop: 8, marginBottom: 8, paddingHorizontal: 4 },
 });

@@ -223,6 +223,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
 
+    /** Same canonical user shape as cold start — login/signup responses may omit nested profile fields. */
+    const hydrateUserAfterAuth = async (fallback: User | (User & { token?: string })) => {
+        const id = fallback._id;
+        try {
+            const userData = await apiClient("/profile/me");
+            setUser(userData as User);
+            fetchPosts(userData._id);
+        } catch {
+            const { token: _t, ...rest } = fallback as User & { token?: string };
+            setUser(rest as User);
+            fetchPosts(id);
+        }
+        fetchJobs();
+    };
+
     const signIn = async (emailOrPhone: string, password: string) => {
         try {
             const data = await apiClient("/auth/login", {
@@ -231,10 +246,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             });
 
             await AsyncStorage.setItem("tasker_token", data.token);
-            setUser(data);
-            fetchPosts(data._id);
-            fetchJobs();
-            // Firebase presence is set automatically via FirebaseProvider
+            await hydrateUserAfterAuth(data);
         } catch (error) {
             throw error;
         }
@@ -248,10 +260,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             });
 
             await AsyncStorage.setItem("tasker_token", data.token);
-            setUser(data);
-            fetchPosts(data._id);
-            fetchJobs();
-            // Firebase presence is set automatically via FirebaseProvider
+            await hydrateUserAfterAuth(data);
         } catch (error) {
             throw error;
         }

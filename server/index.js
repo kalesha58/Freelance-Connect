@@ -34,6 +34,7 @@ app.use('/api/posts', require('./routes/postRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/follow', require('./routes/followRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/api/routes', (req, res) => {

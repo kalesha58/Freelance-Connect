@@ -13,6 +13,7 @@ import {
     Alert,
     ActivityIndicator,
     RefreshControl,
+    Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -369,7 +370,12 @@ export default function ProfileScreen() {
                                     style={[styles.viewPortfolioBtn, { borderColor: colors.primary }]}
                                     onPress={() => {
                                         const u = normalizeHttpUrl(user.portfolioUrl);
-                                        if (u) navigation.navigate("PortfolioWebView", { url: u, title: "Portfolio" });
+                                        if (u) {
+                                            Linking.openURL(u).catch(err => {
+                                                console.error("Failed to open URL:", err);
+                                                Alert.alert("Error", "Could not open link. Please verify the URL.");
+                                            });
+                                        }
                                     }}
                                 >
                                     <Feather name="external-link" size={16} color={colors.primary} />
