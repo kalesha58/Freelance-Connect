@@ -85,6 +85,17 @@ export default function AccountDeletionInfoPage() {
                       </p>
                     </div>
                   </div>
+                  <div className="flex gap-4">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Managing Individual Data</h3>
+                      <p className="mt-1 text-sm text-foreground">
+                        You can also delete individual posts or portfolio items within the app at any time. Simply tap the <strong>&quot;...&quot; (More)</strong> menu on your post and select <strong>&quot;Delete Post&quot;</strong>.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </section>
 

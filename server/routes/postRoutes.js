@@ -185,4 +185,25 @@ router.post('/:id/comments/:commentId/reply', protect, async (req, res) => {
 });
 
 
+// ─────────────────────────────────────────────
+// DELETE /api/posts/:id  — Delete post (Protected: Owner or Admin)
+// ─────────────────────────────────────────────
+router.delete('/:id', protect, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        // Only owner or admin can delete
+        if (post.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to delete this post' });
+        }
+
+        await Post.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Post deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
 module.exports = router;

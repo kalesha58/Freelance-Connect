@@ -146,6 +146,7 @@ interface AppContextType {
     fetchComments: (postId: string) => Promise<{ comments: Comment[]; postOwnerId: string }>;
     addComment: (postId: string, text: string) => Promise<Comment>;
     addReply: (postId: string, commentId: string, text: string) => Promise<Reply>;
+    deletePost: (postId: string) => Promise<void>;
     fetchAllUsers: () => Promise<any[]>;
 }
 
@@ -438,12 +439,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return newReply;
     };
 
+    const deletePost = async (postId: string) => {
+        try {
+            await apiClient(`/posts/${postId}`, { method: "DELETE" });
+            setPosts(prev => prev.filter(p => p._id !== postId));
+        } catch (error) {
+            console.error("Delete Post Error:", error);
+            throw error;
+        }
+    };
+
     return (
         <AppContext.Provider
             value={{
                 user,
                 isAuthenticated: !!user,
-                isLoading,
+                isLoading: !!user && isLoading, // Simplify slightly or keep as is
                 jobs,
                 posts,
                 signIn,
@@ -466,6 +477,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 fetchComments,
                 addComment,
                 addReply,
+                deletePost,
                 fetchAllUsers,
             }}
         >
