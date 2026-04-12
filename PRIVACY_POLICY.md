@@ -58,7 +58,7 @@ We retain your personal information for as long as your account is active or as 
 You have the right to request the deletion of your account and associated personal data at any time. This applies whether you use the App as a **freelancer** or as a **hiring manager** (or equivalent client role): you may request deletion of **your own** account using the same methods below.
 
 *   **In-App Deletion**: You can request account deletion through the "Settings" or "Help & Support" section of the App.
-*   **Web (Account Deletion Information)**: Comprehensive instructions and contact options are available at: **[https://freelance-connect-3uaj.vercel.app/account-deletion-info](https://freelance-connect-3uaj.vercel.app/account-deletion-info)**.
+*   **Web (Account Deletion Information)**: Comprehensive instructions and contact options are available at: **[https://freelance-connect-wcgx.vercel.app/account-deletion-info](https://freelance-connect-wcgx.vercel.app/account-deletion-info)**.
 *   **Manual Request**: You can also email us directly at **kaleshabox8@gmail.com** with the subject **"Data Deletion Request"**.
 
 Upon receiving a valid deletion request, we will delete your account and remove your personal information from our active databases within **30 days**, except where we are required by law to retain certain data (e.g., for tax or accounting purposes).
@@ -93,8 +93,8 @@ We may update our Privacy Policy from time to time. Thus, you are advised to rev
 
 If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at:
 
-**Account deletion (web):** [https://freelance-connect-3uaj.vercel.app/account-deletion-info](https://freelance-connect-3uaj.vercel.app/account-deletion-info)
+**Account deletion (web):** [https://freelance-connect-wcgx.vercel.app/account-deletion-info](https://freelance-connect-wcgx.vercel.app/account-deletion-info)
 
 **Email:** kaleshabox8@gmail.com
 **Developer:** Tasker
-**Address:** [YOUR_CITY_OR_ADDRESS]
+**Address:** 171 Mahindra Luxuria, Pocharam, Sagareddy, Telangana, India - 502293
