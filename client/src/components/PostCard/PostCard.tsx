@@ -65,7 +65,7 @@ interface IPostCardProps {
  */
 function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
     const colors = useColors();
-    const { user, refreshCurrentUser } = useApp();
+    const { user, refreshCurrentUser, deletePost } = useApp();
     const navigation = useNavigation<any>();
     const [following, setFollowing] = React.useState(post.isFollowingAuthor ?? false);
     const [followLoading, setFollowLoading] = React.useState(false);
@@ -182,6 +182,60 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
         }
     };
 
+    const handleMorePress = () => {
+        const isOwner = myId === authorId;
+        
+        if (isOwner) {
+            Alert.alert(
+                "Post Options",
+                "What would you like to do with this post?",
+                [
+                    {
+                        text: "Delete Post",
+                        style: "destructive",
+                        onPress: () => {
+                            Alert.alert(
+                                "Delete Post",
+                                "Are you sure you want to delete this post? This action cannot be undone.",
+                                [
+                                    { text: "Cancel", style: "cancel" },
+                                    { 
+                                        text: "Delete", 
+                                        style: "destructive", 
+                                        onPress: async () => {
+                                            try {
+                                                await deletePost(post.id || post._id || "");
+                                            } catch (e: any) {
+                                                Alert.alert("Error", e.message || "Failed to delete post");
+                                            }
+                                        }
+                                    }
+                                ]
+                            );
+                        }
+                    },
+                    { text: "Cancel", style: "cancel" }
+                ]
+            );
+        } else {
+            // Options for other people's posts (e.g., Report)
+            Alert.alert(
+                "Post Options",
+                "Report this post if it violates our community guidelines.",
+                [
+                    { 
+                        text: "Report Post", 
+                        onPress: () => navigation.navigate("Report", { 
+                            targetId: post.id || post._id,
+                            targetType: 'post'
+                        }) 
+                    },
+                    { text: "Cancel", style: "cancel" }
+                ]
+            );
+        }
+    };
+
     return (
         <View style={[styles.cardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {/* Header: User Info */}
@@ -232,7 +286,7 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
                             )}
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity style={styles.moreBtn}>
+                    <TouchableOpacity style={styles.moreBtn} onPress={handleMorePress}>
                         <Feather name="more-horizontal" size={20} color={colors.mutedForeground} />
                     </TouchableOpacity>
                 </View>
