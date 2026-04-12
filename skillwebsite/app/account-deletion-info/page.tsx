@@ -4,7 +4,7 @@ import { Header } from "../../components/site/Header";
 
 export const metadata = {
   title: "Account Deletion Information",
-  description: "Information on how to request the deletion of your Tasker account and associated data.",
+  description: "Information on how to request the deletion of your Skill Link account and associated data.",
 };
 
 const DELETION_EMAIL = "kaleshabox8@gmail.com";
@@ -55,7 +55,7 @@ export default function AccountDeletionInfoPage() {
 
             <div className="mt-8 space-y-6 text-foreground/90">
               <p className="text-lg leading-relaxed">
-                At Tasker, we value your privacy and provide you with full control over your personal data. 
+                At Skill Link, we value your privacy and provide you with full control over your personal data. 
                 Whether you use the platform as a <strong>Freelancer</strong> or <strong>Hiring Partner</strong>, 
                 you can request the deletion of your account and all associated data at any time.
               </p>
@@ -70,7 +70,7 @@ export default function AccountDeletionInfoPage() {
                     <div>
                       <h3 className="font-medium">In-App Deletion</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Open the Tasker app, go to <strong>Settings</strong> &gt; <strong>Help & Support</strong>, and select the option to delete your account.
+                        Open the Skill Link app, go to <strong>Settings</strong> &gt; <strong>Help & Support</strong>, and select the option to delete your account.
                       </p>
                     </div>
                   </div>

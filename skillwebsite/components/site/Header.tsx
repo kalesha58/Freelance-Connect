@@ -25,9 +25,9 @@ export function Header() {
             className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
             aria-hidden
           >
-            T
+            S
           </span>
-          Tasker
+          Skill Link
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">

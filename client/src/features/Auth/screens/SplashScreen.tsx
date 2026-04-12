@@ -115,7 +115,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
                     { transform: [{ scale: logoScale }], opacity: logoOpacity },
                 ]}
             >
-                {/* Tasker "T" icon */}
+                {/* Skill Link "S" icon */}
                 <View style={styles.logoLines}>
                     <View style={[styles.line, styles.lineTop]} />
                     <View style={[styles.line, styles.lineMid]} />
@@ -124,7 +124,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
             </Animated.View>
 
             <Animated.Text style={[styles.appName, { opacity: textOpacity, color: colors.white }]}>
-                Tasker
+                Skill Link
             </Animated.Text>
 
             <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>

@@ -24,9 +24,9 @@ export function Hero() {
             , in real time
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Tasker connects Taskers and hiring partners with jobs, portfolios,
-            messaging, and tools built for how freelancers and teams actually
-            work.
+            Skill Link connects professionals and hiring partners with jobs,
+            portfolios, messaging, and tools built for how freelancers and teams
+            actually work.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a

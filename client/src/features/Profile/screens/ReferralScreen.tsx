@@ -20,8 +20,8 @@ const ReferralScreen: React.FC<Props> = ({ navigation }) => {
         if (!user?.referralCode) return;
         try {
             await Share.share({
-                message: `Join Freelance Connect using my referral code: ${user.referralCode} !`,
-                title: 'Freelance Connect Referral',
+                message: `Join Skill Link using my referral code: ${user.referralCode} !`,
+                title: 'Skill Link Referral',
             });
         } catch (error) {
             console.error('Error sharing', error);

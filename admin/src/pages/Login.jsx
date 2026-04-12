@@ -62,7 +62,7 @@ const Login = ({ setAuth }) => {
                         <Lock size={32} />
                     </div>
                     <h2 style={{ fontSize: '1.875rem', marginBottom: '0.5rem' }}>Admin Portal</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Secure access to Freelance Connect</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Secure access to Skill Link</p>
                 </div>
 
                 {error && (

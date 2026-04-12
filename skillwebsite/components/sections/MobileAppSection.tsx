@@ -14,8 +14,8 @@ export function MobileAppSection() {
               align="left"
               headingId="mobile-heading"
               eyebrow="On the go"
-              title="The Tasker mobile app"
-              description="Everything you love about Tasker — optimized for your phone. Post jobs on your commute, reply to clients in seconds, and keep your portfolio in your pocket."
+              title="The Skill Link mobile app"
+              description="Everything you love about Skill Link — optimized for your phone. Post jobs on your commute, reply to clients in seconds, and keep your portfolio in your pocket."
             />
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <span className="inline-flex items-center rounded-full bg-accent/15 px-4 py-1.5 text-sm font-semibold text-accent">
@@ -27,7 +27,7 @@ export function MobileAppSection() {
             </div>
             <p className="mt-6 text-muted-foreground leading-relaxed">
               We&apos;re putting the finishing touches on native apps so you get
-              the same secure, real-time experience you expect from Tasker —
+              the same secure, real-time experience you expect from Skill Link —
               notifications, chat, and job flows included.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -51,7 +51,7 @@ export function MobileAppSection() {
             <p className="mt-6 text-sm text-muted-foreground">
               Want updates?{" "}
               <a
-                href="mailto:hello@tasker.app"
+                href="mailto:hello@skilllink.app"
                 className="font-medium text-primary underline-offset-4 hover:underline"
               >
                 Email us

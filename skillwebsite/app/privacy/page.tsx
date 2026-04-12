@@ -3,8 +3,8 @@ import { Footer } from "../../components/site/Footer";
 import { Header } from "../../components/site/Header";
 
 export const metadata = {
-  title: "Privacy Policy | Tasker",
-  description: "Tasker privacy policy — details on how we collect, use, and protect your data.",
+  title: "Privacy Policy | Skill Link",
+  description: "Skill Link privacy policy — details on how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPage() {
@@ -31,14 +31,14 @@ export default function PrivacyPage() {
             </Link>
 
             <h1 className="mt-8 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Privacy Policy for Tasker
+              Privacy Policy for Skill Link
             </h1>
             <p className="mt-2 text-sm text-muted-foreground"><strong>Effective Date:</strong> April 12, 2026</p>
 
             <div className="mt-12 prose prose-slate dark:prose-invert max-w-none space-y-8 text-foreground/90">
               <section>
                 <p className="text-lg leading-relaxed">
-                  This Privacy Policy describes how <strong>Tasker</strong> (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and shares information about you when you use the <strong>Tasker</strong> mobile application (the &quot;App&quot;).
+                  This Privacy Policy describes how <strong>Skill Link</strong> (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and shares information about you when you use the <strong>Skill Link</strong> mobile application (the &quot;App&quot;).
                 </p>
                 <p className="mt-4">
                   Please read this policy carefully to understand our practices regarding your data. By using the App, you agree to the collection and use of information in accordance with this policy.
@@ -55,7 +55,6 @@ export default function PrivacyPage() {
                 
                 <div className="mt-6 space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground">Personal Information</h3>
                     <p className="mt-2">We collect personal information that you provide to us directly when you create an account or use our services, including but not limited to:</p>
                     <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
                       <li><strong>Account Data</strong>: Name, email address, phone number, and password.</li>
@@ -139,7 +138,7 @@ export default function PrivacyPage() {
                   </div>
                   <div className="flex gap-4 rounded-xl border border-border p-4">
                     <div className="h-2 w-2 mt-2 shrink-0 rounded-full bg-primary" />
-                    <p className="text-sm"><strong>Web (Account Deletion Information)</strong>: Comprehensive instructions available at: <a href="https://freelance-connect-wcgx.vercel.app/account-deletion-info" className="text-primary hover:underline font-medium">https://freelance-connect-wcgx.vercel.app/account-deletion-info</a>.</p>
+                    <p className="text-sm"><strong>Web (Account Deletion Information)</strong>: Comprehensive instructions available at: <a href="https://skill-link-portfolio.vercel.app/account-deletion-info" className="text-primary hover:underline font-medium">https://skill-link-portfolio.vercel.app/account-deletion-info</a>.</p>
                   </div>
                   <div className="flex gap-4 rounded-xl border border-border p-4">
                     <div className="h-2 w-2 mt-2 shrink-0 rounded-full bg-primary" />
@@ -196,9 +195,9 @@ export default function PrivacyPage() {
                   If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at:
                 </p>
                 <div className="mt-6 space-y-2 text-sm">
-                  <p><strong>Account deletion (web):</strong> <a href="https://freelance-connect-wcgx.vercel.app/account-deletion-info" className="text-primary hover:underline">https://freelance-connect-wcgx.vercel.app/account-deletion-info</a></p>
+                  <p><strong>Account deletion (web):</strong> <a href="https://skill-link-portfolio.vercel.app/account-deletion-info" className="text-primary hover:underline">https://skill-link-portfolio.vercel.app/account-deletion-info</a></p>
                   <p><strong>Email:</strong> <a href="mailto:kaleshabox8@gmail.com" className="text-primary hover:underline">kaleshabox8@gmail.com</a></p>
-                  <p><strong>Developer:</strong> Tasker</p>
+                  <p><strong>Developer:</strong> Skill Link</p>
                   <p><strong>Address:</strong> 171 Mahindra Luxuria, Pocharam, Sagareddy, Telangana, India - 502293</p>
                 </div>
               </section>

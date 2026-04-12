@@ -11,15 +11,16 @@ export function AboutSection() {
         <div className="mx-auto max-w-3xl text-center">
           <SectionHeading
             headingId="about-heading"
-            eyebrow="About Tasker"
+            eyebrow="About Skill Link"
             title="Marketplace DNA, product discipline"
             description="We believe hiring should feel as natural as messaging a colleague — and that freelancers deserve tools that respect their craft."
           />
           <p className="mt-8 text-lg leading-relaxed text-muted-foreground">
-            Tasker exists to shorten the distance between great work and the
+            Skill Link exists to shorten the distance between great work and the
             people who need it. Our roadmap blends real-time collaboration,
-            transparent earnings, and thoughtful growth features so Taskers and
-            hiring partners can focus on outcomes — not overhead.
+            transparent earnings, and thoughtful growth features so
+            professionals and hiring partners can focus on outcomes — not
+            overhead.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             Whether you&apos;re staffing a sprint or building a freelance career,

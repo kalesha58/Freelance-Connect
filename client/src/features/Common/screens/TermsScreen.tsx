@@ -27,7 +27,7 @@ export default function TermsScreen() {
     const LEGAL_SECTIONS = [
         {
             title: "1. Acceptance of Terms",
-            body: "By accessing or using the Freelance Connect platform, you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access the service.",
+            body: "By accessing or using the Skill Link platform, you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access the service.",
         },
         {
             title: "2. User Accounts",
@@ -35,11 +35,11 @@ export default function TermsScreen() {
         },
         {
             title: "3. Payments & Fees",
-            body: "Freelance Connect charges a platform fee of 10% on all completed transactions. Payments are processed through our secure escrow system.",
+            body: "Skill Link charges a platform fee of 10% on all completed transactions. Payments are processed through our secure escrow system.",
         },
         {
             title: "4. Intellectual Property",
-            body: "All work product created through Freelance Connect projects remains the intellectual property of the hiring client upon full payment.",
+            body: "All work product created through Skill Link projects remains the intellectual property of the hiring client upon full payment.",
         },
         {
             title: "5. Privacy Policy",
@@ -48,11 +48,11 @@ export default function TermsScreen() {
         {
             title: "6. Your data and account deletion",
             body:
-                "You may request deletion of your account and associated personal data at any time, whether you use Freelance Connect as a freelancer or as a hiring partner. Request deletion in Settings (Request account deletion) or via Help & Support, use the account deletion web page at https://freelance-connect-wcgx.vercel.app/account-deletion-info, or email kaleshabox8@gmail.com with the subject \"Data Deletion Request\". After we receive a valid request, we will remove your account and personal information from our active databases within 30 days, except where the law requires us to keep certain records (for example, tax or accounting).",
+                "You may request deletion of your account and associated personal data at any time, whether you use Skill Link as a freelancer or as a hiring partner. Request deletion in Settings (Request account deletion) or via Help & Support, use the account deletion web page at https://skill-link-portfolio.vercel.app/account-deletion-info, or email kaleshabox8@gmail.com with the subject \"Data Deletion Request\". After we receive a valid request, we will remove your account and personal information from our active databases within 30 days, except where the law requires us to keep certain records (for example, tax or accounting).",
         },
         {
             title: "7. Limitation of Liability",
-            body: "Freelance Connect is not liable for any indirect, incidental, or consequential damages resulting from your use of the service.",
+            body: "Skill Link is not liable for any indirect, incidental, or consequential damages resulting from your use of the service.",
         },
     ];
 

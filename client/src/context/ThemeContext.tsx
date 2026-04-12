@@ -26,7 +26,7 @@ const ThemeContext = createContext<ThemeContextValue>({
     isDark: false,
 });
 
-const STORAGE_KEY = "@tasker_theme_mode";
+const STORAGE_KEY = "@skill_link_theme_mode";
 
 /**
  * ThemeProvider manages the visual theme of the application.

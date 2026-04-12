@@ -10,7 +10,7 @@ interface RequestOptions extends RequestInit {
 }
 
 export const apiClient = async (endpoint: string, options: RequestOptions = {}) => {
-    const token = await AsyncStorage.getItem('tasker_token');
+    const token = await AsyncStorage.getItem('skill_link_token');
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -26,7 +26,6 @@ export const apiClient = async (endpoint: string, options: RequestOptions = {}) 
     const config: RequestInit = {
         ...options,
         headers,
-        cache: 'no-store',
     };
 
     if (options.body && !(options.body instanceof FormData)) {
@@ -60,7 +59,7 @@ export const apiClient = async (endpoint: string, options: RequestOptions = {}) 
 };
 
 export const uploadImage = async (imageUri: string) => {
-    const token = await AsyncStorage.getItem('tasker_token');
+    const token = await AsyncStorage.getItem('skill_link_token');
 
     const formData = new FormData();
     // In React Native, the file object in FormData needs special handling

@@ -53,7 +53,7 @@ export default function ReportScreen() {
                 </View>
                 <Text style={[styles.successHeadingTitle, { color: colors.foreground }]}>Report Submitted</Text>
                 <Text style={[styles.successContextDescription, { color: colors.mutedForeground }]}>
-                    Thank you for helping keep Freelance Connect safe. We will review your report within 24 hours.
+                    Thank you for helping keep Skill Link safe. We will review your report within 24 hours.
                 </Text>
             </View>
         );

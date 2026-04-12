@@ -132,7 +132,7 @@ export default function HireConfirmScreen() {
                 <View style={[styles.safetyTrustBanner, { backgroundColor: colors.navyDeep }]}>
                     <Feather name="shield" size={20} color="#fff" />
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.safetyTrustTitle}>Tasker Protection</Text>
+                        <Text style={styles.safetyTrustTitle}>Skill Link Protection</Text>
                         <Text style={styles.safetyTrustDesc}>Your payment is fully protected. Funds are only released when you approve the work.</Text>
                     </View>
                 </View>

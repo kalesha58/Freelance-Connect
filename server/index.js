@@ -55,7 +55,7 @@ app.get('/api/routes', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('Freelance Connect API is running...');
+    res.send('Skill Link API is running...');
 });
 // Public account-deletion info (served by API deployment when users open this path on the same host as /api)
 app.get('/account-deletion-info', (req, res) => {

@@ -169,7 +169,7 @@ const seedData = async () => {
                 userAvatar: techflow.profilePic,
                 userRole: techflow.role,
                 type: 'social',
-                caption: 'We are expanding our technical team! If you are passionate about building scalable solutions, check out our recent job postings on Freelance Connect.',
+                caption: 'We are expanding our technical team! If you are passionate about building scalable solutions, check out our recent job postings on Skill Link.',
                 tags: ['Hiring', 'TechJobs', 'Growth'],
                 likes: 15,
                 comments: []
