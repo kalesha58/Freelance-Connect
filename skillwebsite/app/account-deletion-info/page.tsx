@@ -80,7 +80,7 @@ export default function AccountDeletionInfoPage() {
                     </div>
                     <div>
                       <h3 className="font-medium">Manual Email Request</h3>
-                      <p className="mt-1 text-sm text-muted-foreground text-foreground">
+                      <p className="mt-1 text-sm text-foreground">
                         If you cannot access the app, send an email to <a href={`mailto:${DELETION_EMAIL}`} className="font-semibold text-primary hover:underline">{DELETION_EMAIL}</a> with the subject line <strong>&quot;Data Deletion Request&quot;</strong>.
                       </p>
                     </div>
