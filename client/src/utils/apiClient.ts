@@ -14,6 +14,8 @@ export const apiClient = async (endpoint: string, options: RequestOptions = {}) 
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
         ...(options.headers as Record<string, string>),
     };
 
@@ -24,6 +26,7 @@ export const apiClient = async (endpoint: string, options: RequestOptions = {}) 
     const config: RequestInit = {
         ...options,
         headers,
+        cache: 'no-store',
     };
 
     if (options.body && !(options.body instanceof FormData)) {

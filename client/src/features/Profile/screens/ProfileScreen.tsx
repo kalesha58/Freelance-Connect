@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Platform,
     ScrollView,
@@ -12,6 +12,7 @@ import {
     Modal,
     Alert,
     ActivityIndicator,
+    RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -46,15 +47,26 @@ export default function ProfileScreen() {
     const route = useRoute<ProfileRouteProp>();
     const { id: targetUserId } = route.params || {};
 
-    const { user: currentUser, signOut, posts: allPosts, updateProfile, isLoading } = useApp();
+    const { user: currentUser, signOut, posts: allPosts, updateProfile, isLoading, refreshCurrentUser } = useApp();
     const [targetUser, setTargetUser] = useState<any>(null);
     const [loading, setLoading] = useState(!!targetUserId);
     const [isUploading, setIsUploading] = useState(false);
     const [isAvatarSheetVisible, setIsAvatarSheetVisible] = useState(false);
+    const [listRefreshing, setListRefreshing] = useState(false);
 
     // If viewing own profile, use currentUser, else use targetUser
     const user = targetUserId ? targetUser : currentUser;
     const isOwnProfile = !targetUserId || targetUserId === currentUser?._id;
+
+    const onPullRefresh = useCallback(async () => {
+        if (!isOwnProfile) return;
+        setListRefreshing(true);
+        try {
+            await refreshCurrentUser();
+        } finally {
+            setListRefreshing(false);
+        }
+    }, [isOwnProfile, refreshCurrentUser]);
 
     useEffect(() => {
         if (targetUserId && targetUserId !== currentUser?._id) {
@@ -214,6 +226,11 @@ export default function ProfileScreen() {
                     { marginTop: -20, paddingBottom: 100 + insets.bottom }
                 ]}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    isOwnProfile ? (
+                        <RefreshControl refreshing={listRefreshing} onRefresh={onPullRefresh} tintColor={colors.primary} />
+                    ) : undefined
+                }
             >
                 {/* Modern Identity & Stats Row (Instagram Inspired) */}
                 <View style={[styles.identityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>

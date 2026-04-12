@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { apiClient } from "@/utils/apiClient";
 import database from '@react-native-firebase/database';
 
@@ -130,6 +130,8 @@ interface AppContextType {
     toggleLike: (postId: string) => Promise<void>;
     addPost: (post: Partial<Post>) => Promise<void>;
     updateProfile: (profileData: Partial<User>) => Promise<void>;
+    /** Re-fetch the logged-in user from the API (same shape as app launch). Use after refresh or when opening Profile. */
+    refreshCurrentUser: () => Promise<void>;
     fetchJobs: () => Promise<void>;
     addJob: (jobData: any) => Promise<void>;
     forgotPassword: (emailOrPhone: string) => Promise<void>;
@@ -159,12 +161,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadUser();
     }, []);
 
+    const refreshCurrentUser = useCallback(async () => {
+        try {
+            const token = await AsyncStorage.getItem("tasker_token");
+            if (!token) return;
+            const userData = await apiClient("/profile/me");
+            setUser(userData as User);
+        } catch (e) {
+            console.warn("refreshCurrentUser:", e);
+        }
+    }, []);
+
     const loadUser = async () => {
         try {
             const token = await AsyncStorage.getItem("tasker_token");
             if (token) {
-                const userData = await apiClient("/auth/me");
-                setUser(userData);
+                const userData = await apiClient("/profile/me");
+                setUser(userData as User);
                 // Firebase presence is handled by FirebaseProvider via currentUserId prop
                 await Promise.all([
                     fetchPosts(userData._id),
@@ -438,6 +451,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 toggleLike,
                 addPost,
                 updateProfile,
+                refreshCurrentUser,
                 fetchComments,
                 addComment,
                 addReply,

@@ -142,7 +142,7 @@ router.post('/verify-otp', async (req, res) => {
 // @access  Private
 router.get('/me', protect, async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('-password');
+        const user = await User.findById(req.user._id).select('-password').lean();
 
         if (user) {
             res.json(user);
