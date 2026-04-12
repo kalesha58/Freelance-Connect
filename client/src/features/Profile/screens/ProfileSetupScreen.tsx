@@ -24,6 +24,7 @@ const FREELANCER_STEPS = [
     { title: "Services", icon: "briefcase" },
     { title: "Education", icon: "book" },
     { title: "Experience", icon: "award" },
+    { title: "Portfolio", icon: "link" },
 ];
 
 const HIRING_STEPS = [
@@ -64,6 +65,7 @@ export default function ProfileSetupScreen() {
     const [expStart, setExpStart] = useState("");
     const [expEnd, setExpEnd] = useState("");
     const [expDesc, setExpDesc] = useState("");
+    const [portfolioUrl, setPortfolioUrl] = useState((user as { portfolioUrl?: string })?.portfolioUrl || "");
 
     const isHiring = user?.role === "hiring" || user?.role === "requester";
     const STEPS = isHiring ? HIRING_STEPS : FREELANCER_STEPS;
@@ -125,6 +127,7 @@ export default function ProfileSetupScreen() {
                 case 1: return services.length === 0;
                 case 2: return education.length === 0;
                 case 3: return experience.length === 0;
+                case 4: return false;
                 default: return false;
             }
         }
@@ -156,6 +159,7 @@ export default function ProfileSetupScreen() {
             profileData.services = services;
             profileData.education = education;
             profileData.experience = experience;
+            profileData.portfolioUrl = portfolioUrl.trim();
         }
 
         try {
@@ -426,6 +430,28 @@ export default function ProfileSetupScreen() {
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
+                );
+            case 4:
+                return (
+                    <View style={styles.stepContainer}>
+                        <Text style={[styles.stepTitle, { color: colors.foreground }]}>Portfolio link</Text>
+                        <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
+                            Add a link to your online portfolio — Behance, Dribbble, your personal site, or GitHub. Hiring managers can open it in the app.
+                        </Text>
+                        <TextInput
+                            style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                            placeholder="https://behance.net/yourname"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={portfolioUrl}
+                            onChangeText={setPortfolioUrl}
+                            keyboardType="url"
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
+                        <Text style={[styles.stepDesc, { color: colors.mutedForeground, fontSize: 12, marginTop: 8 }]}>
+                            Optional — you can skip and add this later from Edit Profile.
+                        </Text>
+                    </View>
                 );
             default:
                 return null;

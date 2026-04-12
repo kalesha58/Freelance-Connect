@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Image,
-    Linking,
     Platform,
     ScrollView,
     StyleSheet,
@@ -19,6 +18,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useColors } from "@/hooks/useColors";
 import { apiClient } from "@/utils/apiClient";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import { normalizeHttpUrl } from "@/utils/urlHelpers";
 import type { IPublicFreelancerProfile } from "./FreelancerProfileScreen.interfaces";
 
 type FreelancerProfileRouteProp = RouteProp<{ FreelancerProfile: { id: string } }, "FreelancerProfile">;
@@ -60,6 +60,14 @@ export default function FreelancerProfileScreen() {
     useEffect(() => {
         loadProfile();
     }, [loadProfile]);
+
+    const openInApp = useCallback(
+        (rawUrl: string, pageTitle?: string) => {
+            const u = normalizeHttpUrl(rawUrl);
+            if (u) navigation.navigate("PortfolioWebView", { url: u, title: pageTitle || "Portfolio" });
+        },
+        [navigation]
+    );
 
     const topPaddingOffset = Platform.OS === "ios" ? insets.top : 20;
 
@@ -169,10 +177,86 @@ export default function FreelancerProfileScreen() {
                     ))}
                 </View>
 
+                {(profile.experience?.length ?? 0) === 0 && (profile.education?.length ?? 0) === 0 ? (
+                    <Text style={{ color: colors.mutedForeground, marginBottom: 16, lineHeight: 20 }}>
+                        No work experience or education listed yet.
+                    </Text>
+                ) : null}
+
+                {(profile.experience?.length ?? 0) > 0 && (
+                    <>
+                        <Text style={[styles.sectionHeadingText, { color: colors.foreground }]}>Experience</Text>
+                        {profile.experience!.map((exp, idx) => (
+                            <View
+                                key={`exp-${idx}`}
+                                style={[styles.historyCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                            >
+                                <View style={[styles.historyIconBox, { backgroundColor: colors.purpleAccent + "18" }]}>
+                                    <Feather name="award" size={18} color={colors.purpleAccent} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.historyRoleText, { color: colors.foreground }]}>{exp.role}</Text>
+                                    <Text style={[styles.historyCompanyText, { color: colors.mutedForeground }]}>{exp.company}</Text>
+                                    <Text style={[styles.historyYearsText, { color: colors.mutedForeground }]}>
+                                        {(exp.startYear || "—") + " – " + (exp.endYear || "Present")}
+                                    </Text>
+                                    {exp.description ? (
+                                        <Text style={[styles.historyDescText, { color: colors.mutedForeground }]}>{exp.description}</Text>
+                                    ) : null}
+                                </View>
+                            </View>
+                        ))}
+                    </>
+                )}
+
+                {(profile.education?.length ?? 0) > 0 && (
+                    <>
+                        <Text style={[styles.sectionHeadingText, { color: colors.foreground, marginTop: 8 }]}>Education</Text>
+                        {profile.education!.map((edu, idx) => (
+                            <View
+                                key={`edu-${idx}`}
+                                style={[styles.historyCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                            >
+                                <View style={[styles.historyIconBox, { backgroundColor: colors.blueLight }]}>
+                                    <Feather name="book" size={18} color={colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.historyRoleText, { color: colors.foreground }]}>{edu.degree}</Text>
+                                    <Text style={[styles.historyCompanyText, { color: colors.mutedForeground }]}>{edu.institution}</Text>
+                                    <Text style={[styles.historyYearsText, { color: colors.mutedForeground }]}>
+                                        {(edu.startYear || "—") + " – " + (edu.endYear || "Present")}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
+                    </>
+                )}
+
                 <Text style={[styles.sectionHeadingText, { color: colors.foreground }]}>Portfolio</Text>
-                {portfolioList.length === 0 ? (
-                    <Text style={{ color: colors.mutedForeground, marginBottom: 20 }}>No portfolio items yet.</Text>
-                ) : (
+                {profile.portfolioUrl?.trim() ? (
+                    <TouchableOpacity
+                        style={[styles.portfolioLinkBanner, { backgroundColor: colors.card, borderColor: colors.primary }]}
+                        onPress={() => openInApp(profile.portfolioUrl!, "Portfolio")}
+                        activeOpacity={0.85}
+                    >
+                        <View style={[styles.portfolioLinkIconWrap, { backgroundColor: colors.primary + "18" }]}>
+                            <Feather name="external-link" size={20} color={colors.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.portfolioLinkTitle, { color: colors.foreground }]}>View portfolio website</Text>
+                            <Text style={[styles.portfolioLinkUrl, { color: colors.mutedForeground }]} numberOfLines={2}>
+                                {profile.portfolioUrl.trim()}
+                            </Text>
+                        </View>
+                        <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+                ) : null}
+
+                {portfolioList.length === 0 && !profile.portfolioUrl?.trim() ? (
+                    <Text style={{ color: colors.mutedForeground, marginBottom: 20 }}>No portfolio link or gallery items yet.</Text>
+                ) : null}
+
+                {portfolioList.length === 0 ? null : (
                     <View style={styles.portfolioDisplayGrid}>
                         {portfolioList.map((item, index) => (
                             <TouchableOpacity
@@ -180,9 +264,7 @@ export default function FreelancerProfileScreen() {
                                 style={[styles.portfolioGalleryItem, { backgroundColor: colors.muted + "30" }]}
                                 activeOpacity={0.85}
                                 onPress={() => {
-                                    if (item.link) {
-                                        Linking.openURL(item.link.startsWith("http") ? item.link : `https://${item.link}`);
-                                    }
+                                    if (item.link) openInApp(item.link, item.title || "Portfolio");
                                 }}
                             >
                                 {item.imageUrl ? (
@@ -295,6 +377,44 @@ const styles = StyleSheet.create({
     statValueLabel: { fontSize: 18, fontWeight: "700" },
     statContextLabel: { fontSize: 11, fontWeight: "500" },
     sectionHeadingText: { fontSize: 18, fontWeight: "700", marginBottom: 12 },
+    historyCard: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: 12,
+        borderRadius: 14,
+        padding: 14,
+        borderWidth: 1,
+        marginBottom: 10,
+    },
+    historyIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    historyRoleText: { fontSize: 15, fontWeight: "700", marginBottom: 2 },
+    historyCompanyText: { fontSize: 13, fontWeight: "500", marginBottom: 4 },
+    historyYearsText: { fontSize: 12, fontWeight: "400" },
+    historyDescText: { fontSize: 13, fontWeight: "400", lineHeight: 19, marginTop: 8 },
+    portfolioLinkBanner: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        borderRadius: 16,
+        padding: 14,
+        borderWidth: 1.5,
+        marginBottom: 16,
+    },
+    portfolioLinkIconWrap: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    portfolioLinkTitle: { fontSize: 15, fontWeight: "700", marginBottom: 4 },
+    portfolioLinkUrl: { fontSize: 12, fontWeight: "400" },
     portfolioDisplayGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 },
     portfolioGalleryItem: { width: "47%", aspectRatio: 1, borderRadius: 16, alignItems: "center", justifyContent: "center", overflow: "hidden" },
     portfolioTitleOverlay: {

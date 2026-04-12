@@ -1,4 +1,5 @@
 import React from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -28,11 +29,13 @@ function AppWithFirebase(): React.JSX.Element {
 function App(): React.JSX.Element {
     return (
         <SafeAreaProvider>
-            <ThemeProvider>
-                <AppProvider>
-                    <AppWithFirebase />
-                </AppProvider>
-            </ThemeProvider>
+            <KeyboardProvider>
+                <ThemeProvider>
+                    <AppProvider>
+                        <AppWithFirebase />
+                    </AppProvider>
+                </ThemeProvider>
+            </KeyboardProvider>
         </SafeAreaProvider>
     );
 }

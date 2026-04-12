@@ -32,6 +32,8 @@ const userSchema = new mongoose.Schema({
     rating: { type: Number, default: 0 },
     /** Hourly rate in USD for freelancer marketplace display */
     hourlyRate: { type: Number, default: 0 },
+    /** External portfolio URL (Behance, Dribbble, personal site) — opened in-app from public profile */
+    portfolioUrl: { type: String, default: '' },
     /** Shown on freelancer profile as headline (e.g. “Senior UI/UX Designer”) */
     portfolioItems: [{
         title: { type: String, default: '' },
