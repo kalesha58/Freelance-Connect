@@ -66,7 +66,7 @@ export default function HireConfirmScreen() {
                     </View>
                     <TouchableOpacity
                         style={[styles.primaryChatTransitionBtn, { backgroundColor: colors.buttonPrimary }]}
-                        onPress={() => navigation.navigate("Chat", { id: "conv1" })}
+                        onPress={() => navigation.navigate("Messages")}
                         activeOpacity={0.85}
                     >
                         <Feather name="message-circle" size={16} color={colors.onButtonPrimary} />

@@ -96,8 +96,12 @@ export default function NewChat() {
                 participantName: contact.name,
                 participantAvatar: contact.avatar || contact.profilePic,
             });
-        } catch (err) {
+        } catch (err: any) {
             console.error("Start chat error:", err);
+            // Optionally alert user or show toast here
+            if (err?.message?.includes('initialized')) {
+                console.warn("NewChat: Firebase not ready yet.");
+            }
         } finally {
             setStartingChat(null);
         }

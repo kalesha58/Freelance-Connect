@@ -129,7 +129,8 @@ const ALLOWED_USER_UPDATES = [
     'avatar',
     'isProfileComplete',
     'experience',
-    'education'
+    'education',
+    'portfolioUrl'
 ];
 
 const updateUser = async (req, res) => {
@@ -187,6 +188,10 @@ const updateUser = async (req, res) => {
                 startYear: e.startYear || '',
                 endYear: e.endYear || ''
             }));
+        }
+
+        if (updates.portfolioUrl !== undefined) {
+            updates.portfolioUrl = String(updates.portfolioUrl || '').trim();
         }
 
         const updated = await User.findByIdAndUpdate(

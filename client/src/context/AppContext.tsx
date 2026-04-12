@@ -46,6 +46,8 @@ export interface User {
     portfolioItems?: { title?: string; imageUrl?: string; link?: string }[];
     freelancerReviews?: { clientName: string; rating: number; comment?: string; createdAt?: string }[];
     isAvailableForHire?: boolean;
+    /** External portfolio site (Behance, personal site, etc.) */
+    portfolioUrl?: string;
 }
 
 export interface Job {

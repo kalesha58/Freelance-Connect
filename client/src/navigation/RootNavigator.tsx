@@ -28,6 +28,7 @@ import SearchScreen from '@/features/Jobs/screens/SearchScreen';
 import FilterModal from '@/features/Jobs/screens/FilterModal';
 import { CreatePostScreen, PostCommentsScreen } from '@/features/Feed/screens';
 import ProfileSetupScreen from '@/features/Profile/screens/ProfileSetupScreen';
+import EditProfileScreen from '@/features/Profile/screens/EditProfileScreen';
 import SettingsScreen from '@/features/Profile/screens/SettingsScreen';
 import ReferralScreen from '@/features/Profile/screens/ReferralScreen';
 import RatingsScreen from '@/features/Profile/screens/RatingsScreen';
@@ -35,6 +36,7 @@ import NotificationsScreen from '@/features/Common/screens/NotificationsScreen';
 import HelpScreen from '@/features/Common/screens/HelpScreen';
 import TermsScreen from '@/features/Common/screens/TermsScreen';
 import ReportScreen from '@/features/Common/screens/ReportScreen';
+import PortfolioWebViewScreen from '@/features/Common/screens/PortfolioWebViewScreen';
 
 import { MainTabNavigator } from './MainNavigator';
 import { useApp } from '@/context/AppContext';
@@ -82,11 +84,13 @@ export const RootNavigator = () => {
                     <Stack.Screen name="Applicants" component={ApplicantsScreen} />
                     <Stack.Screen name="HireConfirm" component={HireConfirmScreen} />
                     <Stack.Screen name="FreelancerProfile" component={FreelancerProfileScreen} />
+                    <Stack.Screen name="PortfolioWebView" component={PortfolioWebViewScreen} />
                     <Stack.Screen name="Search" component={SearchScreen} />
                     <Stack.Screen name="FilterModal" component={FilterModal} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="PostComments" component={PostCommentsScreen} options={{ presentation: 'modal' }} />
                     <Stack.Screen name="Settings" component={SettingsScreen} />
+                    <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                     <Stack.Screen name="Referral" component={ReferralScreen} />
                     <Stack.Screen name="Ratings" component={RatingsScreen} />
                     <Stack.Screen name="Notifications" component={NotificationsScreen} />

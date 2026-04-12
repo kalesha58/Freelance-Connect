@@ -28,6 +28,7 @@ import { useApp } from "@/context/AppContext";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { uploadImage, apiClient } from "@/utils/apiClient";
 import { formatNumber, formatCurrency } from "@/utils/formatters";
+import { normalizeHttpUrl } from "@/utils/urlHelpers";
 
 const { width } = Dimensions.get('window');
 
@@ -293,7 +294,7 @@ export default function ProfileScreen() {
                     <View style={styles.profileActionRow}>
                         {isOwnProfile ? (
                             <>
-                                <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.buttonPrimary }]} onPress={() => navigation.navigate("ProfileSetup")}>
+                                <TouchableOpacity style={[styles.primaryActionBtn, { backgroundColor: colors.buttonPrimary }]} onPress={() => navigation.navigate("EditProfile")}>
                                     <Text style={[styles.primaryActionBtnText, { color: colors.onButtonPrimary }]}>Edit Profile</Text>
                                 </TouchableOpacity>
                             </>
@@ -327,15 +328,64 @@ export default function ProfileScreen() {
                     </View>
                 )}
 
+                {/* External portfolio URL (freelancers) */}
+                {user.role === "freelancer" && (
+                    <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <View style={styles.experienceHeaderRow}>
+                            <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Online portfolio</Text>
+                            {isOwnProfile ? (
+                                <TouchableOpacity
+                                    style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]}
+                                    onPress={() => navigation.navigate("EditProfile")}
+                                >
+                                    <Feather name="edit-3" size={14} color={colors.primary} />
+                                    <Text style={[styles.addInlineLabel, { color: colors.primary }]}>Edit</Text>
+                                </TouchableOpacity>
+                            ) : null}
+                        </View>
+                        {user.portfolioUrl?.trim() ? (
+                            <View>
+                                <Text style={[styles.portfolioUrlText, { color: colors.mutedForeground }]} numberOfLines={2}>
+                                    {user.portfolioUrl.trim()}
+                                </Text>
+                                <TouchableOpacity
+                                    style={[styles.viewPortfolioBtn, { borderColor: colors.primary }]}
+                                    onPress={() => {
+                                        const u = normalizeHttpUrl(user.portfolioUrl);
+                                        if (u) navigation.navigate("PortfolioWebView", { url: u, title: "Portfolio" });
+                                    }}
+                                >
+                                    <Feather name="external-link" size={16} color={colors.primary} />
+                                    <Text style={[styles.viewPortfolioBtnText, { color: colors.primary }]}>View portfolio</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <Text style={{ color: colors.mutedForeground, fontSize: 13 }}>
+                                {isOwnProfile
+                                    ? "Add a Behance, Dribbble, or personal site link — tap Edit above or open Edit Profile."
+                                    : "This freelancer has not shared a portfolio link yet."}
+                            </Text>
+                        )}
+                    </View>
+                )}
+
                 {/* Education & Experience Section */}
                 <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={styles.experienceHeaderRow}>
                         <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Experience & Education</Text>
-                        <TouchableOpacity style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]} onPress={() => navigation.navigate("Settings")}>
+                        <TouchableOpacity style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]} onPress={() => navigation.navigate("EditProfile")}>
                             <Feather name="edit-3" size={14} color={colors.primary} />
                             <Text style={[styles.addInlineLabel, { color: colors.primary }]}>Manage</Text>
                         </TouchableOpacity>
                     </View>
+
+                    {!user.experience?.length && !user.education?.length ? (
+                        <Text style={{ color: colors.mutedForeground, fontSize: 13, marginBottom: 8 }}>
+                            {isOwnProfile
+                                ? "No experience or education yet. Tap Manage to add entries."
+                                : "No experience or education listed yet."}
+                        </Text>
+                    ) : null}
 
                     {user.experience && user.experience.map((exp: any, idx: number) => (
                         <View key={`exp-${idx}`} style={[styles.historyItem, idx !== user.experience!.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
@@ -616,6 +666,25 @@ const styles = StyleSheet.create({
     addInlineLabel: {
         fontSize: 12,
         fontWeight: '700',
+    },
+    portfolioUrlText: {
+        fontSize: 13,
+        lineHeight: 18,
+        marginBottom: 12,
+    },
+    viewPortfolioBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        alignSelf: 'flex-start',
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: 12,
+        borderWidth: 1.5,
+    },
+    viewPortfolioBtnText: {
+        fontSize: 14,
+        fontWeight: '600',
     },
     historyItem: {
         flexDirection: 'row',
