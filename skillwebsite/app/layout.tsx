@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Tasker — Freelance marketplace",
-    template: "%s | Tasker",
+    default: "Skill Link — Freelance marketplace",
+    template: "%s | Skill Link",
   },
   description:
-    "Connect skilled Taskers with hiring partners. Post jobs, showcase portfolios, message, and grow — the Tasker freelance marketplace.",
+    "Connect skilled professionals with hiring partners. Post jobs, showcase portfolios, message, and grow — the Skill Link freelance marketplace.",
   openGraph: {
-    title: "Tasker — Freelance marketplace",
+    title: "Skill Link — Freelance marketplace",
     description:
       "Hire skilled people. Earn as a freelancer. Jobs, portfolios, and real-time collaboration.",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tasker — Freelance marketplace",
+    title: "Skill Link — Freelance marketplace",
     description:
       "Hire skilled people. Earn as a freelancer. Jobs, portfolios, and real-time collaboration.",
   },

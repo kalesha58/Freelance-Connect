@@ -99,7 +99,7 @@ const Dashboard = () => {
             <header style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                 <div>
                     <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Welcome Back, Admin</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Overview of Freelance Connect ecosystem</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Overview of Skill Link ecosystem</p>
                 </div>
                 <div style={{
                     display: 'flex',

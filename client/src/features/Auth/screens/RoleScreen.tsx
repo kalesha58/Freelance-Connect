@@ -40,7 +40,7 @@ export default function RoleScreen({ navigation }: { navigation: any }) {
     const ROLE_DEFINITIONS = [
         {
             id: "freelancer" as UserRole,
-            title: "Freelancer / Tasker",
+            title: "Freelancer / Pro",
             desc: "Find jobs, showcase your portfolio, and earn money doing what you love.",
             iconName: "laptop",
             themeColor: colors.primary,
@@ -64,12 +64,12 @@ export default function RoleScreen({ navigation }: { navigation: any }) {
             >
                 <View style={styles.brandRow}>
                     <View style={styles.brandIcon}>
-                        <Text style={styles.brandT}>T</Text>
+                        <Text style={styles.brandT}>S</Text>
                     </View>
-                    <Text style={styles.brandName}>Tasker</Text>
+                    <Text style={styles.brandName}>Skill Link</Text>
                 </View>
                 <Text style={styles.heroText}>Choose your role</Text>
-                <Text style={styles.heroSub}>How do you want to use Tasker?</Text>
+                <Text style={styles.heroSub}>How do you want to use Skill Link?</Text>
             </LinearGradient>
 
             <ScrollView contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 20 }]} showsVerticalScrollIndicator={false}>

@@ -8,7 +8,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
           <div>
-            <p className="font-semibold text-foreground">Tasker</p>
+            <p className="font-semibold text-foreground">Skill Link</p>
             <p className="mt-1 text-sm text-muted-foreground">
               The freelance marketplace for skilled work.
             </p>
@@ -41,7 +41,7 @@ export function Footer() {
           </nav>
         </div>
         <p className="mt-10 text-center text-sm text-muted-foreground sm:text-left">
-          © {year} Tasker. All rights reserved.
+          © {year} Skill Link. All rights reserved.
         </p>
       </div>
     </footer>

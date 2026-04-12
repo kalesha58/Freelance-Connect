@@ -165,7 +165,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const refreshCurrentUser = useCallback(async () => {
         try {
-            const token = await AsyncStorage.getItem("tasker_token");
+            const token = await AsyncStorage.getItem("skill_link_token");
             if (!token) return;
             const userData = await apiClient("/profile/me");
             setUser(userData as User);
@@ -176,7 +176,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const loadUser = async () => {
         try {
-            const token = await AsyncStorage.getItem("tasker_token");
+            const token = await AsyncStorage.getItem("skill_link_token");
             if (token) {
                 const userData = await apiClient("/profile/me");
                 setUser(userData as User);
@@ -247,7 +247,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 body: { emailOrPhone, password },
             });
 
-            await AsyncStorage.setItem("tasker_token", data.token);
+            await AsyncStorage.setItem("skill_link_token", data.token);
             await hydrateUserAfterAuth(data);
         } catch (error) {
             throw error;
@@ -261,7 +261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 body: { name, email, password, role, referredByCode },
             });
 
-            await AsyncStorage.setItem("tasker_token", data.token);
+            await AsyncStorage.setItem("skill_link_token", data.token);
             await hydrateUserAfterAuth(data);
         } catch (error) {
             throw error;
@@ -286,7 +286,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             database().ref('.info/connected').off('value', presenceRef.current);
             presenceRef.current = null;
         }
-        await AsyncStorage.removeItem("tasker_token");
+        await AsyncStorage.removeItem("skill_link_token");
         setUser(null);
     };
 

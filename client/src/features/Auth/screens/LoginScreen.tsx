@@ -86,11 +86,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 {/* Hero section */}
                 <View style={styles.hero}>
                     <View style={[styles.logoMini, { backgroundColor: colors.headerBackground }]}>
-                        <Text style={styles.logoText}>T</Text>
+                        <Text style={styles.logoText}>S</Text>
                     </View>
                     <Text style={[styles.heading, { color: colors.foreground }]}>Welcome back</Text>
                     <Text style={[styles.subheading, { color: colors.mutedForeground }]}>
-                        Sign in to your Tasker account
+                        Sign in to your Skill Link account
                     </Text>
                 </View>
 

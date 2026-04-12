@@ -49,8 +49,8 @@ const Settings = () => {
 
     // Mock settings state
     const [settings, setSettings] = useState({
-        siteName: 'Freelance Connect',
-        supportEmail: 'support@freelance-connect.com',
+        siteName: 'Skill Link',
+        supportEmail: 'support@skilllink.app',
         maintenanceMode: false,
         openRegistration: true,
         requireEmailVerification: true,

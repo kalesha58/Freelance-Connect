@@ -3,8 +3,8 @@ import { Footer } from "../../components/site/Footer";
 import { Header } from "../../components/site/Header";
 
 export const metadata = {
-  title: "Terms of Service | Tasker",
-  description: "Tasker terms and conditions — information on how to use our platform and services.",
+  title: "Terms of Service | Skill Link",
+  description: "Skill Link terms and conditions — information on how to use our platform and services.",
 };
 
 export default function TermsPage() {
@@ -39,14 +39,14 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground">1. Acceptance of Terms</h2>
                 <p className="mt-4">
-                  By accessing or using the Tasker mobile application and associated services (the &quot;Service&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+                  By accessing or using the Skill Link mobile application and associated services (the &quot;Service&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-foreground">2. Description of Service</h2>
                 <p className="mt-4">
-                  Tasker is a freelance marketplace platform that connects skilled professionals (&quot;Taskers&quot;) with clients (&quot;Requesters&quot; or &quot;Hiring Partners&quot;). We provide tools for job posting, talent discovery, real-time messaging, and payment facilitation.
+                  Skill Link is a freelance marketplace platform that connects skilled professionals (&quot;Professionals&quot; or &quot;Pros&quot;) with clients (&quot;Requesters&quot; or &quot;Hiring Partners&quot;). We provide tools for job posting, talent discovery, real-time messaging, and payment facilitation.
                 </p>
               </section>
 
@@ -54,7 +54,7 @@ export default function TermsPage() {
                 <h2 className="text-2xl font-semibold text-foreground">3. User Roles & Accounts</h2>
                 <div className="mt-4 space-y-4">
                   <div className="rounded-xl border border-border p-4">
-                    <h3 className="font-semibold">Freelancer / Tasker</h3>
+                    <h3 className="font-semibold">Freelancer / Pro</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Users who showcase their portfolio, apply for jobs, and provide services to Requesters.</p>
                   </div>
                   <div className="rounded-xl border border-border p-4">
@@ -70,7 +70,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground">4. Payments & Subscriptions</h2>
                 <p className="mt-4">
-                  Tasker uses **Razorpay** for payment processing. By making a payment through the Service, you agree to Razorpay&apos;s terms and conditions.
+                  Skill Link uses **Razorpay** for payment processing. By making a payment through the Service, you agree to Razorpay&apos;s terms and conditions.
                 </p>
                 <ul className="mt-4 list-disc pl-5 space-y-2 text-sm">
                   <li><strong>Subscription Model</strong>: Certain advanced features, such as unlimited chat and premium visibility, may require a paid subscription.</li>
@@ -82,7 +82,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground">5. Content & Conduct</h2>
                 <p className="mt-4">
-                  You retain ownership of the content you upload to Tasker (e.g., portfolio media, job descriptions). However, by posting content, you grant Tasker a non-exclusive, worldwide license to display and distribute that content to facilitate the Service.
+                  You retain ownership of the content you upload to Skill Link (e.g., portfolio media, job descriptions). However, by posting content, you grant Skill Link a non-exclusive, worldwide license to display and distribute that content to facilitate the Service.
                 </p>
                 <p className="mt-4">
                   You agree not to use the Service for any illegal activities or to post content that is harmful, offensive, or violates the rights of others.
@@ -99,7 +99,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground">7. Limitation of Liability</h2>
                 <p className="mt-4">
-                  Tasker is a platform that facilitates connections. We are not responsible for the quality of work performed by Taskers or the conduct of Requesters. Use the Service at your own risk.
+                  Skill Link is a platform that facilitates connections. We are not responsible for the quality of work performed by Professionals or the conduct of Requesters. Use the Service at your own risk.
                 </p>
               </section>
 

@@ -1,6 +1,6 @@
 import { SectionHeading } from "../ui/SectionHeading";
 
-const TASKER_POINTS = [
+const PROFESSIONAL_POINTS = [
   "Find and apply to jobs that fit your skills",
   "Build a standout portfolio with media and tags",
   "Message clients, send proposals, and track wins",
@@ -9,7 +9,7 @@ const TASKER_POINTS = [
 
 const HIRING_POINTS = [
   "Post structured jobs with budget and deadlines",
-  "Discover Taskers with portfolios and reviews",
+  "Discover professionals with portfolios and reviews",
   "Manage applicants and chat in one workflow",
   "Hire with confidence using ratings and trust signals",
 ] as const;
@@ -25,7 +25,7 @@ export function AudienceSection() {
           headingId="audience-heading"
           eyebrow="Built for both sides"
           title="Whether you hire or hustle"
-          description="Tasker gives freelancers and hiring partners the same polished experience — with role-specific superpowers."
+          description="Skill Link gives freelancers and hiring partners the same polished experience — with role-specific superpowers."
         />
         <div className="mt-16 grid gap-8 lg:grid-cols-2">
           <article
@@ -37,10 +37,10 @@ export function AudienceSection() {
                 className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-sm font-bold text-primary"
                 aria-hidden
               >
-                TF
+                SL
               </span>
               <h3 className="text-xl font-semibold text-foreground">
-                For Taskers
+                For Pros
               </h3>
             </div>
             <p className="mt-3 text-muted-foreground leading-relaxed">
@@ -48,7 +48,7 @@ export function AudienceSection() {
               earn on their terms.
             </p>
             <ul className="mt-6 space-y-3">
-              {TASKER_POINTS.map((item) => (
+              {PROFESSIONAL_POINTS.map((item) => (
                 <li key={item} className="flex gap-3 text-foreground">
                   <span
                     className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"

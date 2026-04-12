@@ -59,7 +59,7 @@ export function ServicesSection() {
           headingId="features-heading"
           eyebrow="Platform"
           title="Everything you need to hire and get hired"
-          description="From first impression to final payment, Tasker is built for speed, clarity, and professional growth."
+          description="From first impression to final payment, Skill Link is built for speed, clarity, and professional growth."
         />
         <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ title, description, Icon }) => (

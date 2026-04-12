@@ -16,8 +16,8 @@ import { useColors } from "@/hooks/useColors";
 const FAQS = [
     { q: "How do I delete my account or data?", a: "Open Settings, tap Request account deletion, then send us an email using the button (subject: Data Deletion Request). We process valid requests within 30 days, except where the law requires keeping certain records. This applies to freelancers and hiring partners alike." },
     { q: "How do I apply to a job?", a: "Browse the job feed, tap on any job listing, and press 'Apply Now'. You can include a cover letter and your portfolio link." },
-    { q: "How does the payment process work?", a: "Payments are held in escrow when a job starts. Funds are released to you once the client approves your work. Freelance Connect charges a 10% platform fee." },
-    { q: "How do I unlock more client chats?", a: "Free accounts can message up to 3 clients. Upgrade to Tasker Pro for unlimited messaging, plus priority job placement and advanced analytics." },
+    { q: "How does the payment process work?", a: "Payments are held in escrow when a job starts. Funds are released to you once the client approves your work. Skill Link charges a 10% platform fee." },
+    { q: "How do I unlock more client chats?", a: "Free accounts can message up to 3 clients. Upgrade to Skill Link Plus for unlimited messaging, plus priority job placement and advanced analytics." },
     { q: "Can I work as both a Freelancer and Requester?", a: "Yes! You can switch roles from your profile settings at any time. Your work history and profile are maintained for each role." },
     { q: "How are freelancers verified?", a: "We verify identity via government ID and conduct skill assessments. Verified badges appear on profiles for added trust." },
 ];
