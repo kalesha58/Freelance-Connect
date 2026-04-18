@@ -26,7 +26,7 @@ const FREELANCER_ACTIVITY = [
 const HIRING_ACTIVITY = [
     { id: "h1", title: "New applicant for UI Designer", time: "1h ago", icon: "users" as const, colorKey: "primary" as const },
     { id: "h2", title: "Job post #124 is now active", time: "4h ago", icon: "check-circle" as const, colorKey: "success" as const },
-    { id: "h3", title: "Invoice #82 paid successfully", time: "1d ago", icon: "dollar-sign" as const, colorKey: "purpleAccent" as const },
+    { id: "h3", title: "Invoice #82 paid successfully", time: "1d ago", icon: "credit-card" as const, colorKey: "purpleAccent" as const },
 ];
 
 /**

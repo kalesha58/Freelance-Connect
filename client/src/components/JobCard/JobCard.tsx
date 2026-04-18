@@ -7,6 +7,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import { useColors } from "@/hooks/useColors";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import { displayBudgetINR } from "@/utils/formatters";
 
 /**
  * Interface defining the properties for a Job.
@@ -71,7 +72,7 @@ export function JobCard({ job }: IJobCardProps) {
                 </View>
                 <View style={[styles.budgetWrapper]}>
                     <Text style={[styles.budgetLabel, { color: colors.mutedForeground }]}>Budget</Text>
-                    <Text style={[styles.budgetText, { color: colors.success }]}>{job.budget}</Text>
+                    <Text style={[styles.budgetText, { color: colors.success }]}>{displayBudgetINR(job.budget)}</Text>
                 </View>
             </View>
 

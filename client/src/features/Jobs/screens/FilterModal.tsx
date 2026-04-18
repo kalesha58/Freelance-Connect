@@ -139,7 +139,7 @@ export default function FilterModal() {
                 {/* Budget Range Visualizer */}
                 <View style={styles.sectionHeader}>
                     <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Budget Range</Text>
-                    <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Average hourly rate (USD)</Text>
+                    <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Average hourly rate (₹)</Text>
                 </View>
                 <View style={styles.budgetVisualizer}>
                     <View style={styles.budgetPreviewRow}>

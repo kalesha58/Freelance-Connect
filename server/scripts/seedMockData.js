@@ -81,7 +81,7 @@ const seedData = async () => {
         await Job.insertMany([
             {
                 title: 'Senior React Native Developer Needed',
-                budget: '$5,000 - $8,000',
+                budget: '₹5,000 - ₹8,000',
                 budgetType: 'fixed',
                 location: 'Remote, US timezone',
                 description: 'We are looking for an experienced React Native developer to help us build the next generation of our mobile application. You will be working tightly with our design and backend teams.',
@@ -95,7 +95,7 @@ const seedData = async () => {
             },
             {
                 title: 'SaaS Dashboard Redesign (UI/UX)',
-                budget: '$45/hr',
+                budget: '₹45/hr',
                 budgetType: 'hourly',
                 location: 'Remote',
                 description: 'Need a talented designer to completely revamp our analytics dashboard. Looking for a modern, clean, glassmorphism style.',
@@ -109,7 +109,7 @@ const seedData = async () => {
             },
             {
                 title: 'Build AI Recommendation Engine',
-                budget: '$15,000',
+                budget: '₹15,000',
                 budgetType: 'fixed',
                 location: 'Remote',
                 description: 'We are an e-commerce platform looking to integrate a custom AI recommendation engine to boost user engagement and sales.',
@@ -123,7 +123,7 @@ const seedData = async () => {
             },
             {
                 title: 'Full-stack Engineer for Web3 Startup',
-                budget: '$60/hr',
+                budget: '₹60/hr',
                 budgetType: 'hourly',
                 location: 'Remote, Europe timezones',
                 description: 'Seeking a full-stack engineer with experience in React and Node.js. Web3/Crypto experience is a big plus but not strictly required.',

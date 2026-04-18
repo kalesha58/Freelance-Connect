@@ -225,7 +225,7 @@ export default function FreelancerProfileScreen() {
                             label: "Rate/hr",
                             value: `₹${profile.hourlyRate ?? 0}`,
                             color: colors.success,
-                            icon: "dollar-sign" as const,
+                            icon: "credit-card" as const,
                         },
                         { label: "Success", value: `${successPct}%`, color: colors.purpleAccent, icon: "trending-up" as const },
                     ].map((stat) => (

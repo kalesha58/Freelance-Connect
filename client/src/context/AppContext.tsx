@@ -164,8 +164,10 @@ interface AppContextType {
         statusId: string,
         viewer?: { userId: string; userName: string; userAvatar?: string }
     ) => void;
+    toggleStatusLike: (statusId: string) => Promise<void>;
 
 }
+
 
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -510,13 +512,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 imageUri:    s.imageUrl,
                 createdAt:   new Date(s.createdAt).getTime(),
                 viewed:      s.viewedByMe ?? false,
+                likedByMe:   s.likedByMe ?? false,
+                likes:       s.likes ?? [],
                 viewers:     (s.viewers ?? []).map((v: any) => ({
                     userId:     String(v.userId),
                     userName:   v.userName,
                     userAvatar: v.userAvatar,
                     viewedAt:   new Date(v.viewedAt).getTime(),
+                    liked:      (s.likes || []).some((lid: any) => String(lid) === String(v.userId)),
                 })),
             }));
+
 
             setStatuses(mapped);
         } catch (e) {
@@ -553,8 +559,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 imageUri:   saved.imageUrl,
                 createdAt:  new Date(saved.createdAt).getTime(),
                 viewed:     false,
+                likedByMe:  false,
+                likes:      [],
                 viewers:    [],
             };
+
 
             setStatuses(prev => [newStatus, ...prev]);
         } catch (e: any) {
@@ -599,6 +608,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         );
     };
 
+    /**
+     * Toggles the heart (like) status for a story.
+     * Uses optimistic UI to flip the heart instantly.
+     */
+    const toggleStatusLike = async (statusId: string) => {
+        if (!user) return;
+
+        // Optimistic update
+        setStatuses(prev =>
+            prev.map(s => {
+                if (s.id !== statusId) return s;
+                const isLiked = !s.likedByMe;
+                const updatedLikes = isLiked
+                    ? [...(s.likes || []), user._id]
+                    : (s.likes || []).filter(id => id !== user._id);
+                
+                // If liking, also ensure seen is true
+                return { ...s, likedByMe: isLiked, likes: updatedLikes, viewed: true };
+            })
+        );
+
+        try {
+            await apiClient(`/statuses/${statusId}/like`, { method: 'POST' });
+        } catch (error) {
+            console.error('[toggleStatusLike] API error:', error);
+            // Revert state (simple toggle back)
+            setStatuses(prev =>
+                prev.map(s => (s.id === statusId ? { ...s, likedByMe: !s.likedByMe } : s))
+            );
+        }
+    };
+
+
 
 
 
@@ -638,7 +680,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 addStatus,
                 loadStatuses,
                 markStatusViewed,
+                toggleStatusLike,
             }}
+
+
 
         >
             {children}

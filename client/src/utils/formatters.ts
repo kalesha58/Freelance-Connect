@@ -19,9 +19,13 @@ export const formatNumber = (num: number = 0, decimals: number = 1): string => {
 };
 
 /**
- * Formats currency values into compact representations (e.g., 4200 -> $4.2K).
+ * Formats currency values into compact representations (e.g., 4200 -> ₹4.2K).
  * @param amount The amount to format
  */
 export const formatCurrency = (amount: number = 0): string => {
     return '₹' + formatNumber(amount);
 };
+
+/** Normalizes legacy budget strings that used $ to always show ₹ in the India-only app. */
+export const displayBudgetINR = (budget: string | undefined | null): string =>
+    (budget ?? '').replace(/\$/g, '₹');

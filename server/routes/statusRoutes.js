@@ -27,7 +27,11 @@ router.get('/', protect, async (req, res) => {
             // viewedByMe: true if the current user is in the viewers list
             viewedByMe: s.viewers.some(v => String(v.userId) === myId),
             viewersCount: s.viewers.length,
+            // likedByMe: true if current user is in the likes array
+            likedByMe: (s.likes || []).some(id => String(id) === myId),
+            likesCount: (s.likes || []).length,
         }));
+
 
         res.json(enriched);
     } catch (err) {
@@ -121,6 +125,55 @@ router.post('/:id/view', protect, async (req, res) => {
         }
 
         res.json({ viewersCount: status.viewers.length, alreadyViewed });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/statuses/:id/like
+// Toggles the like status of the current user for the given status.
+// Like also counts as a "view" automatically if not already viewed.
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/:id/like', protect, async (req, res) => {
+    try {
+        const status = await Status.findOne({
+            _id: req.params.id,
+            ...activeStatusFilter(),
+        });
+
+        if (!status) {
+            return res.status(404).json({ message: 'Status not found or has expired' });
+        }
+
+        const myId = req.user._id;
+        const index = status.likes.indexOf(myId);
+
+        if (index === -1) {
+            // Like
+            status.likes.push(myId);
+            
+            // Auto-view logic: if you like it, we record you as a viewer too
+            const alreadyViewed = status.viewers.some(v => String(v.userId) === String(myId));
+            if (!alreadyViewed && String(status.userId) !== String(myId)) {
+                status.viewers.push({
+                    userId:     req.user._id,
+                    userName:   req.user.name,
+                    userAvatar: req.user.profilePic || req.user.avatar,
+                    viewedAt:   new Date(),
+                });
+            }
+        } else {
+            // Unlike
+            status.likes.splice(index, 1);
+        }
+
+        await status.save();
+        res.json({ 
+            liked: index === -1, 
+            likesCount: status.likes.length,
+            viewersCount: status.viewers.length,
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

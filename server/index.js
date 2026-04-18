@@ -38,6 +38,7 @@ app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/follow', require('./routes/followRoutes'));
 app.use('/api/statuses', require('./routes/statusRoutes'));
+app.get('/api/statuses-ping', (req, res) => res.json({ message: 'statuses prefix reachable' }));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/api/routes', (req, res) => {
