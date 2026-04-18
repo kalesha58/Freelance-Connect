@@ -35,4 +35,25 @@ export type RootStackParamList = {
     MessageSettings: undefined;
     SearchMessages: undefined;
     Messages: undefined;
+    UserProfile: { userId: string };
+    StatusViewer: { statuses: IStatus[]; initialIndex: number };
 };
+
+export interface IStatusViewer {
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    viewedAt: number; // Unix timestamp in ms
+}
+
+export interface IStatus {
+    id: string;
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    imageUri: string;
+    createdAt: number; // Unix timestamp in ms
+    viewed: boolean;
+    /** List of users who have viewed this status, newest first */
+    viewers?: IStatusViewer[];
+}

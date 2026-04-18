@@ -161,7 +161,7 @@ export default function JobDetailScreen() {
 
                     <View style={[styles.metricsGridSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         {[
-                            { icon: "dollar-sign" as const, label: "Budget", value: job.budget, color: colors.primary },
+                            { icon: "wallet" as const, label: "Budget", value: job.budget, color: colors.primary },
                             { icon: "map-pin" as const, label: "Location", value: job.location, color: colors.success },
                             {
                                 icon: "calendar" as const,

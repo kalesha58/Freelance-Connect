@@ -23,5 +23,5 @@ export const formatNumber = (num: number = 0, decimals: number = 1): string => {
  * @param amount The amount to format
  */
 export const formatCurrency = (amount: number = 0): string => {
-    return '$' + formatNumber(amount);
+    return '₹' + formatNumber(amount);
 };

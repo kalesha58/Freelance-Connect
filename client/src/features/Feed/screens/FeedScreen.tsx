@@ -16,8 +16,10 @@ import Feather from "react-native-vector-icons/Feather";
 import { IPost, PostCard } from "@/components/PostCard/PostCard";
 import { useColors } from "@/hooks/useColors";
 import { PostCardSkeleton } from "@/components/SkeletonLoader";
+import { StatusRow } from "@/components/StatusRow/StatusRow";
 
 import { useApp } from "@/context/AppContext";
+
 
 /**
  * FeedScreen displays a community stream of posts and updates.
@@ -64,6 +66,7 @@ export default function FeedScreen() {
             <FlatList
                 data={posts}
                 keyExtractor={(item) => item._id}
+                ListHeaderComponent={() => <StatusRow />}
                 renderItem={({ item }) => (
                     <PostCard
                         post={{

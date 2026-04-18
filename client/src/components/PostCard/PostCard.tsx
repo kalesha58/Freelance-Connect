@@ -25,6 +25,8 @@ import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { UserRole } from "@/types/auth";
 import { useApp } from "@/context/AppContext";
 import { apiClient } from "@/utils/apiClient";
+import { ShareBottomSheet } from "@/components/ShareBottomSheet/ShareBottomSheet";
+
 
 /**
  * Interface representing content shared by users in the activity feed.
@@ -69,6 +71,8 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
     const navigation = useNavigation<any>();
     const [following, setFollowing] = React.useState(post.isFollowingAuthor ?? false);
     const [followLoading, setFollowLoading] = React.useState(false);
+    const [showShareSheet, setShowShareSheet] = React.useState(false);
+
 
     React.useEffect(() => {
         setFollowing(post.isFollowingAuthor ?? false);
@@ -142,6 +146,10 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
             userAvatar: post.userAvatar,
             likesCount: Array.isArray(post.likes) ? post.likes.length : 0,
         });
+    };
+    
+    const handleProfilePress = () => {
+        navigation.navigate("UserProfile", { userId: post.userId });
     };
 
     const formattedRoleLabel = post.userRole === "freelancer" ? "Freelancer" : "Hiring Partner";
@@ -240,7 +248,11 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
         <View style={[styles.cardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {/* Header: User Info */}
             <View style={styles.cardHeaderArea}>
-                <View style={styles.userInfoRow}>
+                <TouchableOpacity 
+                    style={styles.userInfoRow} 
+                    onPress={handleProfilePress}
+                    activeOpacity={0.7}
+                >
                     {post.userAvatar ? (
                         <Image source={{ uri: post.userAvatar }} style={styles.profileAvatarImg} />
                     ) : (
@@ -258,7 +270,7 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
                             <Text style={[styles.postTimestamp, { color: colors.mutedForeground }]}> • {formatRelativeTime(post.createdAt)}</Text>
                         </View>
                     </View>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.headerRightCluster}>
                     {showFollow && (
                         <TouchableOpacity
@@ -325,9 +337,10 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
                         <MaterialCommunityIcons name="comment-outline" size={24} color={colors.foreground} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.actionItemBtn} activeOpacity={0.7}>
+                    <TouchableOpacity style={styles.actionItemBtn} activeOpacity={0.7} onPress={() => setShowShareSheet(true)}>
                         <Feather name="send" size={22} color={colors.foreground} />
                     </TouchableOpacity>
+
                 </View>
 
                 <TouchableOpacity activeOpacity={0.7}>
@@ -343,7 +356,12 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
             {/* Caption Section */}
             <View style={styles.captionSection}>
                 <Text style={[styles.captionContent, { color: colors.foreground }]}>
-                    <Text style={styles.captionUser}>{post.userName} </Text>
+                    <Text 
+                        style={styles.captionUser}
+                        onPress={handleProfilePress}
+                    >
+                        {post.userName}{' '}
+                    </Text>
                     {post.caption}
                 </Text>
 
@@ -363,9 +381,20 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
                     </TouchableOpacity>
                 )}
             </View>
+
+            {/* Share Bottom Sheet */}
+            <ShareBottomSheet
+                visible={showShareSheet}
+                onClose={() => setShowShareSheet(false)}
+                postImageUrl={post.postImage || post.imageUrl}
+                postCaption={post.caption}
+                postUserName={post.userName}
+                postId={post.id || post._id}
+            />
         </View>
     );
 }
+
 
 export const PostCard = React.memo(PostCardInner);
 

@@ -115,7 +115,7 @@ export default function JobPreviewScreen() {
 
                     <View style={styles.metricsSummaryGrid}>
                         {[
-                            { icon: "dollar-sign" as const, label: "Budget", value: budget ? `$${budget}${budgetType === "hourly" ? "/hr" : ""}` : "Not set", color: colors.primary },
+                            { icon: "wallet" as const, label: "Budget", value: budget ? `₹${budget}${budgetType === "hourly" ? "/hr" : ""}` : "Not set", color: colors.primary },
                             { icon: "map-pin" as const, label: "Location", value: location || "Remote", color: colors.purpleAccent },
                             { icon: "calendar" as const, label: "Deadline", value: deadline || "Flexible", color: colors.warning },
                         ].map(item => (

@@ -31,7 +31,7 @@ const MOCK_JOBS: IJob[] = [
         clientName: "Global Shop Inc.",
         clientRating: "4.9",
         postedAt: "2h ago",
-        budget: "$5,000",
+        budget: "₹5,000",
         location: "New York, USA",
         skills: ["React Native", "TypeScript", "API Integration"],
     },
@@ -43,7 +43,7 @@ const MOCK_JOBS: IJob[] = [
         clientName: "BankEase",
         clientRating: "4.7",
         postedAt: "5h ago",
-        budget: "$4,500",
+        budget: "₹4,500",
         location: "London, UK",
         skills: ["Figma", "Fintech", "UX Research"],
     },
@@ -55,7 +55,7 @@ const MOCK_JOBS: IJob[] = [
         clientName: "LogiTech Solutions",
         clientRating: "4.8",
         postedAt: "1d ago",
-        budget: "$7,200",
+        budget: "₹7,200",
         location: "Remote",
         skills: ["Python", "Django", "PostgreSQL"],
     }
@@ -92,7 +92,7 @@ export default function HomeScreen() {
                 bio: f.bio || "No bio provided.",
                 skills: f.skills || [],
                 rating: f.rating || 0,
-                hourlyRate: `$${f.hourlyRate ?? 0}`,
+                hourlyRate: `₹${f.hourlyRate ?? 0}`,
                 location: f.location || "Unknown",
                 completedProjects: f.projectsCompleted || 0,
                 reviewsCount: Array.isArray(f.freelancerReviews) ? f.freelancerReviews.length : 0,
@@ -172,7 +172,7 @@ export default function HomeScreen() {
                     {[
                         { label: "Available", value: freelancers.length, color: "#3b82f6", icon: "people" },
                         { label: "Rating", value: "4.9 ★", color: "#f59e0b", icon: "star" },
-                        { label: "Price", value: "$85/h", color: "#10b981", icon: "wallet" },
+                        { label: "Price", value: "₹85/h", color: "#10b981", icon: "wallet" },
                     ].map(stat => (
                         <View key={stat.label} style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                             <View style={[styles.metricIconBox, { backgroundColor: stat.color + "15" }]}>
@@ -259,7 +259,7 @@ export default function HomeScreen() {
                     {[
                         { label: "Active Jobs", value: MOCK_JOBS.length, color: "#3b82f6", icon: "briefcase" },
                         { label: "New Leads", value: "+12", color: "#f59e0b", icon: "flash" },
-                        { label: "Earnings", value: "$4.1K", color: "#10b981", icon: "wallet" },
+                        { label: "Earnings", value: "₹4.1K", color: "#10b981", icon: "wallet" },
                     ].map(stat => (
                         <View key={stat.label} style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                             <View style={[styles.metricIconBox, { backgroundColor: stat.color + "15" }]}>

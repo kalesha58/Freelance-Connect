@@ -14,14 +14,14 @@ import Feather from "react-native-vector-icons/Feather";
 import { useColors } from "@/hooks/useColors";
 
 const ACTIVE_JOBS = [
-    { id: "j1", title: "Senior React Native Developer", budget: "$5,000 - $8,000", status: "active", applicants: 12, postedAt: "2d ago" },
-    { id: "j2", title: "UI/UX Designer for FinTech App", budget: "$80/hr", status: "active", applicants: 8, postedAt: "5d ago" },
-    { id: "j3", title: "Brand Identity Designer", budget: "$2,000 - $4,000", status: "active", applicants: 31, postedAt: "1w ago" },
+    { id: "j1", title: "Senior React Native Developer", budget: "₹5,000 - ₹8,000", status: "active", applicants: 12, postedAt: "2d ago" },
+    { id: "j2", title: "UI/UX Designer for FinTech App", budget: "₹80/hr", status: "active", applicants: 8, postedAt: "5d ago" },
+    { id: "j3", title: "Brand Identity Designer", budget: "₹2,000 - ₹4,000", status: "active", applicants: 31, postedAt: "1w ago" },
 ];
 
 const COMPLETED_JOBS = [
-    { id: "j4", title: "Mobile App Prototype", budget: "$3,000", status: "completed", applicants: 0, postedAt: "2 months ago" },
-    { id: "j5", title: "Website Redesign", budget: "$6,500", status: "completed", applicants: 0, postedAt: "3 months ago" },
+    { id: "j4", title: "Mobile App Prototype", budget: "₹3,000", status: "completed", applicants: 0, postedAt: "2 months ago" },
+    { id: "j5", title: "Website Redesign", budget: "₹6,500", status: "completed", applicants: 0, postedAt: "3 months ago" },
 ];
 
 /**

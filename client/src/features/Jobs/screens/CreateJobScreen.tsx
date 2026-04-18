@@ -195,7 +195,7 @@ export default function CreateJobScreen() {
                             {budgetType === "fixed" ? "Estimated Budget*" : "Internal Rate Scale*"}
                         </Text>
                         <View style={[styles.inputWrapper, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                            <Text style={[styles.symbol, { color: colors.primary }]}>$</Text>
+                            <Text style={[styles.symbol, { color: colors.primary }]}>₹</Text>
                             <TextInput
                                 style={[styles.numInput, { color: colors.foreground }]}
                                 placeholder={budgetType === "fixed" ? "5,000" : "85"}
