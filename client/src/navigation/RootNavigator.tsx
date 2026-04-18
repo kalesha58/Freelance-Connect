@@ -38,7 +38,10 @@ import HelpScreen from '@/features/Common/screens/HelpScreen';
 import TermsScreen from '@/features/Common/screens/TermsScreen';
 import ReportScreen from '@/features/Common/screens/ReportScreen';
 
+import UserProfileScreen from '@/features/Profile/screens/UserProfileScreen';
+import StatusViewerScreen from '@/features/Feed/screens/StatusViewerScreen';
 import { MainTabNavigator } from './MainNavigator';
+
 import { useApp } from '@/context/AppContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -101,7 +104,14 @@ export const RootNavigator = () => {
                     <Stack.Screen name="MessageSettings" component={MessageSettings} />
                     <Stack.Screen name="SearchMessages" component={SearchMessages} />
                     <Stack.Screen name="Messages" component={MessagesScreen} />
+                    <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+                    <Stack.Screen
+                        name="StatusViewer"
+                        component={StatusViewerScreen}
+                        options={{ headerShown: false, presentation: "fullScreenModal", animation: "fade" }}
+                    />
                 </>
+
             )}
         </Stack.Navigator>
     );

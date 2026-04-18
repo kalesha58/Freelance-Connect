@@ -124,7 +124,7 @@ export function JobCard({ job }: IJobCardProps) {
                         <View style={styles.ratingRow}>
                             <Ionicons name="star" size={10} color="#FFB01F" />
                             <Text style={[styles.ratingText, { color: colors.mutedForeground }]}>{job.clientRating}</Text>
-                            <Text style={[styles.clientSpentText, { color: colors.mutedForeground }]}>• $10k+ spent</Text>
+                            <Text style={[styles.clientSpentText, { color: colors.mutedForeground }]}>• ₹10k+ spent</Text>
                         </View>
                     </View>
                 </View>

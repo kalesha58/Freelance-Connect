@@ -1,7 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { apiClient } from "@/utils/apiClient";
+import { apiClient, uploadImage } from "@/utils/apiClient";
 import database from '@react-native-firebase/database';
+import { IStatus, IStatusViewer } from "@/navigation/types";
+
+
+
 
 export type UserRole = "freelancer" | "requester" | "hiring" | null;
 
@@ -148,15 +152,34 @@ interface AppContextType {
     addReply: (postId: string, commentId: string, text: string) => Promise<Reply>;
     deletePost: (postId: string) => Promise<void>;
     fetchAllUsers: () => Promise<any[]>;
+    statuses: IStatus[];
+    addStatus: (imageUri: string) => Promise<void>;
+    loadStatuses: () => Promise<void>;
+    /**
+     * Mark a status as viewed.
+     * If `viewer` is supplied (and is NOT the status owner), the viewer is recorded
+     * in the status's `viewers` list so the owner can see who watched.
+     */
+    markStatusViewed: (
+        statusId: string,
+        viewer?: { userId: string; userName: string; userAvatar?: string }
+    ) => void;
+
 }
 
+
 const AppContext = createContext<AppContextType | null>(null);
+
+// Module-level constants — kept only for the auth storage key (status storage moved to DB).
+const AUTH_TOKEN_KEY = "skill_link_token";
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [posts, setPosts] = useState<Post[]>([]);
+    const [statuses, setStatuses] = useState<IStatus[]>([]);
+
     // presenceRef holds the RTDB connected listener so we can detach on sign-out
     const presenceRef = useRef<any>(null);
 
@@ -164,9 +187,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadUser();
     }, []);
 
+    // Load statuses independently so the story bar appears quickly
+    // even if /profile/me is slow. No cleanup interval needed —
+    // MongoDB's TTL index handles expiry server-side.
+    useEffect(() => {
+        loadStatuses();
+    }, []);
+
+
     const refreshCurrentUser = useCallback(async () => {
         try {
-            const token = await AsyncStorage.getItem("skill_link_token");
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
             if (!token) return;
             const userData = await apiClient("/profile/me");
             setUser(userData as User);
@@ -177,7 +209,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const loadUser = async () => {
         try {
-            const token = await AsyncStorage.getItem("skill_link_token");
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
             if (token) {
                 const userData = await apiClient("/profile/me");
                 setUser(userData as User);
@@ -239,7 +272,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             fetchPosts(id);
         }
         fetchJobs();
+        loadStatuses();
     };
+
 
     const signIn = async (emailOrPhone: string, password: string) => {
         try {
@@ -248,8 +283,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 body: { emailOrPhone, password },
             });
 
-            await AsyncStorage.setItem("skill_link_token", data.token);
+            await AsyncStorage.setItem(AUTH_TOKEN_KEY, data.token);
             await hydrateUserAfterAuth(data);
+
         } catch (error) {
             throw error;
         }
@@ -262,8 +298,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 body: { name, email, password, role, referredByCode },
             });
 
-            await AsyncStorage.setItem("skill_link_token", data.token);
+            await AsyncStorage.setItem(AUTH_TOKEN_KEY, data.token);
             await hydrateUserAfterAuth(data);
+
         } catch (error) {
             throw error;
         }
@@ -287,9 +324,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             database().ref('.info/connected').off('value', presenceRef.current);
             presenceRef.current = null;
         }
-        await AsyncStorage.removeItem("skill_link_token");
+        await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
         setUser(null);
+        setStatuses([]); // Clear statuses on logout
     };
+
 
     const toggleLike = async (postId: string) => {
         // Optimistic update first
@@ -449,6 +488,122 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Status management — all backed by /api/statuses
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Fetch all active (non-expired) statuses from the backend.
+     * Maps the API shape { _id, imageUrl, viewers, viewedByMe } to the
+     * IStatus interface used throughout the app.
+     */
+    const loadStatuses = async () => {
+        try {
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+            if (!token) return; // not logged in yet
+            const data: any[] = await apiClient('/statuses');
+            const mapped: IStatus[] = data.map(s => ({
+                id:          s._id,
+                userId:      String(s.userId),
+                userName:    s.userName,
+                userAvatar:  s.userAvatar,
+                imageUri:    s.imageUrl,
+                createdAt:   new Date(s.createdAt).getTime(),
+                viewed:      s.viewedByMe ?? false,
+                viewers:     (s.viewers ?? []).map((v: any) => ({
+                    userId:     String(v.userId),
+                    userName:   v.userName,
+                    userAvatar: v.userAvatar,
+                    viewedAt:   new Date(v.viewedAt).getTime(),
+                })),
+            }));
+
+            setStatuses(mapped);
+        } catch (e) {
+            console.warn('[loadStatuses] error:', e);
+            setStatuses([]);
+        }
+    };
+
+    /**
+     * Upload the image to Cloudinary via /api/upload, then create a status
+     * document on the backend via POST /api/statuses.
+     * Multiple statuses per day are allowed — the server does not restrict this.
+     */
+    const addStatus = async (imageUri: string) => {
+        if (!user) throw new Error('You must be logged in to add a status.');
+        try {
+            // Step 1: Upload the image (same two-step pattern used for posts/avatars)
+            const uploadResult = await uploadImage(imageUri);
+            const imageUrl: string = uploadResult.url || uploadResult.imageUrl || uploadResult.secure_url;
+            if (!imageUrl) throw new Error('Image upload returned no URL.');
+
+            // Step 2: Create the status on the backend
+            const saved: any = await apiClient('/statuses', {
+                method: 'POST',
+                body: { imageUrl },
+            });
+
+            // Step 3: Prepend to local state immediately so the UI updates
+            const newStatus: IStatus = {
+                id:         saved._id,
+                userId:     String(saved.userId),
+                userName:   saved.userName,
+                userAvatar: saved.userAvatar,
+                imageUri:   saved.imageUrl,
+                createdAt:  new Date(saved.createdAt).getTime(),
+                viewed:     false,
+                viewers:    [],
+            };
+
+            setStatuses(prev => [newStatus, ...prev]);
+        } catch (e: any) {
+            console.warn('[addStatus] error:', e);
+            throw new Error(e.message || 'Failed to add status. Please try again.');
+        }
+    };
+
+    /**
+     * Record the current user as a viewer of a status (fire-and-forget from UI).
+     * Locally marks the status as viewed so the ring updates immediately.
+     * If a viewer object is supplied, updates the local viewers list optimistically.
+     */
+    const markStatusViewed = (
+        statusId: string,
+        viewer?: { userId: string; userName: string; userAvatar?: string }
+    ) => {
+        // Optimistic local update so the ring colour changes instantly
+        setStatuses(prev =>
+            prev.map(s => {
+                if (s.id !== statusId) return s;
+
+
+                let updatedViewers = s.viewers ?? [];
+                if (viewer && viewer.userId !== s.userId) {
+                    const alreadyRecorded = updatedViewers.some(v => v.userId === viewer.userId);
+                    if (!alreadyRecorded) {
+                        const newViewer: IStatusViewer = {
+                            ...viewer,
+                            viewedAt: Date.now(),
+                        };
+                        updatedViewers = [newViewer, ...updatedViewers];
+                    }
+                }
+                return { ...s, viewed: true, viewers: updatedViewers };
+            })
+        );
+
+        // Persist to backend asynchronously — don't block the UI
+        apiClient(`/statuses/${statusId}/view`, { method: 'POST' }).catch(
+            e => console.warn('[markStatusViewed] API error:', e)
+        );
+    };
+
+
+
+
+
+
     return (
         <AppContext.Provider
             value={{
@@ -479,7 +634,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 addReply,
                 deletePost,
                 fetchAllUsers,
+                statuses,
+                addStatus,
+                loadStatuses,
+                markStatusViewed,
             }}
+
         >
             {children}
         </AppContext.Provider>

@@ -20,8 +20,8 @@ import { useColors } from "@/hooks/useColors";
 type HireConfirmRouteProp = RouteProp<{ HireConfirm: { freelancerId: string } }, 'HireConfirm'>;
 
 const MOCK_FREELANCERS: Record<string, { name: string; title: string; rate: string; rating: number }> = {
-    f1: { name: "Sarah Chen", title: "Senior UI/UX Designer", rate: "$95/hr", rating: 4.9 },
-    f2: { name: "Marcus Johnson", title: "Full Stack Developer", rate: "$110/hr", rating: 4.8 },
+    f1: { name: "Sarah Chen", title: "Senior UI/UX Designer", rate: "₹95/hr", rating: 4.9 },
+    f2: { name: "Marcus Johnson", title: "Full Stack Developer", rate: "₹110/hr", rating: 4.8 },
 };
 
 /**
@@ -117,7 +117,7 @@ export default function HireConfirmScreen() {
                         { step: "1", text: "A contract will be sent to the freelancer for review", icon: "file-text" as const },
                         { step: "2", text: "You'll be connected via chat to discuss details", icon: "message-circle" as const },
                         { step: "3", text: "Work begins once the contract is accepted", icon: "play-circle" as const },
-                        { step: "4", text: "Payment is released upon milestone completion", icon: "dollar-sign" as const },
+                        { step: "4", text: "Payment is released upon milestone completion", icon: "wallet" as const },
                     ].map(item => (
                         <View key={item.step} style={styles.processStepRow}>
                             <View style={[styles.stepDigitCircle, { backgroundColor: colors.headerBackground }]}>

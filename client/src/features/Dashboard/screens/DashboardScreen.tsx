@@ -75,7 +75,7 @@ export default function DashboardScreen() {
             <View style={[styles.earningsBannerSurface, { backgroundColor: isHiring ? colors.headerBackground : colors.navyDeep }]}>
                 <View>
                     <Text style={styles.metricsLabelText}>{isHiring ? "Total Spend" : "Total Earnings"}</Text>
-                    <Text style={styles.metricsValueTitle}>${earnings.toLocaleString()}</Text>
+                    <Text style={styles.metricsValueTitle}>₹{earnings.toLocaleString()}</Text>
                     <View style={styles.growthIndicatorRow}>
                         <Feather name={isHiring ? "trending-down" : "trending-up"} size={14} color="#fff" />
                         <Text style={[styles.growthLabel, { color: "#fff" }]}>

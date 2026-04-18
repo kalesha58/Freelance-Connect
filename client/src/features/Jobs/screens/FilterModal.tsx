@@ -144,12 +144,12 @@ export default function FilterModal() {
                 <View style={styles.budgetVisualizer}>
                     <View style={styles.budgetPreviewRow}>
                         <View style={[styles.budgetBox, { backgroundColor: colors.blueLight }]}>
-                            <Text style={[styles.budgetCurrency, { color: colors.primary }]}>$</Text>
+                            <Text style={[styles.budgetCurrency, { color: colors.primary }]}>₹</Text>
                             <Text style={[styles.budgetValue, { color: colors.primary }]}>{BUDGET_STEPS[budgetMin]}</Text>
                         </View>
                         <Ionicons name="arrow-forward" size={16} color={colors.mutedForeground} />
                         <View style={[styles.budgetBox, { backgroundColor: colors.blueLight }]}>
-                            <Text style={[styles.budgetCurrency, { color: colors.primary }]}>$</Text>
+                            <Text style={[styles.budgetCurrency, { color: colors.primary }]}>₹</Text>
                             <Text style={[styles.budgetValue, { color: colors.primary }]}>{BUDGET_STEPS[budgetMax]}{budgetMax === 6 ? "+" : ""}</Text>
                         </View>
                     </View>

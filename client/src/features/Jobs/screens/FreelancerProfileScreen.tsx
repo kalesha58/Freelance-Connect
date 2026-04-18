@@ -223,7 +223,7 @@ export default function FreelancerProfileScreen() {
                         { label: "Reviews", value: String(reviewsCount), color: colors.warning, icon: "star" as const },
                         {
                             label: "Rate/hr",
-                            value: `$${profile.hourlyRate ?? 0}`,
+                            value: `₹${profile.hourlyRate ?? 0}`,
                             color: colors.success,
                             icon: "dollar-sign" as const,
                         },
