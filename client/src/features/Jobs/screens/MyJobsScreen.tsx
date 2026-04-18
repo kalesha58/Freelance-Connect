@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 
 import { useColors } from "@/hooks/useColors";
+import { displayBudgetINR } from "@/utils/formatters";
 
 const ACTIVE_JOBS = [
     { id: "j1", title: "Senior React Native Developer", budget: "₹5,000 - ₹8,000", status: "active", applicants: 12, postedAt: "2d ago" },
@@ -86,7 +87,7 @@ export default function MyJobsScreen() {
                             <Text style={[styles.timestampSubLabel, { color: colors.mutedForeground }]}>{item.postedAt}</Text>
                         </View>
                         <Text style={[styles.briefJobTitleLabel, { color: colors.foreground }]} numberOfLines={2}>{item.title}</Text>
-                        <Text style={[styles.jobBudgetValLabel, { color: colors.primary }]}>{item.budget}</Text>
+                        <Text style={[styles.jobBudgetValLabel, { color: colors.primary }]}>{displayBudgetINR(item.budget)}</Text>
 
                         {item.status === "active" && (
                             <View style={styles.applicantTallyRow}>

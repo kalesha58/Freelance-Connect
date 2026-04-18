@@ -44,6 +44,7 @@ export interface IStatusViewer {
     userName: string;
     userAvatar?: string;
     viewedAt: number; // Unix timestamp in ms
+    liked?: boolean;
 }
 
 export interface IStatus {
@@ -54,6 +55,9 @@ export interface IStatus {
     imageUri: string;
     createdAt: number; // Unix timestamp in ms
     viewed: boolean;
+    likedByMe?: boolean;
+    likes?: string[];
     /** List of users who have viewed this status, newest first */
     viewers?: IStatusViewer[];
 }
+

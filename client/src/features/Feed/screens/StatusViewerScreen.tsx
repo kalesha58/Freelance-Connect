@@ -43,7 +43,8 @@ export default function StatusViewerScreen() {
     const route = useRoute<StatusViewerRouteProp>();
     const colors = useColors();
     const { statuses: routeStatuses, initialIndex } = route.params ?? {};
-    const { user, markStatusViewed, statuses: liveStatuses } = useApp();
+    const { user, markStatusViewed, statuses: liveStatuses, toggleStatusLike } = useApp();
+
 
     // ── Guard ────────────────────────────────────────────────────────────────
 
@@ -166,7 +167,8 @@ export default function StatusViewerScreen() {
         PanResponder.create({
             onStartShouldSetPanResponder: () => false,
             onMoveShouldSetPanResponder: (_, { dy, dx }) =>
-                !showViewers && dy < -20 && Math.abs(dy) > Math.abs(dx) * 1.5,
+                isMyStatus && !showViewers && dy < -20 && Math.abs(dy) > Math.abs(dx) * 1.5,
+
             onPanResponderRelease: (_, { dy, vy }) => {
                 if (dy < -60 || vy < -0.5) openViewers();
             },
@@ -174,6 +176,7 @@ export default function StatusViewerScreen() {
     ).current;
 
     const openViewers = () => {
+        if (!isMyStatus) return;
         progressAnimRef.current?.stop(); // pause story while sheet is open
         setShowViewers(true);
         Animated.spring(viewersSheetAnim, {
@@ -183,6 +186,7 @@ export default function StatusViewerScreen() {
             useNativeDriver: true,
         }).start();
     };
+
 
     const closeViewers = () => {
         Animated.timing(viewersSheetAnim, {
@@ -273,14 +277,28 @@ export default function StatusViewerScreen() {
                         </View>
                     </View>
                 </View>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.closeBtn}
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                >
-                    <Feather name="x" size={24} color="#fff" />
-                </TouchableOpacity>
+                <View style={styles.topRightActions}>
+                    <TouchableOpacity
+                        onPress={() => toggleStatusLike(currentStatus.id)}
+                        style={styles.headerBtn}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                        <Ionicons
+                            name={currentStatus.likedByMe ? "heart" : "heart-outline"}
+                            size={26}
+                            color={currentStatus.likedByMe ? "#FF3B30" : "#fff"}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        style={styles.closeBtn}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                        <Feather name="x" size={26} color="#fff" />
+                    </TouchableOpacity>
+                </View>
             </View>
+
 
             {/* ── Tap zones for prev/next ───────────────────────────────────── */}
             <View style={styles.tapZoneContainer}>
@@ -420,8 +438,13 @@ export default function StatusViewerScreen() {
                                         </Text>
                                     </View>
 
-                                    {/* Eye icon */}
-                                    <Ionicons name="eye" size={16} color={colors.primary} />
+                                    {/* Eye icon or Heart icon */}
+                                    {v.liked ? (
+                                        <Ionicons name="heart" size={18} color="#FF3B30" />
+                                    ) : (
+                                        <Ionicons name="eye" size={16} color={colors.primary} />
+                                    )}
+
                                 </View>
                             ))}
                         </ScrollView>
@@ -501,6 +524,14 @@ const styles = StyleSheet.create({
     storyTime: { color: "rgba(255,255,255,0.8)", fontSize: 11, fontWeight: "400" },
     storyCount: { color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: "500" },
     closeBtn: { padding: 6 },
+    topRightActions: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 2,
+    },
+    headerBtn: {
+        padding: 6,
+    },
 
     // ── Tap zones ───────────────────────────────────────────────────────────
     tapZoneContainer: {

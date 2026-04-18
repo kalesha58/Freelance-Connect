@@ -24,7 +24,9 @@ const statusSchema = new mongoose.Schema({
         default: () => new Date(Date.now() + 24 * 60 * 60 * 1000),
     },
     viewers: [statusViewerSchema],
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, {
+
     timestamps: true,   // adds createdAt + updatedAt
 });
 

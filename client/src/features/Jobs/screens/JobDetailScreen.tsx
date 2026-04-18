@@ -17,6 +17,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { formatRelativeTime, formatSafeLocaleDate } from "@/utils/formatRelativeTime";
+import { displayBudgetINR } from "@/utils/formatters";
 
 /**
  * Type for Job Detail route parameters.
@@ -161,7 +162,7 @@ export default function JobDetailScreen() {
 
                     <View style={[styles.metricsGridSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         {[
-                            { icon: "wallet" as const, label: "Budget", value: job.budget, color: colors.primary },
+                            { icon: "wallet" as const, label: "Budget", value: displayBudgetINR(job.budget), color: colors.primary },
                             { icon: "map-pin" as const, label: "Location", value: job.location, color: colors.success },
                             {
                                 icon: "calendar" as const,
