@@ -16,7 +16,8 @@ import {
     AlertCircle,
     Plus,
     Pencil,
-    ExternalLink
+    ExternalLink,
+    BadgeCheck
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import Pagination from '../components/Pagination';
@@ -124,6 +125,15 @@ const UserManagement = () => {
             alert(err.response?.data?.message || 'Failed to save profile.');
         } finally {
             setSavingFreelancer(false);
+        }
+    };
+
+    const handleToggleVerify = async (id) => {
+        try {
+            await api.put(`/api/admin/users/${id}/verify`);
+            await fetchUsers(true);
+        } catch (err) {
+            alert('Failed to update verification status.');
         }
     };
 
@@ -349,7 +359,14 @@ const UserManagement = () => {
                                                 ) : <User size={18} />}
                                             </div>
                                             <div>
-                                                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{user.name}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                    <div style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '0.9rem' }}>{user.name}</div>
+                                                    {user.isVerified && (
+                                                        <div title="Verified User" style={{ color: 'var(--primary)', display: 'flex' }}>
+                                                            <BadgeCheck size={16} fill="currentColor" stroke="var(--bg-card)" />
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                     <Mail size={12} /> {user.email}
                                                 </div>

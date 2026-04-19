@@ -19,7 +19,8 @@ import {
     BookOpen,
     Loader2,
     MessageSquare,
-    Link as LinkIcon
+    Link as LinkIcon,
+    BadgeCheck
 } from 'lucide-react';
 import Modal from '../components/Modal';
 
@@ -31,6 +32,7 @@ const UserDetails = () => {
     const [error, setError] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [verifying, setVerifying] = useState(false);
 
     const [formContent, setFormContent] = useState({});
 
@@ -52,6 +54,18 @@ const UserDetails = () => {
     useEffect(() => {
         fetchUser();
     }, [fetchUser]);
+
+    const handleToggleVerify = async () => {
+        setVerifying(true);
+        try {
+            await api.put(`/api/admin/users/${id}/verify`);
+            await fetchUser();
+        } catch (err) {
+            alert('Failed to update verification status.');
+        } finally {
+            setVerifying(false);
+        }
+    };
 
     const handleDelete = async () => {
         if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
@@ -102,6 +116,15 @@ const UserDetails = () => {
                     <ArrowLeft size={16} /> Back to Users
                 </button>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button 
+                        onClick={handleToggleVerify}
+                        disabled={verifying}
+                        className={`btn ${user.isVerified ? 'btn-secondary' : 'btn-primary'}`}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <BadgeCheck size={18} />
+                        {user.isVerified ? 'Unverify User' : 'Verify User'}
+                    </button>
                     <button onClick={() => setIsEditModalOpen(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Edit2 size={16} /> Edit Profile
                     </button>
@@ -120,7 +143,14 @@ const UserDetails = () => {
                                 <img src={user.profilePic || user.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                             ) : <User size={60} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate( -50%, -50% )', color: 'var(--text-light)' }} />}
                         </div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '0.25rem' }}>{user.name}</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>{user.name}</h2>
+                            {user.isVerified && (
+                                <div title="Verified User" style={{ color: 'var(--primary)', display: 'flex' }}>
+                                    <BadgeCheck size={20} fill="currentColor" stroke="var(--bg-card)" />
+                                </div>
+                            )}
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>
                             <Shield size={14} color={user.role === 'admin' ? 'var(--primary)' : 'var(--secondary)'} />
                             <span style={{ textTransform: 'capitalize', fontWeight: '600' }}>{user.role}</span>

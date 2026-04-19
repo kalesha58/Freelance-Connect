@@ -483,6 +483,24 @@ const resolveReport = async (req, res) => {
     }
 };
 
+const getFullActivity = async (req, res) => {
+    try {
+        const recentUsers = await User.find({ role: { $ne: 'admin' } }).sort({ createdAt: -1 }).limit(20).lean();
+        const recentJobs = await Job.find({}).sort({ createdAt: -1 }).limit(20).lean();
+        const recentPosts = await Post.find({}).sort({ createdAt: -1 }).limit(20).lean();
+
+        const activityFeed = [
+            ...recentUsers.map(u => ({ action: 'User Registered', user: u.name, status: 'Success', time: u.createdAt, description: u.email, id: u._id, type: 'User' })),
+            ...recentJobs.map(j => ({ action: 'New Job Posted', user: j.clientName || 'Client', status: 'Success', time: j.createdAt, description: j.title, id: j._id, type: 'Job' })),
+            ...recentPosts.map(p => ({ action: 'New Post', user: p.userName || 'User', status: 'Info', time: p.createdAt, description: p.caption?.substring(0, 50), id: p._id, type: 'Post' }))
+        ].sort((a, b) => new Date(b.time) - new Date(a.time));
+
+        res.json(activityFeed);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     adminLogin,
     getStats,
@@ -501,5 +519,6 @@ module.exports = {
     deletePost,
     toggleUserVerification,
     getReports,
-    resolveReport
+    resolveReport,
+    getFullActivity
 };
