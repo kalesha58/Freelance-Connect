@@ -8,7 +8,7 @@ import {
     Loader2, 
     Mail, 
     Server,
-    DollarSign,
+    IndianRupee,
     Lock
 } from 'lucide-react';
 
@@ -55,7 +55,7 @@ const Settings = () => {
         openRegistration: true,
         requireEmailVerification: true,
         commissionRate: 10,
-        currency: 'USD',
+        currency: 'INR',
         emailNotifications: true,
         securityAlerts: true
     });
@@ -202,7 +202,7 @@ const Settings = () => {
                     {activeTab === 'billing' && (
                         <div className="animate-fade-in">
                             <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <DollarSign size={20} color="var(--primary)" /> Fee Structure
+                                <IndianRupee size={20} color="var(--primary)" /> Fee Structure
                             </h3>
                             
                             <div style={{ display: 'flex', gap: '1.5rem' }}>
@@ -226,10 +226,10 @@ const Settings = () => {
                                         onChange={(e) => handleSettingChange('currency', e.target.value)}
                                         style={{ appearance: 'none', backgroundColor: 'white' }}
                                     >
-                                        <option value="USD">USD ($)</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="USD">USD</option>
                                         <option value="EUR">EUR (€)</option>
                                         <option value="GBP">GBP (£)</option>
-                                        <option value="INR">INR (₹)</option>
                                     </select>
                                 </div>
                             </div>

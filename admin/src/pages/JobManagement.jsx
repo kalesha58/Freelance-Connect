@@ -317,11 +317,11 @@ const JobManagement = () => {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Budget (e.g. $500)</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Budget (e.g. ₹500)</label>
                             <input 
                                 required
                                 className="form-input" 
-                                placeholder="$500"
+                                placeholder="₹500"
                                 value={formData.budget}
                                 onChange={(e) => setFormData({...formData, budget: e.target.value})}
                             />

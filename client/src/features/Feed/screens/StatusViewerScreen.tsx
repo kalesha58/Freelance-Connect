@@ -329,6 +329,23 @@ export default function StatusViewerScreen() {
                 </View>
             )}
 
+            {/* ── Caption & Tags Overlay ────────────────────────────────────── */}
+            <View style={[styles.captionOverlay, { bottom: isMyStatus ? insets.bottom + 65 : insets.bottom + 30 }]}>
+                {currentStatus.caption ? (
+                    <Text style={styles.captionText}>{currentStatus.caption}</Text>
+                ) : null}
+                
+                {currentStatus.tags && currentStatus.tags.length > 0 && (
+                    <View style={styles.tagsRow}>
+                        {currentStatus.tags.map((tag, idx) => (
+                            <View key={idx} style={styles.tagBadge}>
+                                <Text style={styles.tagBadgeText}>#{tag}</Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </View>
+
             {/* ── View count bar (owner only) ───────────────────────────────── */}
             {isMyStatus && (
                 <TouchableOpacity
@@ -555,6 +572,40 @@ const styles = StyleSheet.create({
         width: 60, height: 60, borderRadius: 30,
         backgroundColor: "rgba(0,0,0,0.55)",
         alignItems: "center", justifyContent: "center",
+    },
+    captionOverlay: {
+        position: "absolute",
+        left: 20,
+        right: 20,
+        zIndex: 25,
+    },
+    captionText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "500",
+        lineHeight: 22,
+        textShadowColor: "rgba(0,0,0,0.8)",
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
+        marginBottom: 10,
+    },
+    tagsRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+    },
+    tagBadge: {
+        backgroundColor: "rgba(255,255,255,0.2)",
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.3)",
+    },
+    tagBadgeText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "600",
     },
 
     // ── View count bar ──────────────────────────────────────────────────────

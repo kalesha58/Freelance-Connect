@@ -120,9 +120,10 @@ export default function SettingsScreen() {
                 <SettingSection title="ACCOUNT" colors={colors}>
                     <SettingRow icon="user" label="Edit Profile" onPress={() => navigation.navigate("ProfileSetup")} colors={colors} />
                     <SettingRow icon="user-plus" label="Refer a Friend" sublabel="Share your code" onPress={() => navigation.navigate("Referral")} colors={colors} />
-                    <SettingRow icon="credit-card" label="Payments" sublabel="Manage cards & billing" onPress={() => { }} colors={colors} />
-                    <SettingRow icon="star" label="Reviews" onPress={() => navigation.navigate("Ratings")} colors={colors} />
+                    <SettingRow icon="credit-card" label="Payment Methods" sublabel="Manage cards & billing" onPress={() => { }} colors={colors} />
+                    <SettingRow icon="star" label="My Reviews" onPress={() => navigation.navigate("Ratings")} colors={colors} />
                     <SettingRow icon="shield" label="Security" sublabel="Password & Verification" onPress={() => { }} isLast colors={colors} />
+
                 </SettingSection>
 
                 <SettingSection title="NOTIFICATIONS" colors={colors}>
@@ -132,7 +133,8 @@ export default function SettingsScreen() {
                 </SettingSection>
 
                 <SettingSection title="LEGAL & SUPPORT" colors={colors}>
-                    <SettingRow icon="help-circle" label="Help Center" onPress={() => navigation.navigate("Help")} colors={colors} />
+                    <SettingRow icon="life-buoy" label="Help & Support" onPress={() => navigation.navigate("Help")} colors={colors} />
+
                     <SettingRow icon="flag" label="Report an Issue" onPress={() => navigation.navigate("Report")} colors={colors} />
                     <SettingRow icon="file-text" label="Terms of Service" onPress={() => navigation.navigate("Terms")} colors={colors} />
                     <SettingRow

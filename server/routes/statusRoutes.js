@@ -67,7 +67,7 @@ router.get('/mine', protect, async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/', protect, async (req, res) => {
     try {
-        const { imageUrl } = req.body;
+        const { imageUrl, caption, tags } = req.body;
         if (!imageUrl || typeof imageUrl !== 'string') {
             return res.status(400).json({ message: 'imageUrl is required' });
         }
@@ -77,6 +77,8 @@ router.post('/', protect, async (req, res) => {
             userName:   req.user.name,
             userAvatar: req.user.profilePic || req.user.avatar,
             imageUrl,
+            caption,
+            tags,
             // expiresAt defaults to now + 24h (see model)
         });
 

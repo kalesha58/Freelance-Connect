@@ -166,11 +166,12 @@ export default function CreatePostScreen() {
                         style={[
                             styles.submitBtn, 
                             { 
-                                backgroundColor: canSubmit ? "#10b981" : colors.card,
-                                shadowColor: "#10b981",
+                                backgroundColor: canSubmit ? colors.headerBackground : colors.card,
+                                shadowColor: canSubmit ? colors.headerBackground : "transparent",
                                 shadowOpacity: canSubmit ? 0.3 : 0,
                             }
                         ]}
+
                         onPress={handlePost}
                         disabled={!canSubmit}
                     >

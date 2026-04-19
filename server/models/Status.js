@@ -25,6 +25,8 @@ const statusSchema = new mongoose.Schema({
     },
     viewers: [statusViewerSchema],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    caption: { type: String },
+    tags: [{ type: String }],
 }, {
 
     timestamps: true,   // adds createdAt + updatedAt

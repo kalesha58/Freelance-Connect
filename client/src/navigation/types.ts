@@ -37,6 +37,7 @@ export type RootStackParamList = {
     Messages: undefined;
     UserProfile: { userId: string };
     StatusViewer: { statuses: IStatus[]; initialIndex: number };
+    CreateStatus: { imageUri: string };
 };
 
 export interface IStatusViewer {
@@ -53,6 +54,8 @@ export interface IStatus {
     userName: string;
     userAvatar?: string;
     imageUri: string;
+    caption?: string;
+    tags?: string[];
     createdAt: number; // Unix timestamp in ms
     viewed: boolean;
     likedByMe?: boolean;

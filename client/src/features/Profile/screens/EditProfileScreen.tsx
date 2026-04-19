@@ -39,6 +39,9 @@ export default function EditProfileScreen() {
     const [education, setEducation] = useState(user?.education || []);
     const [experience, setExperience] = useState(user?.experience || []);
     const [portfolioUrl, setPortfolioUrl] = useState(user?.portfolioUrl || "");
+    const [services, setServices] = useState<string[]>(user?.services || []);
+    const [newService, setNewService] = useState("");
+
 
     // Item Edit Modal State
     const [isEduModalVisible, setIsEduModalVisible] = useState(false);
@@ -61,7 +64,9 @@ export default function EditProfileScreen() {
                 location,
                 education,
                 experience,
+                services,
                 ...(user?.role === "freelancer" ? { portfolioUrl: portfolioUrl.trim() } : {}),
+
             });
             Alert.alert("Success", "Profile updated successfully!");
             navigation.goBack();
@@ -218,6 +223,47 @@ export default function EditProfileScreen() {
                         </View>
                     </>
                 )}
+
+                <SectionHeader title="Your Services" icon="settings" colors={colors} />
+                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Text style={[styles.inputLabel, { color: colors.mutedForeground }]}>Add a service (e.g. Graphic Design)</Text>
+                    <View style={styles.addServiceRow}>
+                        <TextInput
+                            style={[styles.input, { flex: 1, color: colors.foreground, backgroundColor: colors.muted + "10", borderColor: colors.border }]}
+                            value={newService}
+                            onChangeText={setNewService}
+                            placeholder="Type a service..."
+                            placeholderTextColor={colors.mutedForeground}
+                        />
+                        <TouchableOpacity 
+                            style={[styles.addBtnSmall, { backgroundColor: colors.primary }]}
+                            onPress={() => {
+                                if (newService.trim()) {
+                                    if (!services.includes(newService.trim())) {
+                                        setServices([...services, newService.trim()]);
+                                    }
+                                    setNewService("");
+                                }
+                            }}
+                        >
+                            <Feather name="plus" size={20} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                    
+                    {services.length > 0 && (
+                        <View style={styles.servicesChipContainer}>
+                            {services.map((s, idx) => (
+                                <View key={idx} style={[styles.serviceChip, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "30" }]}>
+                                    <Text style={[styles.serviceChipText, { color: colors.primary }]}>{s}</Text>
+                                    <TouchableOpacity onPress={() => setServices(services.filter((_, i) => i !== idx))}>
+                                        <Feather name="x" size={14} color={colors.primary} />
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                </View>
+
 
                 {user?.role === "freelancer" && (
                     <>
@@ -534,4 +580,10 @@ const styles = StyleSheet.create({
     networkRowLabel: { fontSize: 15, fontWeight: "600" },
     networkRowMeta: { fontSize: 14, fontWeight: "600", marginRight: 4 },
     networkHint: { fontSize: 12, lineHeight: 17, marginTop: 8, marginBottom: 8, paddingHorizontal: 4 },
+    addServiceRow: { flexDirection: "row", gap: 10, alignItems: "center" },
+    addBtnSmall: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+    servicesChipContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 16 },
+    serviceChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
+    serviceChipText: { fontSize: 13, fontWeight: "600" },
 });
+

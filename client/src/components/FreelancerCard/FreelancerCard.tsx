@@ -109,12 +109,13 @@ export function FreelancerCard({ freelancer, onPress, onHire }: IFreelancerCardP
 
             {/* Skill Chips */}
             <View style={styles.skillsWrapper}>
-                {freelancer.skills.slice(0, 3).map((skill) => (
-                    <View key={skill} style={[styles.skillChip, { backgroundColor: colors.muted + "40" }]}>
+                {freelancer.skills.slice(0, 3).map((skill, idx) => (
+                    <View key={`${skill}-${idx}`} style={[styles.skillChip, { backgroundColor: colors.muted + "40" }]}>
                         <Text style={[styles.skillText, { color: colors.mutedForeground }]}>{skill}</Text>
                     </View>
                 ))}
             </View>
+
 
             {/* Action Row */}
             <View style={[styles.footer, { borderTopColor: colors.border }]}>
