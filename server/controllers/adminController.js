@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Job = require('../models/Job');
 const Post = require('../models/Post');
 const Application = require('../models/Application');
+const Report = require('../models/Report');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -37,6 +38,7 @@ const adminLogin = async (req, res) => {
 };
 
 // Dashboard statistics
+// Dashboard statistics
 const getStats = async (req, res) => {
     try {
         const userCount = await User.countDocuments();
@@ -44,13 +46,70 @@ const getStats = async (req, res) => {
         const postCount = await Post.countDocuments();
         const applicationCount = await Application.countDocuments();
 
-        // Stats over time (for charts) - Basic version (counts by month or last 30 days)
-        // For now, returning total counts.
+        // 1. User Growth (Last 12 Months)
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+        twelveMonthsAgo.setDate(1);
+        twelveMonthsAgo.setHours(0, 0, 0, 0);
+
+        const growthData = await User.aggregate([
+            { $match: { createdAt: { $gte: twelveMonthsAgo } } },
+            {
+                $group: {
+                    _id: { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        // Map to expected format { label: 'Jan', value: 10 }
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const formattedGrowth = monthNames.map((name, i) => {
+            const data = growthData.find(d => d._id.month === (i + 1));
+            return { label: name, value: data ? data.count : 0 };
+        });
+
+        // 2. Weekly Jobs (Last 7 Days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const weeklyJobsData = await Job.aggregate([
+            { $match: { createdAt: { $gte: sevenDaysAgo } } },
+            {
+                $group: {
+                    _id: { $dayOfWeek: "$createdAt" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const formattedWeekly = days.map((name, i) => {
+            const data = weeklyJobsData.find(d => d._id === (i + 1));
+            return { label: name, value: data ? data.count : 0 };
+        });
+
+        // 3. Activity Feed (Recent Users, Jobs, Posts)
+        const recentUsers = await User.find({ role: { $ne: 'admin' } }).sort({ createdAt: -1 }).limit(3).lean();
+        const recentJobs = await Job.find({}).sort({ createdAt: -1 }).limit(3).lean();
+        const recentPosts = await Post.find({}).sort({ createdAt: -1 }).limit(3).lean();
+
+        const activityFeed = [
+            ...recentUsers.map(u => ({ action: 'User Registered', user: u.name, status: 'Success', time: u.createdAt, description: u.email })),
+            ...recentJobs.map(j => ({ action: 'New Job Posted', user: j.clientName || 'Client', status: 'Success', time: j.createdAt, description: j.title })),
+            ...recentPosts.map(p => ({ action: 'New Post', user: p.userName || 'User', status: 'Info', time: p.createdAt, description: p.caption.substring(0, 30) + '...' }))
+        ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 6);
+
         res.json({
             users: userCount,
             jobs: jobCount,
             posts: postCount,
             applications: applicationCount,
+            growthData: formattedGrowth,
+            weeklyJobs: formattedWeekly,
+            activityFeed
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -58,12 +117,11 @@ const getStats = async (req, res) => {
 };
 
 // User Management
-// User Management
 const getUsers = async (req, res) => {
     try {
         const users = await User.find({}).select('-password').lean();
         const jobs = await Job.find({}).lean();
-        const allUsersList = await User.find({}).select('_id name email role').lean();
+        const allUsersList = await User.find({}).select('_id name email role referredBy').lean();
         
         const enrichedUsers = users.map(user => {
             const enriched = { ...user };
@@ -78,17 +136,7 @@ const getUsers = async (req, res) => {
             // For freelancers: Referral Stats
             if (user.role === 'freelancer') {
                 const referredUsers = allUsersList.filter(u => u.referredBy && u.referredBy.toString() === user._id.toString());
-                
-                // Inject fake dummy referrals for UI testing if they don't have any real ones
-                if (referredUsers.length === 0) {
-                    enriched.referralsList = [
-                        { _id: 'dummy1', name: 'Alex Johnson', email: 'alex.j@example.com' },
-                        { _id: 'dummy2', name: 'Sarah Williams', email: 'sarah.w@example.com' },
-                        { _id: 'dummy3', name: 'Mike Chen', email: 'mike.c@example.com' }
-                    ];
-                } else {
-                    enriched.referralsList = referredUsers;
-                }
+                enriched.referralsList = referredUsers;
             }
             
             return enriched;
@@ -115,10 +163,7 @@ const getUserById = async (req, res) => {
         // Populate referrals if freelancer
         if (user.role === 'freelancer') {
             const referredUsers = await User.find({ referredBy: user._id }).select('_id name email').lean();
-            user.referralsList = referredUsers.length > 0 ? referredUsers : [
-                { _id: 'dummy1', name: 'Alex Johnson', email: 'alex.j@example.com' },
-                { _id: 'dummy2', name: 'Sarah Williams', email: 'sarah.w@example.com' }
-            ];
+            user.referralsList = referredUsers;
         }
 
         res.json(user);
@@ -384,6 +429,60 @@ const createJob = async (req, res) => {
     }
 };
 
+// Moderation & Trust
+const toggleUserVerification = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        user.isVerified = !user.isVerified;
+        await user.save();
+        
+        res.json({ message: `User verification ${user.isVerified ? 'enabled' : 'disabled'}`, isVerified: user.isVerified });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getReports = async (req, res) => {
+    try {
+        const reports = await Report.find({})
+            .populate('reporterId', 'name email')
+            .sort({ createdAt: -1 })
+            .lean();
+            
+        // For each report, we need to fetch the target details (User/Job/Post)
+        // Since targetId is generic, we can loop through and fetch manually or use dynamic ref
+        // For simplicity here, we'll map through
+        const enrichedReports = await Promise.all(reports.map(async (report) => {
+            let target = null;
+            if (report.targetType === 'User') target = await User.findById(report.targetId).select('name email avatar').lean();
+            else if (report.targetType === 'Job') target = await Job.findById(report.targetId).select('title budget clientName').lean();
+            else if (report.targetType === 'Post') target = await Post.findById(report.targetId).select('caption userName imageUrl').lean();
+            
+            return { ...report, target };
+        }));
+
+        res.json(enrichedReports);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const resolveReport = async (req, res) => {
+    try {
+        const { status, adminNotes } = req.body;
+        const report = await Report.findByIdAndUpdate(
+            req.params.id, 
+            { status, adminNotes }, 
+            { new: true }
+        );
+        res.json(report);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     adminLogin,
     getStats,
@@ -399,5 +498,8 @@ module.exports = {
     getPosts,
     getPostById,
     createPost,
-    deletePost
+    deletePost,
+    toggleUserVerification,
+    getReports,
+    resolveReport
 };
