@@ -13,6 +13,7 @@ import UserDetails from './pages/UserDetails';
 import JobDetails from './pages/JobDetails';
 import PostDetails from './pages/PostDetails';
 import Moderation from './pages/Moderation';
+import ActivityLogs from './pages/ActivityLogs';
 
 function DesktopOnlyWall() {
     return (
@@ -89,6 +90,8 @@ function AppRoutes({ auth, setAuth, handleLogout }) {
                     <Route path="/posts/:id" element={<Layout handleLogout={handleLogout}><PostDetails /></Layout>} />
                     <Route path="/users" element={<Layout handleLogout={handleLogout}><UserManagement /></Layout>} />
                     <Route path="/users/:id" element={<Layout handleLogout={handleLogout}><UserDetails /></Layout>} />
+                    <Route path="/moderation" element={<Layout handleLogout={handleLogout}><Moderation /></Layout>} />
+                    <Route path="/activity" element={<Layout handleLogout={handleLogout}><ActivityLogs /></Layout>} />
                     <Route path="/settings" element={<Layout handleLogout={handleLogout}><Settings /></Layout>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </>

@@ -86,10 +86,10 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                                 letterSpacing: '-0.02em', margin: 0, lineHeight: 1.2,
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
-                                Freelance<span style={{
+                                Skil<span style={{
                                     background: 'linear-gradient(90deg, #a78bfa, #06b6d4)',
                                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-                                }}>Connect</span>
+                                }}>Lynk</span>
                             </h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.1rem' }}>
                                 <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 5px rgba(16,185,129,0.7)' }} />

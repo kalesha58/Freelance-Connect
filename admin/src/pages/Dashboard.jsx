@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_STATS_POLL_MS } from '../hooks/useAdminLiveRefresh';
 import {
@@ -213,6 +214,7 @@ const statusConfig = {
 
 /* ─── Main Dashboard ─── */
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -412,7 +414,11 @@ const Dashboard = () => {
                             </div>
                             <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>Recent Activity</h3>
                         </div>
-                        <button className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem' }}>
+                        <button 
+                            onClick={() => navigate('/activity')}
+                            className="btn btn-secondary" 
+                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem' }}
+                        >
                             View All
                         </button>
                     </div>

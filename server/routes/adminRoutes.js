@@ -18,7 +18,8 @@ const {
     deletePost,
     toggleUserVerification,
     getReports,
-    resolveReport
+    resolveReport,
+    getFullActivity
 } = require('../controllers/adminController');
 const { adminProtect } = require('../middleware/adminAuth');
 
@@ -27,6 +28,7 @@ router.post('/login', adminLogin);
 
 // Protected routes (Admin only)
 router.get('/stats', adminProtect, getStats);
+router.get('/activity', adminProtect, getFullActivity);
 
 router.get('/users', adminProtect, getUsers);
 router.get('/users/:id', adminProtect, getUserById);
