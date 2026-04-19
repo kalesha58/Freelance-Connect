@@ -45,9 +45,11 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
             flexDirection: 'column',
             background: isDarkMode
                 ? 'linear-gradient(180deg, #080c18 0%, #0d1224 50%, #080c18 100%)'
-                : 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-            borderRight: '1px solid rgba(99,102,241,0.15)',
-            boxShadow: '4px 0 24px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.04)',
+                : 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+            borderRight: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+            boxShadow: isDarkMode 
+                ? '4px 0 24px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.04)'
+                : '4px 0 24px rgba(0,0,0,0.02), inset -1px 0 0 rgba(0,0,0,0.02)',
             overflow: 'hidden',
             transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}>
@@ -62,7 +64,7 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
             {/* ── Brand + collapse toggle ── */}
             <div style={{
                 padding: collapsed ? '1.25rem 0' : '1.5rem 1.5rem 1.25rem',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: collapsed ? 'center' : 'space-between',
@@ -82,7 +84,8 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                         </div>
                         <div style={{ minWidth: 0 }}>
                             <h1 style={{
-                                fontSize: '1rem', fontWeight: '800', color: 'white',
+                                fontSize: '1rem', fontWeight: '800', 
+                                color: isDarkMode ? 'white' : 'var(--text-main)',
                                 letterSpacing: '-0.02em', margin: 0, lineHeight: 1.2,
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
@@ -93,7 +96,11 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                             </h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.1rem' }}>
                                 <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 5px rgba(16,185,129,0.7)' }} />
-                                <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', fontWeight:'600', letterSpacing:'0.07em', textTransform:'uppercase' }}>Admin Console</span>
+                                <span style={{ 
+                                    fontSize: '0.62rem', 
+                                    color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'var(--text-muted)', 
+                                    fontWeight:'600', letterSpacing:'0.07em', textTransform:'uppercase' 
+                                }}>Admin Console</span>
                             </div>
                         </div>
                     </div>
@@ -142,7 +149,11 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
             {/* ── Nav section label ── */}
             {!collapsed && (
                 <div style={{ padding: '1.25rem 1.5rem 0.5rem', flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.62rem', fontWeight: '700', color: 'rgba(255,255,255,0.22)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    <span style={{ 
+                        fontSize: '0.62rem', fontWeight: '700', 
+                        color: isDarkMode ? 'rgba(255,255,255,0.22)' : 'var(--text-light)', 
+                        letterSpacing: '0.1em', textTransform: 'uppercase' 
+                    }}>
                         Navigation
                     </span>
                 </div>
@@ -173,7 +184,9 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                                 transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
                                 background: isActive
                                     ? `linear-gradient(135deg, ${item.color}22, ${item.color}10)`
-                                    : hoveredItem === item.name ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                    : hoveredItem === item.name 
+                                        ? isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' 
+                                        : 'transparent',
                                 borderLeft: collapsed
                                     ? 'none'
                                     : isActive ? `3px solid ${item.color}` : '3px solid transparent',
@@ -185,8 +198,10 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                                     <div style={{
                                         width: '32px', height: '32px', borderRadius: '9px', flexShrink: 0,
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        background: isActive ? `${item.color}25` : 'rgba(255,255,255,0.06)',
-                                        color: isActive ? item.color : 'rgba(255,255,255,0.45)',
+                                        background: isActive 
+                                            ? `${item.color}25` 
+                                            : isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                        color: isActive ? item.color : isDarkMode ? 'rgba(255,255,255,0.45)' : 'var(--text-light)',
                                         transition: 'all 0.2s ease',
                                     }}>
                                         <Icon size={16} strokeWidth={2.2} />
@@ -197,12 +212,18 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{
                                                     fontSize: '0.85rem', fontWeight: isActive ? '700' : '500',
-                                                    color: isActive ? 'white' : 'rgba(255,255,255,0.6)',
+                                                    color: isActive 
+                                                        ? isDarkMode ? 'white' : 'var(--primary)' 
+                                                        : isDarkMode ? 'rgba(255,255,255,0.6)' : 'var(--text-main)',
                                                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                                 }}>
                                                     {item.name}
                                                 </div>
-                                                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.05rem', whiteSpace: 'nowrap' }}>
+                                                <div style={{ 
+                                                    fontSize: '0.68rem', 
+                                                    color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'var(--text-muted)', 
+                                                    marginTop: '0.05rem', whiteSpace: 'nowrap' 
+                                                }}>
                                                     {item.description}
                                                 </div>
                                             </div>
@@ -221,7 +242,7 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
             {/* ── Footer ── */}
             <div style={{
                 padding: collapsed ? '0.875rem 0.5rem' : '0.875rem',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
+                borderTop: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
                 display: 'flex', flexDirection: 'column', gap: '0.3rem',
                 flexShrink: 0,
             }}>
@@ -255,8 +276,10 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                         gap: collapsed ? 0 : '0.875rem',
                         padding: collapsed ? '0.65rem' : '0.65rem 1rem',
                         borderRadius: '10px',
-                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
-                        color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', fontWeight: '500',
+                        background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', 
+                        border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                        color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'var(--text-muted)', 
+                        fontSize: '0.82rem', fontWeight: '500',
                         cursor: 'pointer', transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.12)'; e.currentTarget.style.color='#a78bfa'; }}
@@ -298,11 +321,12 @@ const Sidebar = ({ handleLogout, collapsed, onToggle }) => {
                         style={{
                             display: 'flex', alignItems: 'center', gap: '0.4rem',
                             padding: '0.4rem 1rem', fontSize: '0.68rem',
-                            color: 'rgba(255,255,255,0.2)', borderRadius: '8px',
+                            color: isDarkMode ? 'rgba(255,255,255,0.2)' : 'var(--text-light)', 
+                            borderRadius: '8px',
                             transition: 'color 0.2s',
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.color='rgba(255,255,255,0.45)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color='rgba(255,255,255,0.2)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.color = isDarkMode ? 'rgba(255,255,255,0.45)' : 'var(--text-muted)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = isDarkMode ? 'rgba(255,255,255,0.2)' : 'var(--text-light)'; }}
                     >
                         <ExternalLink size={10} /> View Public Site
                     </a>
