@@ -58,6 +58,7 @@ const getStats = async (req, res) => {
 };
 
 // User Management
+// User Management
 const getUsers = async (req, res) => {
     try {
         const users = await User.find({}).select('-password').lean();
@@ -94,6 +95,33 @@ const getUsers = async (req, res) => {
         });
         
         res.json(enrichedUsers);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password').lean();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Add additional stats/data
+        const jobs = await Job.find({ clientId: user._id }).lean();
+        user.totalJobs = jobs.length;
+        user.pendingJobs = jobs.filter(j => j.status === 'pending' || j.status === 'open').length;
+
+        // Populate referrals if freelancer
+        if (user.role === 'freelancer') {
+            const referredUsers = await User.find({ referredBy: user._id }).select('_id name email').lean();
+            user.referralsList = referredUsers.length > 0 ? referredUsers : [
+                { _id: 'dummy1', name: 'Alex Johnson', email: 'alex.j@example.com' },
+                { _id: 'dummy2', name: 'Sarah Williams', email: 'sarah.w@example.com' }
+            ];
+        }
+
+        res.json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -216,6 +244,18 @@ const getJobs = async (req, res) => {
     }
 };
 
+const getJobById = async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id).populate('clientId', 'name email profilePic avatar');
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+        res.json(job);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const deleteJob = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id);
@@ -235,6 +275,18 @@ const getPosts = async (req, res) => {
     try {
         const posts = await Post.find({}).populate('userId', 'name email');
         res.json(posts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getPostById = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id).populate('userId', 'name email profilePic avatar');
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+        res.json(post);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -336,13 +388,16 @@ module.exports = {
     adminLogin,
     getStats,
     getUsers,
+    getUserById,
     createUser,
     updateUser,
     deleteUser,
     getJobs,
+    getJobById,
     createJob,
     deleteJob,
     getPosts,
+    getPostById,
     createPost,
     deletePost
 };

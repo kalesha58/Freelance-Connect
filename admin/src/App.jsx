@@ -9,6 +9,9 @@ import JobManagement from './pages/JobManagement';
 import PostManagement from './pages/PostManagement';
 import Settings from './pages/Settings';
 import AccountDeletionInfo from './pages/AccountDeletionInfo';
+import UserDetails from './pages/UserDetails';
+import JobDetails from './pages/JobDetails';
+import PostDetails from './pages/PostDetails';
 
 function DesktopOnlyWall() {
     return (
@@ -79,9 +82,12 @@ function AppRoutes({ auth, setAuth, handleLogout }) {
             ) : (
                 <>
                     <Route path="/" element={<Layout handleLogout={handleLogout}><Dashboard /></Layout>} />
-                    <Route path="/users" element={<Layout handleLogout={handleLogout}><UserManagement /></Layout>} />
                     <Route path="/jobs" element={<Layout handleLogout={handleLogout}><JobManagement /></Layout>} />
+                    <Route path="/jobs/:id" element={<Layout handleLogout={handleLogout}><JobDetails /></Layout>} />
                     <Route path="/posts" element={<Layout handleLogout={handleLogout}><PostManagement /></Layout>} />
+                    <Route path="/posts/:id" element={<Layout handleLogout={handleLogout}><PostDetails /></Layout>} />
+                    <Route path="/users" element={<Layout handleLogout={handleLogout}><UserManagement /></Layout>} />
+                    <Route path="/users/:id" element={<Layout handleLogout={handleLogout}><UserDetails /></Layout>} />
                     <Route path="/settings" element={<Layout handleLogout={handleLogout}><Settings /></Layout>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </>

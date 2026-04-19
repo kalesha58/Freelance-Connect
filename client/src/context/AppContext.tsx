@@ -550,6 +550,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     viewedAt:   new Date(v.viewedAt).getTime(),
                     liked:      (s.likes || []).some((lid: any) => String(lid) === String(v.userId)),
                 })),
+                caption:     s.caption,
+                tags:        s.tags,
             }));
 
 
@@ -596,6 +598,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 likedByMe:  false,
                 likes:      [],
                 viewers:    [],
+                caption:    saved.caption || caption,
+                tags:       saved.tags || tags,
             };
 
 
