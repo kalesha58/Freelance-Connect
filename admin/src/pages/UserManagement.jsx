@@ -53,22 +53,22 @@ const UserManagement = () => {
         setEditFreelancerUser(user);
         const portfolio = (user.portfolioItems && user.portfolioItems.length > 0)
             ? user.portfolioItems.map((p) => ({ title: p.title || '', imageUrl: p.imageUrl || '', link: p.link || '' }))
-            : [{ title: '', imageUrl: '', link: '' }];
+            : [];
         const reviews = (user.freelancerReviews && user.freelancerReviews.length > 0)
             ? user.freelancerReviews.map((r) => ({
                 clientName: r.clientName || '',
                 rating: r.rating ?? 5,
                 comment: r.comment || ''
             }))
-            : [{ clientName: '', rating: 5, comment: '' }];
+            : [];
         
         const education = (user.education && user.education.length > 0)
             ? user.education.map((e) => ({ institution: e.institution || '', degree: e.degree || '', startYear: e.startYear || '', endYear: e.endYear || '' }))
-            : [{ institution: '', degree: '', startYear: '', endYear: '' }];
+            : [];
             
         const experience = (user.experience && user.experience.length > 0)
             ? user.experience.map((e) => ({ company: e.company || '', role: e.role || '', startYear: e.startYear || '', endYear: e.endYear || '', description: e.description || '' }))
-            : [{ company: '', role: '', startYear: '', endYear: '', description: '' }];
+            : [];
 
         setFreelancerProfileForm({
             tagline: user.tagline || '',

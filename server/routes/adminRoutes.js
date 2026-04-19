@@ -15,7 +15,10 @@ const {
     getPosts,
     getPostById,
     createPost,
-    deletePost
+    deletePost,
+    toggleUserVerification,
+    getReports,
+    resolveReport
 } = require('../controllers/adminController');
 const { adminProtect } = require('../middleware/adminAuth');
 
@@ -30,6 +33,7 @@ router.get('/users/:id', adminProtect, getUserById);
 router.post('/users', adminProtect, createUser);
 router.put('/users/:id', adminProtect, updateUser);
 router.delete('/users/:id', adminProtect, deleteUser);
+router.put('/users/:id/verify', adminProtect, toggleUserVerification);
 
 router.get('/jobs', adminProtect, getJobs);
 router.get('/jobs/:id', adminProtect, getJobById);
@@ -40,5 +44,8 @@ router.get('/posts', adminProtect, getPosts);
 router.get('/posts/:id', adminProtect, getPostById);
 router.post('/posts', adminProtect, createPost);
 router.delete('/posts/:id', adminProtect, deletePost);
+
+router.get('/reports', adminProtect, getReports);
+router.put('/reports/:id', adminProtect, resolveReport);
 
 module.exports = router;

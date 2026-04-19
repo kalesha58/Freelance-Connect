@@ -12,6 +12,7 @@ import AccountDeletionInfo from './pages/AccountDeletionInfo';
 import UserDetails from './pages/UserDetails';
 import JobDetails from './pages/JobDetails';
 import PostDetails from './pages/PostDetails';
+import Moderation from './pages/Moderation';
 
 function DesktopOnlyWall() {
     return (

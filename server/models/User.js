@@ -55,6 +55,7 @@ const userSchema = new mongoose.Schema({
     isProfileComplete: { type: Boolean, default: false },
     referralCode: { type: String, unique: true, sparse: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    isVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

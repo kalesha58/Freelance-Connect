@@ -260,26 +260,24 @@ const Dashboard = () => {
         { title: 'Job Applications', value: stats?.applications || 0, icon: FileText,    color: '#f43f5e', trend: '+24%', sub: 'total applications' },
     ];
 
-    const growthData = [
-        { label: 'Jan', value: 120 }, { label: 'Feb', value: 185 }, { label: 'Mar', value: 160 },
-        { label: 'Apr', value: 230 }, { label: 'May', value: 195 }, { label: 'Jun', value: 280 },
-        { label: 'Jul', value: 310 }, { label: 'Aug', value: 265 }, { label: 'Sep', value: 340 },
-        { label: 'Oct', value: 390 }, { label: 'Nov', value: 420 }, { label: 'Dec', value: 480 },
-    ];
+    const growthData = stats?.growthData && stats.growthData.length > 0 
+        ? stats.growthData 
+        : [
+            { label: 'Jan', value: 0 }, { label: 'Feb', value: 0 }, { label: 'Mar', value: 0 },
+            { label: 'Apr', value: 0 }, { label: 'May', value: 0 }, { label: 'Jun', value: 0 },
+            { label: 'Jul', value: 0 }, { label: 'Aug', value: 0 }, { label: 'Sep', value: 0 },
+            { label: 'Oct', value: 0 }, { label: 'Nov', value: 0 }, { label: 'Dec', value: 0 }
+        ];
 
-    const weeklyJobs = [
-        { label: 'Mon', value: 14 }, { label: 'Tue', value: 22 }, { label: 'Wed', value: 18 },
-        { label: 'Thu', value: 31 }, { label: 'Fri', value: 27 }, { label: 'Sat', value: 9 },
-        { label: 'Sun', value: 5 },
-    ];
+    const weeklyJobs = stats?.weeklyJobs && stats.weeklyJobs.length > 0
+        ? stats.weeklyJobs
+        : [
+            { label: 'Sun', value: 0 }, { label: 'Mon', value: 0 }, { label: 'Tue', value: 0 },
+            { label: 'Wed', value: 0 }, { label: 'Thu', value: 0 }, { label: 'Fri', value: 0 },
+            { label: 'Sat', value: 0 }
+        ];
 
-    const activityFeed = [
-        { action: 'New Job Posted', user: 'Techno Soft Ltd.', status: 'Success', time: '2 min ago', description: 'Senior React Developer' },
-        { action: 'User Registered', user: 'Kalesha Baig', status: 'Pending', time: '15 min ago', description: 'Email verification pending' },
-        { action: 'Application Received', user: 'John Doe', status: 'Success', time: '1 hr ago', description: 'Applied to UI Designer role' },
-        { action: 'Maintenance Run', user: 'Auto-Bot', status: 'Info', time: '3 hr ago', description: 'DB backup completed' },
-        { action: 'Login Failed', user: 'Unknown IP', status: 'Error', time: '5 hr ago', description: '3 consecutive failed attempts' },
-    ];
+    const activityFeed = stats?.activityFeed || [];
 
     return (
         <div>
@@ -442,7 +440,9 @@ const Dashboard = () => {
                                             alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem',
                                         }}>
                                             <span style={{ fontWeight: '600', fontSize: '0.85rem' }}>{row.action}</span>
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light)', flexShrink: 0 }}>{row.time}</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light)', flexShrink: 0 }}>
+                                                {typeof row.time === 'string' && row.time.includes('ago') ? row.time : new Date(row.time).toLocaleDateString()}
+                                            </span>
                                         </div>
                                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                                             <strong style={{ color: 'var(--text-main)' }}>{row.user}</strong> — {row.description}
