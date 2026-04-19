@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_LIST_POLL_MS } from '../hooks/useAdminLiveRefresh';
 import { formatJobCardDate } from '../utils/formatDisplayDate';
@@ -6,7 +7,7 @@ import {
     Trash2, 
     Briefcase, 
     MapPin, 
-    DollarSign, 
+    IndianRupee, 
     Clock, 
     Search, 
     MoreVertical,
@@ -14,11 +15,15 @@ import {
     Plus,
     AlertCircle,
     X,
-    Filter
+    Filter,
+    Loader2,
+    ExternalLink
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import Pagination from '../components/Pagination';
 
 const JobManagement = () => {
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,6 +42,8 @@ const JobManagement = () => {
         isRemote: true
     });
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const fetchData = useCallback(async (silent = false) => {
         try {
@@ -94,10 +101,21 @@ const JobManagement = () => {
 
     const filteredJobs = jobs.filter(job => {
         const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            job.company?.toLowerCase().includes(searchTerm.toLowerCase());
+                            job.clientName?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || job.category === categoryFilter;
         return matchesSearch && matchesCategory;
     });
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, categoryFilter]);
+
+    const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+    const paginatedJobs = filteredJobs.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     if (loading) return (
         <div className="animate-fade-in">
@@ -142,8 +160,9 @@ const JobManagement = () => {
                 <div style={{ 
                     padding: '1.25rem 1.5rem', 
                     borderBottom: '1px solid var(--border)', 
-                    backgroundColor: '#fafafa',
+                    backgroundColor: 'var(--bg-main)',
                     display: 'flex',
+                    alignItems: 'center',
                     gap: '1.5rem'
                 }}>
                     <div style={{ position: 'relative', flex: 2 }}>
@@ -156,9 +175,9 @@ const JobManagement = () => {
                         }} />
                         <input
                             type="text"
-                            placeholder="Search jobs..."
+                            placeholder="Search jobs or partners..."
                             className="form-input"
-                            style={{ paddingLeft: '2.75rem', backgroundColor: 'white', height: '48px' }}
+                            style={{ paddingLeft: '2.75rem', height: '44px' }}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -166,7 +185,7 @@ const JobManagement = () => {
                     <div style={{ flex: 1 }}>
                         <select 
                             className="form-input"
-                            style={{ backgroundColor: 'white', height: '48px', appearance: 'none' }}
+                            style={{ height: '44px', appearance: 'none', cursor: 'pointer' }}
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
                         >
@@ -179,89 +198,105 @@ const JobManagement = () => {
                     </div>
                 </div>
 
-                <div style={{ padding: '1.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-                        {filteredJobs.map(job => (
-                            <div key={job._id} className="card" style={{ 
-                                padding: '1.25rem', 
-                                border: '1px solid var(--border)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '1rem',
-                                transition: 'var(--transition)'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <div style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        backgroundColor: '#f1f5f9',
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'var(--primary)'
-                                    }}>
-                                        <Briefcase size={24} />
-                                    </div>
-                                    <button 
-                                        onClick={() => handleDelete(job._id)}
-                                        style={{ background: 'none', color: '#ef4444', padding: '0.4rem', borderRadius: '8px', cursor: 'pointer' }}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-
-                                <div>
-                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.25rem' }}>{job.title}</h3>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>{job.clientName}</p>
-                                    
-                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            <MapPin size={14} /> {job.location}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            <DollarSign size={14} /> {job.budget}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            <Clock size={14} /> {formatJobCardDate(job)}
-                                        </div>
-                                    </div>
-
-                                    <div style={{
-                                        padding: '0.75rem',
-                                        backgroundColor: '#f8fafc',
-                                        borderRadius: 'var(--radius-md)',
-                                        fontSize: '0.85rem',
-                                        color: 'var(--text-muted)',
-                                        border: '1px dashed var(--border)',
-                                        marginBottom: '1rem'
-                                    }}>
-                                        {job.description?.substring(0, 100)}...
-                                    </div>
-
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <FileText size={12} color="var(--primary)" />
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: 'var(--bg-main)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Job Title</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Budget / Location</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Applicants</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Posted Date</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right' }}></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedJobs.map((job) => (
+                                <tr key={job._id} style={{ borderBottom: '1px solid var(--border)', transition: 'var(--transition)', cursor: 'pointer' }}
+                                    onClick={() => navigate(`/jobs/${job._id}`)}
+                                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{
+                                                width: '40px', height: '40px', borderRadius: '10px',
+                                                background: 'linear-gradient(135deg, var(--primary-light), rgba(139,92,246,0.1))',
+                                                border: '1px solid var(--border)', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center',
+                                                color: 'var(--primary)', flexShrink: 0,
+                                            }}>
+                                                <Briefcase size={20} />
                                             </div>
-                                            <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{job.applications?.length || 0} Applications</span>
+                                            <div>
+                                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '0.1rem' }}>{job.title}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{job.clientName || 'Hiring Partner'}</div>
+                                            </div>
                                         </div>
-                                        <span style={{
-                                            padding: '0.2rem 0.5rem',
-                                            borderRadius: '6px',
-                                            fontSize: '0.7rem',
-                                            fontWeight: '700',
-                                            textTransform: 'uppercase',
-                                            backgroundColor: job.status === 'open' ? '#dcfce7' : '#fef9c3',
-                                            color: job.status === 'open' ? '#166534' : '#854d0e'
-                                        }}>
+                                    </td>
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <span className={`badge ${
+                                            job.category === 'Development' ? 'badge-primary' : 
+                                            job.category === 'Design' ? 'badge-info' : 
+                                            job.category === 'Marketing' ? 'badge-warning' : 'badge-danger'
+                                        }`}>
+                                            {job.category || 'General'}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                <IndianRupee size={14} color="var(--success)" /> {job.budget}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                <MapPin size={12} /> {job.location}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <FileText size={14} color="var(--primary)" />
+                                            </div>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-main)' }}>
+                                                {job.applications?.length || 0}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                            <Clock size={13} /> {formatJobCardDate(job)}
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <span className={`badge ${job.status === 'open' ? 'badge-success' : 'badge-warning'}`}>
                                             {job.status || 'Active'}
                                         </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                    </td>                                     <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); navigate(`/jobs/${job._id}`); }}
+                                                className="btn" 
+                                                style={{ padding: '0.4rem', color: 'var(--info)', backgroundColor: 'transparent' }}
+                                                title="View/Edit full details"
+                                            >
+                                                <ExternalLink size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(job._id); }}
+                                                className="btn" 
+                                                style={{ padding: '0.4rem', color: '#ef4444', backgroundColor: 'transparent' }}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
 
                 {filteredJobs.length === 0 && (
@@ -270,6 +305,14 @@ const JobManagement = () => {
                         <p>No jobs found matching filters.</p>
                     </div>
                 )}
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredJobs.length}
+                    onPageChange={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                />
             </div>
 
             <Modal 

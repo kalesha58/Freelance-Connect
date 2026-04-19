@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_LIST_POLL_MS } from '../hooks/useAdminLiveRefresh';
 import { formatDisplayDate } from '../utils/formatDisplayDate';
@@ -16,11 +17,14 @@ import {
     Filter,
     Image as ImageIcon,
     Upload,
-    Loader2
+    Loader2,
+    ExternalLink
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import Pagination from '../components/Pagination';
 
 const PostManagement = () => {
+    const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,6 +42,8 @@ const PostManagement = () => {
         tags: ''
     });
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const fetchData = useCallback(async (silent = false) => {
         try {
@@ -128,6 +134,17 @@ const PostManagement = () => {
         return matchesSearch && matchesType;
     });
 
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, typeFilter]);
+
+    const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
+    const paginatedPosts = filteredPosts.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     if (loading) return (
         <div className="animate-fade-in">
             <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -171,8 +188,9 @@ const PostManagement = () => {
                 <div style={{ 
                     padding: '1.25rem 1.5rem', 
                     borderBottom: '1px solid var(--border)', 
-                    backgroundColor: '#fafafa',
+                    backgroundColor: 'var(--bg-main)',
                     display: 'flex',
+                    alignItems: 'center',
                     gap: '1.5rem'
                 }}>
                     <div style={{ position: 'relative', flex: 2 }}>
@@ -187,7 +205,7 @@ const PostManagement = () => {
                             type="text"
                             placeholder="Search content or user..."
                             className="form-input"
-                            style={{ paddingLeft: '2.75rem', backgroundColor: 'white', height: '48px' }}
+                            style={{ paddingLeft: '2.75rem', height: '44px' }}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -195,7 +213,7 @@ const PostManagement = () => {
                     <div style={{ flex: 1 }}>
                         <select 
                             className="form-input"
-                            style={{ backgroundColor: 'white', height: '48px', appearance: 'none' }}
+                            style={{ height: '44px', appearance: 'none', cursor: 'pointer' }}
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value)}
                         >
@@ -206,73 +224,109 @@ const PostManagement = () => {
                     </div>
                 </div>
 
-                <div style={{ padding: '1.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                        {filteredPosts.map(post => (
-                            <div key={post._id} className="card" style={{ 
-                                padding: '1.25rem', 
-                                border: '1px solid var(--border)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '1.25rem'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <div style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            backgroundColor: '#f1f5f9',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: 'var(--primary)',
-                                            fontSize: '0.8rem',
-                                            fontWeight: '700',
-                                            border: '2px solid white'
-                                        }}>
-                                            {post.userAvatar ? (
-                                                <img src={post.userAvatar} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
-                                            ) : <User size={20} />}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{post.userName || 'Anonymous'}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                <Clock size={12} /> {formatDisplayDate(post.createdAt)}
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: 'var(--bg-main)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Author</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Post Content</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Media</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Engagement</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date</th>
+                                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right' }}></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             {paginatedPosts.map((post) => (
+                                <tr key={post._id} style={{ borderBottom: '1px solid var(--border)', transition: 'var(--transition)', cursor: 'pointer' }}
+                                    onClick={() => navigate(`/posts/${post._id}`)}
+                                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                                            <div style={{
+                                                width: '32px', height: '32px', borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, var(--primary-light), rgba(139,92,246,0.12))',
+                                                border: '2px solid var(--border)', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center',
+                                                color: 'var(--primary)', overflow: 'hidden', flexShrink: 0,
+                                            }}>
+                                                {post.userAvatar ? (
+                                                    <img src={post.userAvatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                                                ) : <User size={14} />}
                                             </div>
+                                            <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>{post.userName || 'Anonymous'}</div>
                                         </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => handleDelete(post._id)}
-                                        style={{ background: 'none', color: '#ef4444', padding: '0.4rem', border: 'none', cursor: 'pointer' }}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-
-                                <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                                    {post.caption}
-                                    {post.imageUrl && (
-                                        <div style={{ marginTop: '1rem', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                                            <img src={post.imageUrl} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Post content" />
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <div style={{ 
+                                            maxWidth: '280px', 
+                                            fontSize: '0.875rem', 
+                                            color: 'var(--text-main)',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            lineHeight: 1.5
+                                        }}>
+                                            {post.caption}
                                         </div>
-                                    )}
-                                </div>
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        {post.imageUrl ? (
+                                            <div style={{ 
+                                                width: '60px', height: '40px', borderRadius: '6px', 
+                                                overflow: 'hidden', border: '1px solid var(--border)',
+                                                background: 'var(--bg-main)'
+                                            }}>
+                                                <img src={post.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                                            </div>
+                                        ) : (
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No media</span>
+                                        )}
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <span className={`badge ${post.type === 'portfolio' ? 'badge-primary' : 'badge-info'}`} style={{ textTransform: 'capitalize' }}>
+                                            {post.type || 'social'}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Heart size={12} color="#f43f5e" fill="#f43f5e20" /> {post.likes?.length || 0}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MessageCircle size={12} color="#3b82f6" fill="#3b82f620" /> {post.comments?.length || 0}</span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <Clock size={13} />
+                                            {formatDisplayDate(post.createdAt)}
+                                        </div>
+                                    </td>                                     <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); navigate(`/posts/${post._id}`); }}
+                                                className="btn" 
+                                                style={{ padding: '0.4rem', color: 'var(--info)', backgroundColor: 'transparent' }}
+                                                title="View/Moderate full post"
+                                            >
+                                                <ExternalLink size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(post._id); }}
+                                                className="btn" 
+                                                style={{ padding: '0.4rem', color: '#ef4444', backgroundColor: 'transparent' }}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
 
-                                <div style={{ display: 'flex', gap: '1.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        <Heart size={16} /> {post.likes?.length || 0}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        <MessageCircle size={16} /> {post.comments?.length || 0}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        <Share2 size={16} /> {post.shares || 0}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
 
                 {filteredPosts.length === 0 && (
@@ -281,6 +335,14 @@ const PostManagement = () => {
                         <p>No community posts found matching filters.</p>
                     </div>
                 )}
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredPosts.length}
+                    onPageChange={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                />
             </div>
 
             <Modal 

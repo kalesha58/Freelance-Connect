@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const isLocal = typeof window !== 'undefined' && 
+                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 const api = axios.create({
-    baseURL: 'https://freelance-connect.vercel.app', // Production API URL
+    baseURL: isLocal ? 'http://localhost:5000' : 'https://freelance-connect.vercel.app',
 });
 
 // Add a request interceptor to include the auth token

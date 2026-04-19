@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAdminLiveRefresh, formatAdminLastUpdated, ADMIN_LIST_POLL_MS } from '../hooks/useAdminLiveRefresh';
 import { 
@@ -14,11 +15,14 @@ import {
     Check,
     AlertCircle,
     Plus,
-    Pencil
+    Pencil,
+    ExternalLink
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import Pagination from '../components/Pagination';
 
 const UserManagement = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +46,8 @@ const UserManagement = () => {
         experience: [{ company: '', role: '', startYear: '', endYear: '', description: '' }]
     });
     const [savingFreelancer, setSavingFreelancer] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const openFreelancerEditor = (user) => {
         setEditFreelancerUser(user);
@@ -179,6 +185,17 @@ const UserManagement = () => {
         return matchesSearch && matchesRole && matchesStatus;
     });
 
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, roleFilter, statusFilter]);
+
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     if (loading) return (
         <div className="animate-fade-in">
             <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -250,7 +267,7 @@ const UserManagement = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1.5rem',
-                    backgroundColor: '#fafafa'
+                    backgroundColor: 'var(--bg-main)'
                 }}>
                     <div style={{ position: 'relative', flex: 2 }}>
                         <Search size={18} style={{
@@ -264,7 +281,7 @@ const UserManagement = () => {
                             type="text"
                             placeholder="Search by name or email..."
                             className="form-input"
-                            style={{ paddingLeft: '2.75rem', backgroundColor: 'white', height: '48px' }}
+                            style={{ paddingLeft: '2.75rem', height: '44px' }}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -273,7 +290,7 @@ const UserManagement = () => {
                         <div style={{ position: 'relative', flex: 1 }}>
                             <select 
                                 className="form-input" 
-                                style={{ backgroundColor: 'white', paddingLeft: '1rem', height: '48px', appearance: 'none', cursor: 'pointer' }}
+                                style={{ height: '44px', appearance: 'none', cursor: 'pointer' }}
                                 value={roleFilter}
                                 onChange={(e) => setRoleFilter(e.target.value)}
                             >
@@ -286,7 +303,7 @@ const UserManagement = () => {
                         <div style={{ position: 'relative', flex: 1 }}>
                             <select 
                                 className="form-input" 
-                                style={{ backgroundColor: 'white', paddingLeft: '1rem', height: '48px', appearance: 'none', cursor: 'pointer' }}
+                                style={{ height: '44px', appearance: 'none', cursor: 'pointer' }}
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -301,35 +318,35 @@ const UserManagement = () => {
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr style={{ backgroundColor: '#f8fafc', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>User Profile</th>
-                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Role</th>
-                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stats / Details</th>
-                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
-                                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Joined Date</th>
-                                <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}></th>
+                            <tr style={{ backgroundColor: 'var(--bg-main)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User Profile</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Role</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Stats / Details</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                                <th style={{ padding: '0.875rem 1.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Joined Date</th>
+                                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right' }}></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map((user) => (
-                                <tr key={user._id} style={{ borderBottom: '1px solid var(--border)', transition: 'var(--transition)' }}>
+                            {paginatedUsers.map((user) => (
+                                <tr key={user._id} style={{ borderBottom: '1px solid var(--border)', transition: 'var(--transition)', cursor: 'pointer' }}
+                                    onClick={() => navigate(`/users/${user._id}`)}
+                                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                                >
                                     <td style={{ padding: '1rem 1.5rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                             <div style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#f1f5f9',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: 'var(--primary)',
-                                                border: '2px solid white',
-                                                boxShadow: 'var(--shadow-sm)'
+                                                width: '40px', height: '40px', borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, var(--primary-light), rgba(139,92,246,0.12))',
+                                                border: '2px solid var(--border)', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center',
+                                                color: 'var(--primary)', overflow: 'hidden', flexShrink: 0,
+                                                boxShadow: 'var(--shadow-sm)',
                                             }}>
                                                 {user.profilePic ? (
-                                                    <img src={user.profilePic} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
-                                                ) : <User size={20} />}
+                                                    <img src={user.profilePic} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                                                ) : <User size={18} />}
                                             </div>
                                             <div>
                                                 <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{user.name}</div>
@@ -358,14 +375,7 @@ const UserManagement = () => {
                                         )}
                                     </td>
                                     <td style={{ padding: '1rem 1.5rem' }}>
-                                        <span style={{
-                                            padding: '0.25rem 0.75rem',
-                                            borderRadius: '20px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            backgroundColor: user.isProfileComplete ? '#dcfce7' : '#fee2e2',
-                                            color: user.isProfileComplete ? '#166534' : '#991b1b'
-                                        }}>
+                                        <span className={user.isProfileComplete ? 'badge badge-success' : 'badge badge-danger'}>
                                             {user.isProfileComplete ? 'Complete' : 'Incomplete'}
                                         </span>
                                     </td>
@@ -380,7 +390,7 @@ const UserManagement = () => {
                                             {user.role === 'freelancer' && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => openFreelancerEditor(user)}
+                                                    onClick={(e) => { e.stopPropagation(); openFreelancerEditor(user); }}
                                                     className="btn"
                                                     style={{ padding: '0.4rem', color: 'var(--primary)', backgroundColor: 'transparent' }}
                                                     title="Edit freelancer profile (portfolio & reviews)"
@@ -389,15 +399,20 @@ const UserManagement = () => {
                                                 </button>
                                             )}
                                             <button 
-                                                onClick={() => handleDelete(user._id)}
+                                                onClick={(e) => { e.stopPropagation(); navigate(`/users/${user._id}`); }}
+                                                className="btn"
+                                                style={{ padding: '0.4rem', color: 'var(--info)', backgroundColor: 'transparent' }}
+                                                title="View/Edit full details"
+                                            >
+                                                <ExternalLink size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(user._id); }}
                                                 className="btn" 
                                                 style={{ padding: '0.4rem', color: '#ef4444', backgroundColor: 'transparent' }}
                                                 disabled={user.role === 'admin'}
                                             >
                                                 <Trash2 size={18} />
-                                            </button>
-                                            <button className="btn" style={{ padding: '0.4rem', backgroundColor: 'transparent', color: 'var(--text-light)' }}>
-                                                <MoreVertical size={18} />
                                             </button>
                                         </div>
                                     </td>
@@ -413,6 +428,14 @@ const UserManagement = () => {
                         <p>No users found matching your filters.</p>
                     </div>
                 )}
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredUsers.length}
+                    onPageChange={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                />
             </div>
 
             <Modal 

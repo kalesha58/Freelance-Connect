@@ -66,7 +66,7 @@ export default function CreateStatusScreen() {
         try {
             await addStatus(imageUri, caption, selectedTags);
             // Navigate back to the main feed after posting
-            navigation.navigate('Main');
+            navigation.goBack();
         } catch (error: any) {
             console.error('Failed to post status:', error);
             Alert.alert("Post Failed", error.message || "Could not share status. Please try again.");
