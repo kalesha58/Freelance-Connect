@@ -69,48 +69,7 @@ const TopBar = ({ sidebarWidth = '260px' }) => {
             <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.625rem'
             }}>
-                {/* Search */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.06)',
-                    border: searching
-                        ? '1px solid var(--primary)'
-                        : isDarkMode ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(99,102,241,0.15)',
-                    borderRadius: '10px',
-                    padding: '0.5rem 0.875rem',
-                    transition: 'all 0.25s ease',
-                    boxShadow: searching ? '0 0 0 3px var(--primary-light)' : 'none',
-                    width: searching ? '220px' : '150px',
-                }}>
-                    <Search size={14} color="var(--text-muted)" strokeWidth={2.5} style={{ flexShrink: 0 }} />
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchVal}
-                        onChange={e => setSearchVal(e.target.value)}
-                        onFocus={() => setSearching(true)}
-                        onBlur={() => setSearching(false)}
-                        style={{
-                            border: 'none',
-                            outline: 'none',
-                            background: 'transparent',
-                            color: 'var(--text-main)',
-                            fontSize: '0.825rem',
-                            width: '100%',
-                        }}
-                    />
-                    {searchVal && (
-                        <span style={{
-                            fontSize: '0.65rem',
-                            background: 'var(--primary)',
-                            color: 'white',
-                            borderRadius: '4px',
-                            padding: '0.1rem 0.35rem',
-                            fontWeight: '700',
-                            flexShrink: 0,
-                        }}>⏎</span>
-                    )}
-                </div>
+                <div style={{ flex: 1 }}></div> {/* Spacer to maintain layout balance */}
 
                 {/* Dark mode toggle pill */}
                 <button
@@ -137,40 +96,6 @@ const TopBar = ({ sidebarWidth = '260px' }) => {
                     </span>
                 </button>
 
-                {/* Notification bell */}
-                <button style={{
-                    width: '38px', height: '38px',
-                    borderRadius: '10px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.06)',
-                    border: isDarkMode ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(99,102,241,0.15)',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    transition: 'all 0.2s ease',
-                }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.background = 'var(--primary-light)';
-                        e.currentTarget.style.color = 'var(--primary)';
-                        e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.background = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.06)';
-                        e.currentTarget.style.color = 'var(--text-muted)';
-                        e.currentTarget.style.borderColor = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(99,102,241,0.15)';
-                    }}
-                >
-                    <Bell size={16} strokeWidth={2} />
-                    <span style={{
-                        position: 'absolute',
-                        top: '7px', right: '7px',
-                        width: '7px', height: '7px',
-                        background: '#f43f5e',
-                        borderRadius: '50%',
-                        border: '1.5px solid var(--bg-topbar)',
-                        boxShadow: '0 0 6px rgba(244,63,94,0.6)',
-                    }} />
-                </button>
 
                 {/* Admin avatar */}
                 <div style={{

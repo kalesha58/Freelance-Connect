@@ -6,10 +6,8 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
-        // Check local storage or system preference
         const saved = localStorage.getItem('adminTheme');
-        if (saved) return saved === 'dark';
-        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        return saved ? saved === 'dark' : true; // Default to dark for premium feel
     });
 
     useEffect(() => {
