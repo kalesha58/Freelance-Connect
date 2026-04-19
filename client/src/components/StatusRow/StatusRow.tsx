@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
     Alert,
     FlatList,
@@ -64,7 +64,7 @@ function groupStatusesByUser(statuses: IStatus[]): Record<string, StatusGroup> {
 export function StatusRow() {
     const colors = useColors();
     const navigation = useNavigation<any>();
-    const { user, statuses, addStatus } = useApp();
+    const { user, statuses } = useApp();
 
     const groups = useMemo(() => groupStatusesByUser(statuses), [statuses]);
     const myGroup = user ? groups[user._id] : undefined;
@@ -85,42 +85,44 @@ export function StatusRow() {
 
     // ─── Handlers ────────────────────────────────────────────────────────────
 
-    const handleAddStatus = async () => {
+    const handleAddStatus = useCallback(async () => {
         try {
             const result = await launchImageLibrary({
                 mediaType: "photo",
-                quality: 0.85,
+                quality: 0.8,
                 selectionLimit: 1,
             });
             if (result.didCancel) return;
             const asset = result.assets?.[0];
             if (!asset?.uri) return;
-            await addStatus(asset.uri);
+
+            // Instead of posting immediately, navigate to the markup/caption screen
+            navigation.navigate('CreateStatus', { imageUri: asset.uri });
         } catch (e: any) {
             Alert.alert("Error", e.message ?? "Could not add status. Please try again.");
         }
-    };
+    }, [navigation]);
 
-    const openViewer = (group: StatusGroup) => {
+    const openViewer = useCallback((group: StatusGroup) => {
         if (!group.statuses.length) return;
         navigation.navigate("StatusViewer", {
             statuses: group.statuses,
             initialIndex: 0,
         });
-    };
+    }, [navigation]);
 
     // ─── Render helpers ───────────────────────────────────────────────────────
 
-    const AvatarContent = ({ avatar, name, bg }: { avatar?: string; name: string; bg: string }) =>
+    const AvatarContent = useCallback(({ avatar, name, bg }: { avatar?: string; name: string; bg: string }) =>
         avatar ? (
             <Image source={{ uri: avatar }} style={styles.avatarImg} />
         ) : (
             <View style={[styles.avatarFallback, { backgroundColor: bg }]}>
                 <Text style={styles.avatarInitial}>{name.charAt(0).toUpperCase()}</Text>
             </View>
-        );
+        ), []);
 
-    const renderMyStory = () => {
+    const renderMyStory = useCallback(() => {
         const ringColor = myGroup?.hasUnviewed ? colors.primary : colors.border;
         const ringWidth = myGroup?.hasUnviewed ? 2.5 : 1.5;
 
@@ -165,7 +167,7 @@ export function StatusRow() {
                 </Text>
             </TouchableOpacity>
         );
-    };
+    }, [myGroup, colors, openViewer, handleAddStatus, AvatarContent]);
 
     const renderOtherGroup = ({ item }: { item: StatusGroup }) => {
         const ringColor = item.hasUnviewed ? colors.primary : colors.border;

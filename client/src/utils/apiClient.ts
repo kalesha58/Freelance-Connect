@@ -99,7 +99,15 @@ export const uploadImage = async (imageUri: string) => {
         }
         return data;
     } catch (error: any) {
-        console.error('Upload Error:', error.message);
+        console.error('Upload Error Details:', {
+            message: error.message,
+            stack: error.stack,
+            url: `${BASE_URL}/upload`
+        });
+        if (error.message === 'Network request failed') {
+            console.warn('Connectivity Check: Ensure your device has internet and the backend server at ' + BASE_URL + ' is reachable.');
+        }
         throw error;
     }
+
 };

@@ -40,6 +40,7 @@ import ReportScreen from '@/features/Common/screens/ReportScreen';
 
 import UserProfileScreen from '@/features/Profile/screens/UserProfileScreen';
 import StatusViewerScreen from '@/features/Feed/screens/StatusViewerScreen';
+import CreateStatusScreen from '@/features/Feed/screens/CreateStatusScreen';
 import { MainTabNavigator } from './MainNavigator';
 
 import { useApp } from '@/context/AppContext';
@@ -52,23 +53,33 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  * Manages switching between Auth and Main application stacks based on session.
  */
 export const RootNavigator = () => {
-    const { user } = useApp();
+    const { user, isLoading, isFirstLaunch } = useApp();
     const colors = useColors();
 
     return (
         <Stack.Navigator
-            initialRouteName="Splash"
             screenOptions={{
                 headerShown: false,
                 animation: 'fade_from_bottom',
                 contentStyle: { backgroundColor: colors.background }
             }}
         >
-            {!user ? (
+            {isLoading ? (
+                <Stack.Screen name="Splash" component={SplashScreen} />
+            ) : !user ? (
                 <>
-                    <Stack.Screen name="Splash" component={SplashScreen} />
-                    <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                    <Stack.Screen name="Login" component={LoginScreen} />
+                    {/* Auth Stack: Initial route depends on isFirstLaunch */}
+                    {isFirstLaunch ? (
+                        <>
+                            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                            <Stack.Screen name="Login" component={LoginScreen} />
+                        </>
+                    ) : (
+                        <>
+                            <Stack.Screen name="Login" component={LoginScreen} />
+                            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                        </>
+                    )}
                     <Stack.Screen name="Signup" component={SignupScreen} />
                     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
                     <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
@@ -110,8 +121,12 @@ export const RootNavigator = () => {
                         component={StatusViewerScreen}
                         options={{ headerShown: false, presentation: "fullScreenModal", animation: "fade" }}
                     />
+                    <Stack.Screen
+                        name="CreateStatus"
+                        component={CreateStatusScreen}
+                        options={{ headerShown: false, presentation: "fullScreenModal" }}
+                    />
                 </>
-
             )}
         </Stack.Navigator>
     );

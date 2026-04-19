@@ -56,8 +56,8 @@ export default function ProfileScreen() {
     const [listRefreshing, setListRefreshing] = useState(false);
 
     // If viewing own profile, use currentUser, else use targetUser
-    const user = targetUserId ? targetUser : currentUser;
     const isOwnProfile = !targetUserId || targetUserId === currentUser?._id;
+    const user = isOwnProfile ? currentUser : (targetUser || currentUser);
 
     const onPullRefresh = useCallback(async () => {
         if (!isOwnProfile) return;
@@ -87,7 +87,6 @@ export default function ProfileScreen() {
         }
     };
 
-    const [currentTab, setCurrentTab] = useState<"portfolio" | "posts">("portfolio");
     const [selectedPost, setSelectedPost] = useState<any>(null);
     const [isSheetVisible, setIsSheetVisible] = useState(false);
 
@@ -147,8 +146,8 @@ export default function ProfileScreen() {
         }
     };
 
-    const portfolioPosts = user ? allPosts.filter(p => p.userId === user._id && p.type === "portfolio") : [];
-    const socialPosts = user ? allPosts.filter(p => p.userId === user._id && p.type !== "portfolio") : [];
+    const userPosts = user ? allPosts.filter(p => p.userId === user._id) : [];
+
 
     const handlePostLongPress = (postId: string) => {
         // Mocking the delete/hide functionality
@@ -211,10 +210,11 @@ export default function ProfileScreen() {
                         ) : (
                             <TouchableOpacity
                                 style={[styles.headerActionBtn, { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
-                                onPress={() => navigation.navigate("Main", { screen: "Messages", params: { screen: "Chat", params: { id: user?._id } } })}
+                                onPress={() => navigation.navigate("Messages")}
                             >
                                 <Feather name="message-circle" size={20} color="#fff" />
                             </TouchableOpacity>
+
                         )}
                     </View>
                 </View>
@@ -320,10 +320,11 @@ export default function ProfileScreen() {
                             <>
                                 <TouchableOpacity
                                     style={[styles.primaryActionBtn, { backgroundColor: colors.buttonPrimary }]}
-                                    onPress={() => navigation.navigate("Main", { screen: "Messages", params: { screen: "Chat", params: { id: user?._id } } })}
+                                    onPress={() => navigation.navigate("Messages")}
                                 >
                                     <Text style={[styles.primaryActionBtnText, { color: colors.onButtonPrimary }]}>Message</Text>
                                 </TouchableOpacity>
+
                                 <TouchableOpacity style={[styles.secondaryActionBtn, { backgroundColor: colors.muted + "15", borderColor: colors.border }]}>
                                     <Text style={[styles.secondaryActionBtnText, { color: colors.foreground }]}>Hire Now</Text>
                                 </TouchableOpacity>
@@ -346,8 +347,9 @@ export default function ProfileScreen() {
                     </View>
                 )}
 
-                {/* External portfolio URL (freelancers) */}
-                {user.role === "freelancer" && (
+                {/* Professional Portfolio URL */}
+                {(user.portfolioUrl?.trim() || isOwnProfile) && (
+
                     <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <View style={styles.experienceHeaderRow}>
                             <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Online portfolio</Text>
@@ -396,10 +398,12 @@ export default function ProfileScreen() {
                 <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={styles.experienceHeaderRow}>
                         <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Experience & Education</Text>
-                        <TouchableOpacity style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]} onPress={() => navigation.navigate("EditProfile")}>
-                            <Feather name="edit-3" size={14} color={colors.primary} />
-                            <Text style={[styles.addInlineLabel, { color: colors.primary }]}>Manage</Text>
-                        </TouchableOpacity>
+                        {isOwnProfile && (
+                            <TouchableOpacity style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]} onPress={() => navigation.navigate("EditProfile")}>
+                                <Feather name="edit-3" size={14} color={colors.primary} />
+                                <Text style={[styles.addInlineLabel, { color: colors.primary }]}>Manage</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {!user.experience?.length && !user.education?.length ? (
@@ -442,58 +446,29 @@ export default function ProfileScreen() {
                     ))}
                 </View>
 
-                {/* Tab Switcher (Instagram Style) */}
-                <View style={[styles.tabSwitcher, { borderBottomColor: colors.border }]}>
-                    <TouchableOpacity
-                        style={[styles.tabItem, currentTab === "portfolio" && { borderBottomColor: colors.primary }]}
-                        onPress={() => setCurrentTab("portfolio")}
-                    >
-                        <Feather name="grid" size={20} color={currentTab === "portfolio" ? colors.primary : colors.mutedForeground} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.tabItem, currentTab === "posts" && { borderBottomColor: colors.primary }]}
-                        onPress={() => setCurrentTab("posts")}
-                    >
-                        <MCI name="image-multiple-outline" size={22} color={currentTab === "posts" ? colors.primary : colors.mutedForeground} />
-                    </TouchableOpacity>
+                {/* Post Grid Section (Instagram Style) */}
+                <View style={[styles.tabIndicatorBar, { borderBottomColor: colors.border }]}>
+                    <View style={[styles.tabIndicatorItem, { borderBottomColor: colors.primary }]}>
+                        <Feather name="grid" size={20} color={colors.primary} />
+                    </View>
                 </View>
 
-                {currentTab === "portfolio" ? (
-                    <View style={styles.portfolioGrid}>
-                        {portfolioPosts.length > 0 ? portfolioPosts.map(item => (
-                            <TouchableOpacity
-                                key={item._id}
-                                style={[styles.portfolioItem, { backgroundColor: colors.card, borderColor: colors.border }]}
-                                activeOpacity={0.9}
-                                onPress={() => openPostDetail(item)}
+                {userPosts.length === 0 ? (
+                    <View style={styles.emptyGridState}>
+                        <Feather name="image" size={48} color={colors.mutedForeground} />
+                        <Text style={[styles.emptyGridText, { color: colors.mutedForeground }]}>No posts yet</Text>
+                        {isOwnProfile && (
+                            <TouchableOpacity 
+                                style={[styles.addPostBtn, { backgroundColor: colors.headerBackground || colors.primary }]}
+                                onPress={() => navigation.navigate("CreatePost")}
                             >
-                                {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.portfolioImage} /> : (
-                                    <View style={[styles.portfolioPlaceholder, { backgroundColor: colors.muted + "20" }]}>
-                                        <Feather name="image" size={30} color={colors.mutedForeground} />
-                                    </View>
-                                )}
-                                <View style={styles.portfolioOverlay}>
-                                    {item.tags?.[0] && (
-                                        <View style={styles.itemCategoryBadge}>
-                                            <Text style={styles.itemCategoryText}>{item.tags[0]}</Text>
-                                        </View>
-                                    )}
-                                    <Text style={styles.itemLabelText}>{item.caption}</Text>
-                                </View>
+                                <Text style={[styles.addPostBtnLabel, { color: "#fff" }]}>Create First Post</Text>
                             </TouchableOpacity>
-                        )) : (
-                            <View style={styles.emptyGridState}>
-                                <Feather name="plus-circle" size={40} color={colors.mutedForeground} />
-                                <Text style={[styles.emptyGridText, { color: colors.mutedForeground }]}>Add your first portfolio piece</Text>
-                                <TouchableOpacity style={[styles.addPostBtn, { backgroundColor: colors.buttonPrimary }]} onPress={() => navigation.navigate("CreatePost")}>
-                                    <Text style={[styles.addPostBtnLabel, { color: colors.onButtonPrimary }]}>Add Work</Text>
-                                </TouchableOpacity>
-                            </View>
                         )}
                     </View>
                 ) : (
                     <View style={styles.postsGrid}>
-                        {socialPosts.map(post => (
+                        {userPosts.map((post) => (
                             <TouchableOpacity
                                 key={post._id}
                                 style={styles.postGridItem}
@@ -501,42 +476,23 @@ export default function ProfileScreen() {
                                 onPress={() => openPostDetail(post)}
                                 onLongPress={() => handlePostLongPress(post._id)}
                             >
-                                <Image source={{ uri: post.imageUrl || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1000&auto=format&fit=crop" }} style={styles.postGridImage} />
-                                <View style={styles.postGridStats}>
-                                    <View style={styles.postGridStatItem}>
-                                        <Ionicons name="heart" size={12} color="#fff" />
-                                        <Text style={styles.postGridStatText}>{post.likes}</Text>
+                                <Image 
+                                    source={{ uri: post.imageUrl || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1000&auto=format&fit=crop" }} 
+                                    style={styles.postGridImage} 
+                                />
+                                {(post.likes || []).length > 0 && (
+                                    <View style={styles.postGridStats}>
+                                        <View style={styles.postGridStatItem}>
+                                            <Ionicons name="heart" size={12} color="#fff" />
+                                            <Text style={styles.postGridStatText}>{(post.likes || []).length}</Text>
+                                        </View>
                                     </View>
-                                </View>
+                                )}
                             </TouchableOpacity>
                         ))}
                     </View>
                 )}
 
-                {/* Account Links */}
-                <View style={[styles.accountLinksCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    {[
-                        { label: "Payment Methods", icon: "credit-card", color: "#0ea5e9" },
-                        { label: "My Reviews", icon: "star", color: "#f59e0b" },
-                        { label: "Help & Support", icon: "life-buoy", color: "#6366f1" },
-                    ].map((link, idx) => (
-                        <TouchableOpacity
-                            key={link.label}
-                            style={[
-                                styles.accountLinkItem,
-                                idx !== 2 && { borderBottomWidth: 1, borderBottomColor: colors.border }
-                            ]}
-                        >
-                            <View style={styles.linkLeftGroup}>
-                                <View style={[styles.linkIconBox, { backgroundColor: link.color + "15" }]}>
-                                    <Feather name={link.icon as any} size={18} color={link.color} />
-                                </View>
-                                <Text style={[styles.linkText, { color: colors.foreground }]}>{link.label}</Text>
-                            </View>
-                            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
-                        </TouchableOpacity>
-                    ))}
-                </View>
             </ScrollView>
 
             {/* Post Detail "Bottom Sheet" Modal */}
@@ -915,25 +871,25 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     postGridItem: {
-        width: (width - 36) / 3, // 3 column grid with minor gap
+        width: width / 3 - 1, // Full width / 3 with minimal gap for Instagram feel
         aspectRatio: 1,
         position: "relative",
     },
+
     postGridImage: {
         width: "100%",
         height: "100%",
     },
     postGridStats: {
         position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0,0,0,0.2)",
-        justifyContent: "center",
-        alignItems: "center",
-        opacity: 0, // Hidden by default, could be shown on hover/active in web or just simplify
+        bottom: 8,
+        left: 8,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
     },
+
     postGridStatItem: {
         flexDirection: "row",
         alignItems: "center",
@@ -1007,4 +963,16 @@ const styles = StyleSheet.create({
     sheetCloseBtn: {
         padding: 5,
     },
+    tabIndicatorBar: {
+        flexDirection: "row",
+        borderBottomWidth: 1,
+        marginBottom: 8,
+        justifyContent: "center"
+    },
+    tabIndicatorItem: {
+        paddingVertical: 12,
+        borderBottomWidth: 2,
+        paddingHorizontal: 40
+    }
 });
+

@@ -23,6 +23,8 @@ import { apiClient } from "@/utils/apiClient";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { normalizeHttpUrl } from "@/utils/urlHelpers";
 import type { IPublicFreelancerProfile } from "./FreelancerProfileScreen.interfaces";
+import { useFirebase, buildConversationId } from "@/context/FirebaseContext";
+
 
 type FreelancerProfileRouteProp = RouteProp<{ FreelancerProfile: { id: string } }, "FreelancerProfile">;
 
@@ -42,6 +44,10 @@ export default function FreelancerProfileScreen() {
     const [profile, setProfile] = useState<IPublicFreelancerProfile | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
+    const [messageLoading, setMessageLoading] = useState(false);
+
+    const { sendMessage } = useFirebase();
+
 
     const showFollow =
         currentUser?.role === "freelancer" &&
@@ -120,7 +126,7 @@ export default function FreelancerProfileScreen() {
         (rawUrl: string, _pageTitle?: string) => {
             const u = normalizeHttpUrl(rawUrl);
             if (u) {
-                Linking.openURL(u).catch(err => {
+                Linking.openURL(u).catch((err) => {
                     console.error("Failed to open URL:", err);
                     Alert.alert("Error", "Could not open link. Please verify the URL.");
                 });
@@ -129,7 +135,37 @@ export default function FreelancerProfileScreen() {
         []
     );
 
+    const handleMessagePress = useCallback(async () => {
+        if (!id || !profile || !currentUser?._id || messageLoading) return;
+        setMessageLoading(true);
+        try {
+            // Build/ensure conversation exists with metadata
+            const convId = await sendMessage(
+                currentUser._id,
+                id,
+                "",                                 // empty text = just ensure thread
+                currentUser.name,                   // senderName
+                currentUser.avatar || currentUser.profilePic,
+                profile.name,                       // receiverName
+                profile.avatar || profile.profilePic
+            );
+
+            navigation.navigate("Chat", {
+                conversationId: convId,
+                participantId: id,
+                participantName: profile.name,
+                participantAvatar: profile.avatar || profile.profilePic,
+            });
+        } catch (e) {
+            console.error("[FreelancerProfile] handleMessagePress error:", e);
+            Alert.alert("Error", "Could not start a conversation. Please try again.");
+        } finally {
+            setMessageLoading(false);
+        }
+    }, [id, profile, currentUser, messageLoading, sendMessage, navigation]);
+
     const topPaddingOffset = Platform.OS === "ios" ? insets.top : 20;
+
 
     const avatarUri = profile?.avatar || profile?.profilePic;
     const title = profile?.tagline?.trim() || "Freelancer";
@@ -421,12 +457,20 @@ export default function FreelancerProfileScreen() {
                     ) : null}
                     <TouchableOpacity
                         style={[styles.secondaryContactActionBtn, { borderColor: colors.primary, flex: 1 }]}
-                        onPress={() => navigation.navigate("Main", { screen: "Messages" })}
+                        onPress={handleMessagePress}
+                        disabled={messageLoading}
                         activeOpacity={0.85}
                     >
-                        <Feather name="message-circle" size={18} color={colors.primary} />
-                        <Text style={[styles.secondaryContactLabel, { color: colors.primary }]}>Messages</Text>
+                        {messageLoading ? (
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        ) : (
+                            <>
+                                <Feather name="message-circle" size={18} color={colors.primary} />
+                                <Text style={[styles.secondaryContactLabel, { color: colors.primary }]}>Messages</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
+
                     <TouchableOpacity
                         style={[styles.primaryHireActionBtn, { backgroundColor: colors.buttonPrimary, flex: 1.35 }]}
                         onPress={() => navigation.navigate("HireConfirm", { freelancerId: profile._id })}

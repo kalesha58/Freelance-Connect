@@ -127,6 +127,7 @@ interface AppContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isFirstLaunch: boolean;
     jobs: Job[];
     posts: Post[];
     signIn: (emailOrPhone: string, password: string) => Promise<void>;
@@ -153,7 +154,7 @@ interface AppContextType {
     deletePost: (postId: string) => Promise<void>;
     fetchAllUsers: () => Promise<any[]>;
     statuses: IStatus[];
-    addStatus: (imageUri: string) => Promise<void>;
+    addStatus: (imageUri: string, caption?: string, tags?: string[]) => Promise<void>;
     loadStatuses: () => Promise<void>;
     /**
      * Mark a status as viewed.
@@ -178,6 +179,7 @@ const AUTH_TOKEN_KEY = "skill_link_token";
 export function AppProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFirstLaunch, setIsFirstLaunch] = useState(false);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [posts, setPosts] = useState<Post[]>([]);
     const [statuses, setStatuses] = useState<IStatus[]>([]);
@@ -212,7 +214,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const loadUser = async () => {
         try {
             const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-
             if (token) {
                 const userData = await apiClient("/profile/me");
                 setUser(userData as User);
@@ -221,6 +222,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     fetchPosts(userData._id),
                     fetchJobs(),
                 ]);
+            } else {
+                // If no token, check if this is the first launch ever
+                const seenOnboarding = await AsyncStorage.getItem('seen_onboarding');
+                setIsFirstLaunch(!seenOnboarding);
             }
         } catch (e) {
             console.log("Failed to load user:", e);
@@ -245,20 +250,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
             const data = await apiClient("/posts");
             const uid = userId || user?._id;
-            setPosts(enrichPosts(data, uid));
+            const enriched = enrichPosts(data, uid);
+            
+            // Deduplicate incoming data as a safety measure
+            setPosts(prev => {
+                const unique = new Map();
+                enriched.forEach(p => unique.set(p._id, p));
+                return Array.from(unique.values());
+            });
         } catch (error) {
             console.error("Fetch Posts Error:", error);
         }
     };
 
+
     const fetchJobs = async () => {
         try {
             const data = await apiClient("/jobs");
-            setJobs(data);
+            // Deduplicate incoming jobs as a safety measure
+            setJobs(prev => {
+                const unique = new Map();
+                data.forEach((j: any) => unique.set(j._id || j.id, j));
+                return Array.from(unique.values());
+            });
         } catch (error) {
             console.error("Fetch Jobs Error:", error);
         }
     };
+
 
 
     /** Same canonical user shape as cold start — login/signup responses may omit nested profile fields. */
@@ -376,7 +395,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 body: postData,
             });
             const enriched = enrichPosts([newPost], user?._id);
-            setPosts(prev => [enriched[0], ...prev]);
+            setPosts(prev => {
+                // Check if post already exists locally (e.g. from a background refresh)
+                if (prev.some(p => p._id === enriched[0]._id)) return prev;
+                return [enriched[0], ...prev];
+            });
+
         } catch (error) {
             throw error;
         }
@@ -388,7 +412,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 method: "POST",
                 body: jobData,
             });
-            setJobs(prev => [newJob, ...prev]);
+            setJobs(prev => {
+                const jobId = newJob._id || newJob.id;
+                if (prev.some(j => (j._id || j.id) === jobId)) return prev;
+                return [newJob, ...prev];
+            });
+
         } catch (error) {
             throw error;
         }
@@ -524,7 +553,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }));
 
 
-            setStatuses(mapped);
+            setStatuses(prev => {
+                const unique = new Map();
+                mapped.forEach(s => unique.set(s.id, s));
+                return Array.from(unique.values());
+            });
+
         } catch (e) {
             console.warn('[loadStatuses] error:', e);
             setStatuses([]);
@@ -536,7 +570,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
      * document on the backend via POST /api/statuses.
      * Multiple statuses per day are allowed — the server does not restrict this.
      */
-    const addStatus = async (imageUri: string) => {
+    const addStatus = async (imageUri: string, caption?: string, tags?: string[]) => {
         if (!user) throw new Error('You must be logged in to add a status.');
         try {
             // Step 1: Upload the image (same two-step pattern used for posts/avatars)
@@ -547,7 +581,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             // Step 2: Create the status on the backend
             const saved: any = await apiClient('/statuses', {
                 method: 'POST',
-                body: { imageUrl },
+                body: { imageUrl, caption, tags },
             });
 
             // Step 3: Prepend to local state immediately so the UI updates
@@ -565,7 +599,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             };
 
 
-            setStatuses(prev => [newStatus, ...prev]);
+            setStatuses(prev => {
+                if (prev.some(s => s.id === newStatus.id)) return prev;
+                return [newStatus, ...prev];
+            });
+
         } catch (e: any) {
             console.warn('[addStatus] error:', e);
             throw new Error(e.message || 'Failed to add status. Please try again.');
@@ -681,6 +719,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 loadStatuses,
                 markStatusViewed,
                 toggleStatusLike,
+                isFirstLaunch,
             }}
 
 

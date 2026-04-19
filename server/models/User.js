@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
         description: String
     }],
     rating: { type: Number, default: 0 },
-    /** Hourly rate in USD for freelancer marketplace display */
+    /** Hourly rate in INR for freelancer marketplace display */
     hourlyRate: { type: Number, default: 0 },
     /** External portfolio URL (Behance, Dribbble, personal site) — opened in-app from public profile */
     portfolioUrl: { type: String, default: '' },

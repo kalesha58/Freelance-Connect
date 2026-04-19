@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Alert,
     Animated,
@@ -15,6 +15,7 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useApp } from "@/context/AppContext";
@@ -45,16 +46,27 @@ export function ShareBottomSheet({
     postId,
 }: IShareBottomSheetProps) {
     const colors = useColors();
-    const { user, statuses, addStatus } = useApp();
+    const navigation = useNavigation<any>();
+    const { user, statuses } = useApp();
     const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
     const [setAsStatusLoading, setSetAsStatusLoading] = useState(false);
     const [sentTo, setSentTo] = useState<string[]>([]);
     const [statusDone, setStatusDone] = useState(false);
 
-    // Build "friends" list from statuses + a few mock contacts
-    const contacts = statuses
-        .filter(s => s.userId !== user?._id)
-        .map(s => ({ id: s.userId, name: s.userName, avatar: s.userAvatar }));
+    // Build uniquely filtered "friends" list from active statuses
+    // We normalize the ID to string to prevent duplicates from mixed types
+    const contacts = useMemo(() => {
+        const map = new Map();
+        statuses.forEach(s => {
+            if (!s.userId || s.userId.toString() === user?._id?.toString()) return;
+            const uid = s.userId.toString();
+            if (!map.has(uid)) {
+                map.set(uid, { id: uid, name: s.userName, avatar: s.userAvatar });
+            }
+        });
+        return Array.from(map.values());
+    }, [statuses, user?._id]);
+
 
     useEffect(() => {
         if (visible) {
@@ -87,21 +99,20 @@ export function ShareBottomSheet({
         setSentTo(prev => [...prev, friendId]);
     };
 
-    const handleSetAsStatus = async () => {
+    const handleSetAsStatus = () => {
         if (!postImageUrl) {
             Alert.alert("No Image", "This post doesn't have an image to set as status.");
             return;
         }
-        setSetAsStatusLoading(true);
-        try {
-            await addStatus(postImageUrl);
-            setStatusDone(true);
-            setTimeout(() => close(), 1200);
-        } catch (e) {
-            Alert.alert("Error", "Could not set status. Please try again.");
-        } finally {
-            setSetAsStatusLoading(false);
-        }
+        
+        // Close the bottom sheet first
+        close();
+        
+        // Navigate to the markup/caption screen
+        // We use setTimeout to ensure the sheet is closed and modal unmounted before navigation
+        setTimeout(() => {
+            navigation.navigate('CreateStatus', { imageUri: postImageUrl });
+        }, 300);
     };
 
     const handleCopyLink = () => {

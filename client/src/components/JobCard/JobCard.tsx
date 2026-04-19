@@ -99,10 +99,11 @@ export function JobCard({ job }: IJobCardProps) {
             {/* Skills Chips */}
             <View style={styles.skillsWrapper}>
                 {job.skills.slice(0, 3).map((skill, idx) => (
-                    <View key={skill} style={[styles.skillChip, { backgroundColor: colors.muted + "20" }]}>
+                    <View key={`${skill}-${idx}`} style={[styles.skillChip, { backgroundColor: colors.muted + "20" }]}>
                         <Text style={[styles.skillText, { color: colors.mutedForeground }]}>{skill}</Text>
                     </View>
                 ))}
+
                 {job.skills.length > 3 && (
                     <View style={styles.moreSkillsChip}>
                         <Text style={[styles.moreSkillsText, { color: colors.primary }]}>+{job.skills.length - 3}</Text>

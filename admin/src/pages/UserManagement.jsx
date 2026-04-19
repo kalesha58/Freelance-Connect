@@ -347,7 +347,7 @@ const UserManagement = () => {
                                     </td>
                                     <td style={{ padding: '1rem 1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                         {user.role === 'freelancer' ? (
-                                            <span>${user.hourlyRate ?? 0}/hr · {Array.isArray(user.freelancerReviews) ? user.freelancerReviews.length : 0} reviews</span>
+                                            <span>₹{user.hourlyRate ?? 0}/hr · {Array.isArray(user.freelancerReviews) ? user.freelancerReviews.length : 0} reviews</span>
                                         ) : (user.role === 'requester' || user.role === 'hiring') && user.totalJobs !== undefined ? (
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 <span title="Total generated jobs" style={{ color: 'var(--text-dark)', fontWeight: '600' }}>📝 {user.totalJobs} Jobs</span>
@@ -516,7 +516,7 @@ const UserManagement = () => {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Hourly rate (USD)</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Hourly rate (INR)</label>
                             <input
                                 type="number"
                                 min="0"

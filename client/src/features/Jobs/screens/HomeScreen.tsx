@@ -98,7 +98,11 @@ export default function HomeScreen() {
                 reviewsCount: Array.isArray(f.freelancerReviews) ? f.freelancerReviews.length : 0,
                 isTopRated: (f.rating || 0) >= 4.8
             }));
-            setFreelancers(formatted);
+            // Deduplicate local state
+            const unique = new Map();
+            formatted.forEach((f: any) => unique.set(f.id, f));
+            setFreelancers(Array.from(unique.values()));
+
         } catch (error) {
             console.error("Load Freelancers Error:", error);
         } finally {

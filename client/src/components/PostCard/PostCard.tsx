@@ -367,11 +367,12 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
 
                 {post.tags && post.tags.length > 0 && (
                     <View style={styles.postTagsWrapper}>
-                        {post.tags.map(tagName => (
-                            <Text key={tagName} style={[styles.postTagLabel, { color: colors.primary }]}>#{tagName}</Text>
+                        {post.tags.map((tagName, idx) => (
+                            <Text key={`${tagName}-${idx}`} style={[styles.postTagLabel, { color: colors.primary }]}>#{tagName}</Text>
                         ))}
                     </View>
                 )}
+
 
                 {commentsCount > 0 && (
                     <TouchableOpacity style={styles.viewCommentsBtn} onPress={handleCommentPress}>
