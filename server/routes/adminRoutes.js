@@ -4,13 +4,16 @@ const {
     adminLogin,
     getStats,
     getUsers,
+    getUserById,
     createUser,
     updateUser,
     deleteUser,
     getJobs,
+    getJobById,
     createJob,
     deleteJob,
     getPosts,
+    getPostById,
     createPost,
     deletePost
 } = require('../controllers/adminController');
