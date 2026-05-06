@@ -43,7 +43,7 @@ export default function UserProfileScreen() {
     const route = useRoute<UserProfileRouteProp>();
     const { userId } = route.params;
 
-    const { user: currentUser, posts: allPosts, refreshCurrentUser } = useApp();
+    const { user: currentUser, posts: allPosts, refreshCurrentUser, blockUser } = useApp();
     const [targetUser, setTargetUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -108,7 +108,19 @@ export default function UserProfileScreen() {
     };
 
     const handleMessagePress = () => {
-        navigation.navigate("Chat", { id: userId });
+        navigation.navigate("Chat", {
+            participantId: userId,
+            participantName: targetUser?.name,
+            participantAvatar: targetUser?.avatar || targetUser?.profilePic,
+        });
+    };
+
+    const handleMorePress = () => {
+        navigation.navigate("Report", {
+            targetId: userId,
+            targetType: "user",
+            targetName: targetUser?.name,
+        });
     };
 
     if (loading && !targetUser) {
@@ -147,7 +159,7 @@ export default function UserProfileScreen() {
                         <Feather name="arrow-left" size={22} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle} numberOfLines={1}>{targetUser.name}</Text>
-                    <TouchableOpacity style={styles.headerBtn}>
+                    <TouchableOpacity style={styles.headerBtn} onPress={handleMorePress}>
                         <Feather name="more-horizontal" size={22} color="#fff" />
                     </TouchableOpacity>
                 </View>
@@ -229,6 +241,15 @@ export default function UserProfileScreen() {
                                     onPress={handleMessagePress}
                                 >
                                     <Text style={[styles.secondaryBtnText, { color: colors.foreground }]}>Message</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.secondaryBtn, { backgroundColor: colors.destructive + "10", borderColor: colors.destructive }]}
+                                    onPress={async () => {
+                                        await blockUser(userId, "Blocked from profile");
+                                        navigation.goBack();
+                                    }}
+                                >
+                                    <Text style={[styles.secondaryBtnText, { color: colors.destructive }]}>Block</Text>
                                 </TouchableOpacity>
                             </>
                         ) : (

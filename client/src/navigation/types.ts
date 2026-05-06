@@ -9,7 +9,13 @@ export type RootStackParamList = {
     Home: undefined;
     Main: undefined;
     ProfileSetup: undefined;
-    Chat: { id: string };
+    Chat: {
+        id?: string;
+        conversationId?: string;
+        participantId?: string;
+        participantName?: string;
+        participantAvatar?: string;
+    };
     JobDetail: { id: string };
     CreateJob: undefined;
     MyJobs: undefined;
@@ -30,7 +36,7 @@ export type RootStackParamList = {
     Notifications: undefined;
     Help: undefined;
     Terms: undefined;
-    Report: undefined;
+    Report: { targetId?: string; targetType?: 'user' | 'post' | 'job'; targetName?: string } | undefined;
     NewChat: undefined;
     MessageSettings: undefined;
     SearchMessages: undefined;

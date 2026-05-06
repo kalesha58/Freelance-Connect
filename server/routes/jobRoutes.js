@@ -2,14 +2,22 @@ const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
 const Application = require('../models/Application');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
+const { getBlockedUserIdsFor } = require('../utils/blocking');
 
 // @desc    Get all jobs
 // @route   GET /api/jobs
 // @access  Public
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
     try {
-        const jobs = await Job.find().sort({ postedAt: -1 });
+        const query = {};
+        if (req.user?._id) {
+            const blockedUserIds = await getBlockedUserIdsFor(req.user._id);
+            if (blockedUserIds.length > 0) {
+                query.clientId = { $nin: blockedUserIds };
+            }
+        }
+        const jobs = await Job.find(query).sort({ postedAt: -1 });
         res.json(jobs);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -48,10 +56,16 @@ router.post('/', protect, async (req, res) => {
 // @desc    Get single job details
 // @route   GET /api/jobs/:id
 // @access  Public
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuth, async (req, res) => {
     try {
         const job = await Job.findById(req.params.id);
         if (job) {
+            if (req.user?._id) {
+                const blockedUserIds = await getBlockedUserIdsFor(req.user._id);
+                if (blockedUserIds.includes(String(job.clientId))) {
+                    return res.status(404).json({ message: 'Job not found' });
+                }
+            }
             res.json(job);
         } else {
             res.status(404).json({ message: 'Job not found' });

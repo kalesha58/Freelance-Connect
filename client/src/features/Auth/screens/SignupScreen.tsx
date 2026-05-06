@@ -219,9 +219,9 @@ const SignupScreen: React.FC<Props> = ({ navigation, route }) => {
                         </View>
                         <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             I agree to the{' '}
-                            <Text style={[styles.link, { color: colors.primary }]}>Terms & Conditions</Text>
+                            <Text style={[styles.link, { color: colors.primary }]} onPress={() => navigation.navigate("Terms")}>Terms & Conditions</Text>
                             {' '}and{' '}
-                            <Text style={[styles.link, { color: colors.primary }]}>Privacy Policy</Text>
+                            <Text style={[styles.link, { color: colors.primary }]} onPress={() => navigation.navigate("Terms")}>Privacy Policy</Text>
                         </Text>
                     </TouchableOpacity>
                     {errors.terms && <Text style={styles.errorText}>{errors.terms}</Text>}

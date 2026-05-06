@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const Post = require('../models/Post');
 const Follow = require('../models/Follow');
+const { getBlockedUserIdsFor, hasBlockingRelationship, toObjectId } = require('../utils/blocking');
 const { protect, optionalAuth } = require('../middleware/authMiddleware');
 
 // ─────────────────────────────────────────────
@@ -10,7 +11,15 @@ const { protect, optionalAuth } = require('../middleware/authMiddleware');
 // ─────────────────────────────────────────────
 router.get('/', optionalAuth, async (req, res) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 }).lean();
+        const baseQuery = {};
+        if (req.user?._id) {
+            const blockedUserIds = await getBlockedUserIdsFor(req.user._id);
+            if (blockedUserIds.length > 0) {
+                baseQuery.userId = { $nin: blockedUserIds.map((id) => toObjectId(id)).filter(Boolean) };
+            }
+        }
+
+        const posts = await Post.find(baseQuery).sort({ createdAt: -1 }).lean();
 
         if (!req.user || req.user.role !== 'freelancer') {
             return res.json(posts);
@@ -53,8 +62,12 @@ router.get('/', optionalAuth, async (req, res) => {
 // ─────────────────────────────────────────────
 // GET /api/posts/user/:userId  — Posts by user (Public)
 // ─────────────────────────────────────────────
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', optionalAuth, async (req, res) => {
     try {
+        if (req.user?._id) {
+            const blocked = await hasBlockingRelationship(req.user._id, req.params.userId);
+            if (blocked) return res.json([]);
+        }
         const posts = await Post.find({ userId: req.params.userId }).sort({ createdAt: -1 });
         res.json(posts);
     } catch (err) {
@@ -133,6 +146,8 @@ router.post('/:id/comments', protect, async (req, res) => {
 
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        const blocked = await hasBlockingRelationship(req.user._id, post.userId);
+        if (blocked) return res.status(403).json({ message: 'You cannot interact with this post' });
 
         const newComment = {
             userId: req.user._id,
@@ -163,6 +178,8 @@ router.post('/:id/comments/:commentId/reply', protect, async (req, res) => {
 
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        const blocked = await hasBlockingRelationship(req.user._id, post.userId);
+        if (blocked) return res.status(403).json({ message: 'You cannot interact with this post' });
 
         const comment = post.comments.id(req.params.commentId);
         if (!comment) return res.status(404).json({ message: 'Comment not found' });

@@ -296,7 +296,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.freelance.skill;
+				PRODUCT_BUNDLE_IDENTIFIER = com.freelance.skilllynk;
 				PRODUCT_NAME = freelance;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -331,7 +331,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.freelance.skill;
+				PRODUCT_BUNDLE_IDENTIFIER = com.freelance.skilllynk;
 				PRODUCT_NAME = freelance;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

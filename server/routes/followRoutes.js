@@ -3,6 +3,7 @@ const router = express.Router();
 const Follow = require('../models/Follow');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
+const { hasBlockingRelationship } = require('../utils/blocking');
 
 const FREELANCER = 'freelancer';
 
@@ -45,6 +46,10 @@ router.post('/:userId', protect, async (req, res) => {
         }
         if (req.user.role !== FREELANCER) {
             return res.status(403).json({ message: 'Only freelancers can use follow' });
+        }
+        const blocked = await hasBlockingRelationship(req.user._id, targetId);
+        if (blocked) {
+            return res.status(403).json({ message: 'You cannot follow this user' });
         }
 
         const target = await User.findById(targetId).select('role');

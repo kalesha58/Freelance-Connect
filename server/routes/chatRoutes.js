@@ -4,14 +4,17 @@ const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
+const { getBlockedUserIdsFor, hasBlockingRelationship, toObjectId } = require('../utils/blocking');
 
 // @desc    Get all user conversations
 // @route   GET /api/chat/conversations
 // @access  Private
 router.get('/conversations', protect, async (req, res) => {
     try {
+        const blockedUserIds = await getBlockedUserIdsFor(req.user._id);
+        const blockedObjectIds = blockedUserIds.map((id) => toObjectId(id)).filter(Boolean);
         const conversations = await Conversation.find({
-            participants: { $in: [req.user._id] }
+            participants: { $in: [req.user._id], ...(blockedObjectIds.length ? { $nin: blockedObjectIds } : {}) }
         })
         .populate('participants', 'name email avatar role')
         .sort({ updatedAt: -1 });
@@ -42,6 +45,11 @@ router.post('/messages', protect, async (req, res) => {
     const { receiverId, text } = req.body;
 
     try {
+        const blocked = await hasBlockingRelationship(req.user._id, receiverId);
+        if (blocked) {
+            return res.status(403).json({ message: 'You cannot message this user' });
+        }
+
         // 1. Find or create conversation
         let conversation = await Conversation.findOne({
             participants: { $all: [req.user._id, receiverId] }

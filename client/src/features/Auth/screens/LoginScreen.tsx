@@ -172,9 +172,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 {/* Terms notice */}
                 <Text style={[styles.terms, { color: colors.mutedForeground }]}>
                     By logging in, you agree to our{' '}
-                    <Text style={{ color: colors.primary }}>Terms of Service</Text>
+                    <Text style={{ color: colors.primary }} onPress={() => navigation.navigate("Terms")}>Terms of Service</Text>
                     {' '}and{' '}
-                    <Text style={{ color: colors.primary }}>Privacy Policy</Text>
+                    <Text style={{ color: colors.primary }} onPress={() => navigation.navigate("Terms")}>Privacy Policy</Text>
                 </Text>
             </ScrollView>
         </KeyboardAvoidingView>

@@ -235,8 +235,18 @@ function PostCardInner({ post, onLike, onFollowChanged }: IPostCardProps) {
                         text: "Report Post", 
                         onPress: () => navigation.navigate("Report", { 
                             targetId: post.id || post._id,
-                            targetType: 'post'
+                            targetType: 'post',
+                            targetName: post.userName,
                         }) 
+                    },
+                    {
+                        text: "Block User",
+                        style: "destructive",
+                        onPress: () => navigation.navigate("Report", {
+                            targetId: post.userId,
+                            targetType: "user",
+                            targetName: post.userName,
+                        }),
                     },
                     { text: "Cancel", style: "cancel" }
                 ]

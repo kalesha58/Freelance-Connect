@@ -11,9 +11,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { useRoute, RouteProp } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
+import { apiClient } from "@/utils/apiClient";
+import { RootStackParamList } from "@/navigation/types";
 
 const REASONS = [
     "Spam or misleading content",
@@ -32,17 +36,52 @@ export default function ReportScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
+    const route = useRoute<RouteProp<RootStackParamList, "Report">>();
+    const { blockUser } = useApp();
 
     const [selectedReason, setSelectedReason] = useState<string | null>(null);
     const [details, setDetails] = useState("");
+    const [isBlocking, setIsBlocking] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const targetId = route.params?.targetId;
+    const targetType = route.params?.targetType || "user";
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
 
-    const handleReportSubmission = () => {
-        if (!selectedReason) return;
-        setIsSubmitted(true);
-        setTimeout(() => navigation.goBack(), 2000);
+    const handleReportSubmission = async () => {
+        if (!selectedReason || !targetId) return;
+        try {
+            setIsSubmitting(true);
+            await apiClient("/users/reports", {
+                method: "POST",
+                body: {
+                    targetId,
+                    targetType,
+                    reason: selectedReason,
+                    details,
+                },
+            });
+            setIsSubmitted(true);
+            setTimeout(() => navigation.goBack(), 2000);
+        } catch (e) {
+            console.error("Report submission failed:", e);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleBlockUser = async () => {
+        if (!targetId || targetType !== "user") return;
+        try {
+            setIsBlocking(true);
+            await blockUser(targetId, selectedReason || "Blocked from report flow");
+        } catch (e) {
+            console.error("Block user failed:", e);
+        } finally {
+            setIsBlocking(false);
+        }
     };
 
     if (isSubmitted) {
@@ -117,19 +156,27 @@ export default function ReportScreen() {
                         <Text style={[styles.blockTitleHeader, { color: colors.foreground }]}>Block this user</Text>
                         <Text style={[styles.blockSecondaryDesc, { color: colors.mutedForeground }]}>They won't be able to contact you or view your profile</Text>
                     </View>
-                    <TouchableOpacity style={[styles.actionBlockBtn, { borderColor: colors.destructive }]}>
-                        <Text style={[styles.actionBlockBtnLabel, { color: colors.destructive }]}>Block</Text>
+                    <TouchableOpacity
+                        style={[styles.actionBlockBtn, { borderColor: colors.destructive, opacity: targetType === "user" ? 1 : 0.5 }]}
+                        onPress={handleBlockUser}
+                        disabled={targetType !== "user" || isBlocking}
+                    >
+                        <Text style={[styles.actionBlockBtnLabel, { color: colors.destructive }]}>
+                            {isBlocking ? "Blocking..." : "Block"}
+                        </Text>
                     </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.submitReportActionBtn, { backgroundColor: selectedReason ? colors.destructive : colors.muted }]}
+                    style={[styles.submitReportActionBtn, { backgroundColor: selectedReason && targetId ? colors.destructive : colors.muted }]}
                     onPress={handleReportSubmission}
-                    disabled={!selectedReason}
+                    disabled={!selectedReason || !targetId || isSubmitting}
                     activeOpacity={0.85}
                 >
-                    <Feather name="flag" size={16} color={selectedReason ? "#fff" : colors.mutedForeground} />
-                    <Text style={[styles.submitReportActionLabel, { color: selectedReason ? "#fff" : colors.mutedForeground }]}>Submit Report</Text>
+                    <Feather name="flag" size={16} color={selectedReason && targetId ? "#fff" : colors.mutedForeground} />
+                    <Text style={[styles.submitReportActionLabel, { color: selectedReason && targetId ? "#fff" : colors.mutedForeground }]}>
+                        {isSubmitting ? "Submitting..." : "Submit Report"}
+                    </Text>
                 </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>
