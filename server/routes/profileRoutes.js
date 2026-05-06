@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
+const { hasBlockingRelationship } = require('../utils/blocking');
 
 // Get profile of the current authenticated user
 router.get('/me', protect, async (req, res) => {
@@ -20,8 +21,14 @@ router.get('/me', protect, async (req, res) => {
 });
 
 // Get profile by ID (Public or Protected depending on privacy settings - keeping basic for now)
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', optionalAuth, async (req, res) => {
     try {
+        if (req.user?._id) {
+            const blocked = await hasBlockingRelationship(req.user._id, req.params.userId);
+            if (blocked) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+        }
         const user = await User.findById(req.params.userId).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);

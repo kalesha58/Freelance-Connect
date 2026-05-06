@@ -123,6 +123,15 @@ export interface Conversation {
     unreadCount?: number;
 }
 
+export interface BlockedUser {
+    _id: string;
+    name: string;
+    avatar?: string;
+    profilePic?: string;
+    role?: UserRole;
+    tagline?: string;
+}
+
 interface AppContextType {
     user: User | null;
     isAuthenticated: boolean;
@@ -154,6 +163,10 @@ interface AppContextType {
     deletePost: (postId: string) => Promise<void>;
     fetchAllUsers: () => Promise<any[]>;
     statuses: IStatus[];
+    blockedUserIds: string[];
+    fetchBlockedUsers: () => Promise<BlockedUser[]>;
+    blockUser: (userId: string, reason?: string) => Promise<void>;
+    unblockUser: (userId: string) => Promise<void>;
     addStatus: (imageUri: string, caption?: string, tags?: string[]) => Promise<void>;
     loadStatuses: () => Promise<void>;
     /**
@@ -183,6 +196,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [posts, setPosts] = useState<Post[]>([]);
     const [statuses, setStatuses] = useState<IStatus[]>([]);
+    const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
 
     // presenceRef holds the RTDB connected listener so we can detach on sign-out
     const presenceRef = useRef<any>(null);
@@ -218,6 +232,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 const userData = await apiClient("/profile/me");
                 setUser(userData as User);
                 // Firebase presence is handled by FirebaseProvider via currentUserId prop
+                await fetchBlockedUsers();
                 await Promise.all([
                     fetchPosts(userData._id),
                     fetchJobs(),
@@ -250,7 +265,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
             const data = await apiClient("/posts");
             const uid = userId || user?._id;
-            const enriched = enrichPosts(data, uid);
+            const filtered = blockedUserIds.length
+                ? data.filter((p: any) => !blockedUserIds.includes(String(p.userId)))
+                : data;
+            const enriched = enrichPosts(filtered, uid);
             
             // Deduplicate incoming data as a safety measure
             setPosts(prev => {
@@ -263,14 +281,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const fetchBlockedUsers = async (): Promise<BlockedUser[]> => {
+        const users = await apiClient('/users/blocked');
+        const ids = Array.isArray(users) ? users.map((u: any) => String(u._id)) : [];
+        setBlockedUserIds(ids);
+        return users;
+    };
+
+    const removeBlockedContent = (blockedUserId: string) => {
+        setPosts(prev => prev.filter((p) => String(p.userId) !== String(blockedUserId)));
+        setJobs(prev => prev.filter((j) => String(j.clientId || '') !== String(blockedUserId)));
+    };
+
+    const blockUser = async (userId: string, reason?: string) => {
+        await apiClient(`/users/block/${userId}`, {
+            method: 'POST',
+            body: { reason },
+        });
+        setBlockedUserIds(prev => (prev.includes(userId) ? prev : [...prev, userId]));
+        removeBlockedContent(userId);
+    };
+
+    const unblockUser = async (userId: string) => {
+        await apiClient(`/users/block/${userId}`, { method: 'DELETE' });
+        setBlockedUserIds(prev => prev.filter((id) => id !== userId));
+    };
+
 
     const fetchJobs = async () => {
         try {
             const data = await apiClient("/jobs");
+            const filtered = blockedUserIds.length
+                ? data.filter((j: any) => !blockedUserIds.includes(String(j.clientId || '')))
+                : data;
             // Deduplicate incoming jobs as a safety measure
             setJobs(prev => {
                 const unique = new Map();
-                data.forEach((j: any) => unique.set(j._id || j.id, j));
+                filtered.forEach((j: any) => unique.set(j._id || j.id, j));
                 return Array.from(unique.values());
             });
         } catch (error) {
@@ -286,6 +333,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
             const userData = await apiClient("/profile/me");
             setUser(userData as User);
+            await fetchBlockedUsers();
             fetchPosts(userData._id);
         } catch {
             const { token: _t, ...rest } = fallback as User & { token?: string };
@@ -347,6 +395,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
         await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
         setUser(null);
+        setBlockedUserIds([]);
         setStatuses([]); // Clear statuses on logout
     };
 
@@ -719,6 +768,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 deletePost,
                 fetchAllUsers,
                 statuses,
+                blockedUserIds,
+                fetchBlockedUsers,
+                blockUser,
+                unblockUser,
                 addStatus,
                 loadStatuses,
                 markStatusViewed,

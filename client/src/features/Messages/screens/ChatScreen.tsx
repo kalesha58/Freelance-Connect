@@ -19,6 +19,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useApp } from "@/context/AppContext";
 import { useFirebase, FirebaseMessage, buildConversationId } from "@/context/FirebaseContext";
 import { useColors } from "@/hooks/useColors";
+import { apiClient } from "@/utils/apiClient";
 
 // ─────────────────────────────────────────────────────────────
 // Route type
@@ -290,6 +291,7 @@ export default function ChatScreen() {
         setTyping(resolvedConversationId, user._id, false);
 
         try {
+            await apiClient(`/users/block/check/${participantId}`);
             await sendMessage(
                 user._id,
                 participantId,
@@ -303,6 +305,15 @@ export default function ChatScreen() {
             console.error("[ChatScreen] sendMessage error:", err);
         }
     }, [text, user?._id, participantId, resolvedConversationId, sendMessage, setTyping, user?.name, user?.avatar, user?.profilePic, participantName, participantAvatar]);
+
+    const handleHeaderMorePress = useCallback(() => {
+        if (!participantId) return;
+        navigation.navigate("Report", {
+            targetId: participantId,
+            targetType: "user",
+            targetName: displayName,
+        });
+    }, [participantId, displayName, navigation]);
 
     return (
         <View style={[styles.chatViewRoot, { backgroundColor: colors.background }]}>
@@ -338,7 +349,7 @@ export default function ChatScreen() {
                     )}
                 </View>
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleHeaderMorePress}>
                     <Feather name="more-vertical" size={22} color={colors.foreground} />
                 </TouchableOpacity>
             </View>

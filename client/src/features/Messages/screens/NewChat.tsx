@@ -16,7 +16,8 @@ import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
-import { useFirebase, buildConversationId } from "@/context/FirebaseContext";
+import { useFirebase } from "@/context/FirebaseContext";
+import { apiClient } from "@/utils/apiClient";
 
 interface ContactUser {
     _id: string;
@@ -32,7 +33,7 @@ export default function NewChat() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { fetchAllUsers, user } = useApp();
+    const { fetchAllUsers, user, blockedUserIds } = useApp();
     const { sendMessage } = useFirebase();
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
@@ -50,8 +51,11 @@ export default function NewChat() {
     const loadUsers = async () => {
         try {
             const data = await fetchAllUsers();
-            setContacts(data);
-            setFiltered(data);
+            const visible = Array.isArray(data)
+                ? data.filter((u: ContactUser) => !blockedUserIds.includes(String(u._id)))
+                : [];
+            setContacts(visible);
+            setFiltered(visible);
         } catch (err) {
             console.error("NewChat loadUsers:", err);
         } finally {
@@ -80,6 +84,7 @@ export default function NewChat() {
         if (!user?._id) return;
         setStartingChat(contact._id);
         try {
+            await apiClient(`/users/block/check/${contact._id}`);
             // Build/ensure conversation exists in Firestore with participant metadata
             const convId = await sendMessage(
                 user._id,

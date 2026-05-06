@@ -115,7 +115,7 @@ export default function MessagesScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { user } = useApp();
+    const { user, blockedUserIds } = useApp();
     const { conversations, onlineUsers } = useFirebase();
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
@@ -181,7 +181,10 @@ export default function MessagesScreen() {
     return (
         <View style={[styles.messagesRoot, { backgroundColor: colors.background }]}>
             <FlatList
-                data={conversations}
+                data={conversations.filter((item) => {
+                    const otherParticipantId = item.participants.find(id => id !== user._id) ?? "";
+                    return !blockedUserIds.includes(otherParticipantId);
+                })}
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={ListHeader}
                 renderItem={({ item }) => {
