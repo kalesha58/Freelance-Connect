@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { apiClient, uploadImage } from "@/utils/apiClient";
 import database from '@react-native-firebase/database';
+import { Alert } from "react-native";
 import { IStatus, IStatusViewer } from "@/navigation/types";
 
 
@@ -13,6 +14,7 @@ export interface User {
     _id: string; // Backend uses _id
     name: string;
     email: string;
+    username?: string;
     role: UserRole;
     avatar?: string;
     profilePic?: string;
@@ -52,6 +54,7 @@ export interface User {
     isAvailableForHire?: boolean;
     /** External portfolio site (Behance, personal site, etc.) */
     portfolioUrl?: string;
+    savedJobs?: string[];
 }
 
 export interface Job {
@@ -234,13 +237,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     const toggleSaveJob = async (jobId: string) => {
-        setSavedJobIds(prev => {
-            const newList = prev.includes(jobId) 
-                ? prev.filter(id => id !== jobId) 
-                : [...prev, jobId];
-            AsyncStorage.setItem("saved_job_ids", JSON.stringify(newList));
-            return newList;
-        });
+        const isCurrentlySaved = savedJobIds.includes(jobId);
+        const newList = isCurrentlySaved 
+            ? savedJobIds.filter(id => id !== jobId) 
+            : [...savedJobIds, jobId];
+        
+        // Optimistic update
+        setSavedJobIds(newList);
+        
+        try {
+            await updateProfile({ savedJobs: newList });
+            Alert.alert("Success", isCurrentlySaved ? "Job removed from saved list." : "Job saved successfully!");
+        } catch (error) {
+            // Revert on failure
+            setSavedJobIds(savedJobIds);
+            Alert.alert("Error", "Failed to update saved jobs.");
+        }
     };
 
     const refreshCurrentUser = useCallback(async () => {
@@ -250,6 +262,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (!token) return;
             const userData = await apiClient("/profile/me");
             setUser(userData as User);
+            if (userData.savedJobs) {
+                setSavedJobIds(userData.savedJobs.map((id: any) => String(id)));
+            }
         } catch (e) {
             console.warn("refreshCurrentUser:", e);
         }
@@ -261,11 +276,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (token) {
                 const userData = await apiClient("/profile/me");
                 setUser(userData as User);
+                if (userData.savedJobs) {
+                    setSavedJobIds(userData.savedJobs.map((id: any) => String(id)));
+                }
                 // Firebase presence is handled by FirebaseProvider via currentUserId prop
                 await fetchBlockedUsers();
                 await Promise.all([
                     fetchPosts(userData._id),
                     fetchJobs(),
+                    fetchMyAppliedJobs(),
                 ]);
             } else {
                 // If no token, check if this is the first launch ever
@@ -534,6 +553,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             body: { coverLetter },
         });
         setAppliedJobIds(prev => [...prev, jobId]);
+        Alert.alert("Success", "Job applied successfully!");
         fetchJobs();
     };
 

@@ -56,7 +56,7 @@ export default function JobDetailScreen() {
     const { id } = route.params || {};
     const { jobs, applyToJob, savedJobIds, appliedJobIds, toggleSaveJob } = useApp();
     const job = jobs.find(j => (j._id === id || j.id === id));
-    const hasApplied = job ? appliedJobIds.includes(job._id) : false;
+    const hasApplied = job ? (appliedJobIds.includes(String(job._id)) || appliedJobIds.includes(String(job.id))) : false;
     const [isApplying, setIsApplying] = useState(false);
 
     const handleApply = async () => {
@@ -106,11 +106,7 @@ export default function JobDetailScreen() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Status Badge Area */}
-                <View style={styles.statusInfoRow}>
-                    <Text style={styles.reviewStatusText}>MATCHER REVIEWING APPLICATIONS</Text>
-                    <Ionicons name="information-circle-outline" size={18} color="#666" />
-                </View>
+                {/* Status Badge Area removed as requested */}
 
                 {/* Main Job Info Card */}
                 <View style={styles.whiteInfoCard}>
@@ -129,7 +125,6 @@ export default function JobDetailScreen() {
                         <Text style={[styles.statusActiveLabel, { color: colors.primary }]}>Accepting Applications</Text>
                         <Text style={styles.postedTimeMeta}>Posted {formatRelativeTime(job.postedAt)}</Text>
                     </View>
-                    <Text style={styles.positionsInfo}>0 of 2 positions filled</Text>
                 </View>
 
                 {/* Job Details Table */}
@@ -141,10 +136,8 @@ export default function JobDetailScreen() {
 
                     {[
                         { label: "Specialization:", value: job.category },
-                        { label: "Commitment:", value: "Full-time (40 hrs/wk)" },
                         { label: "Work Setup:", value: job.isRemote ? "Remote" : "On-site" },
                         { label: "Location:", value: job.location },
-                        { label: "Est. Length:", value: "2 to 3 months" },
                         { label: "Job Posted:", value: formatRelativeTime(job.postedAt) },
                     ].map((item, idx) => (
                         <View key={idx} style={styles.detailTableRow}>

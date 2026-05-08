@@ -19,6 +19,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { JobCard, IJob } from "@/components";
+import { JobCardSkeleton } from "@/components/SkeletonLoader.tsx";
 
 const SKILLS_FILTER = ["All", "React Native", "UI/UX Design", "Python", "Swift", "Branding"];
 
@@ -29,12 +30,14 @@ export default function MyJobsScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { user, fetchMyPostings, fetchMyAppliedJobs, savedJobIds, jobs: allJobs } = useApp();
+    const { user, fetchMyPostings, fetchMyAppliedJobs, savedJobIds, jobs: allJobs, toggleSaveJob } = useApp();
     
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeTab, setActiveTab] = useState<"applied" | "saved" | "posted">(user?.role === 'hirer' ? "posted" : "applied");
+    const [activeTab, setActiveTab] = useState<"applied" | "saved" | "posted">(
+        (user?.role === 'hiring' || user?.role === 'requester') ? "posted" : "applied"
+    );
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
 
@@ -89,16 +92,8 @@ export default function MyJobsScreen() {
             <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
-                        <Text style={[styles.roleLabelText, { color: 'rgba(255,255,255,0.7)' }]}>Good morning,</Text>
-                        <Text style={[styles.userNameText, { color: '#fff' }]} numberOfLines={1}>{user?.name ?? "Guest"}</Text>
+                        <Text style={[styles.userNameText, { color: '#fff', marginTop: 10 }]}>My Jobs</Text>
                     </View>
-                    <TouchableOpacity
-                        style={[styles.headerIconBtnSolid, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
-                        onPress={() => navigation.navigate("Notifications")}
-                    >
-                        <Ionicons name="notifications-outline" size={22} color="#fff" />
-                        <View style={styles.unreadNotifMarker} />
-                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -107,31 +102,14 @@ export default function MyJobsScreen() {
                     <Feather name="search" size={18} color={colors.mutedForeground} />
                     <TextInput
                         style={[styles.searchField, { color: colors.foreground }]}
-                        placeholder="Search for your applied jobs..."
+                        placeholder={`Search in ${activeTab === 'applied' ? 'applied jobs' : activeTab === 'saved' ? 'saved jobs' : 'postings'}...`}
                         placeholderTextColor={colors.mutedForeground}
                         value={search}
                         onChangeText={setSearch}
                     />
-                    <TouchableOpacity style={[styles.searchFilterBtn, { backgroundColor: colors.buttonPrimary }]}>
-                        <Feather name="sliders" size={16} color={colors.onButtonPrimary} />
-                    </TouchableOpacity>
                 </View>
 
-                <View style={styles.quickMetricsRow}>
-                    {[
-                        { label: activeTab === 'applied' ? "Applied Jobs" : "Active Jobs", value: jobs.length, color: "#3b82f6", icon: "briefcase" },
-                        { label: "New Leads", value: "+12", color: "#f59e0b", icon: "flash" },
-                        { label: "Earnings", value: "₹4.1K", color: "#10b981", icon: "wallet" },
-                    ].map(stat => (
-                        <View key={stat.label} style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                            <View style={[styles.metricIconBox, { backgroundColor: stat.color + "15" }]}>
-                                <Ionicons name={stat.icon as any} size={14} color={stat.color} />
-                            </View>
-                            <Text style={[styles.metricValText, { color: colors.foreground }]}>{stat.value}</Text>
-                            <Text style={[styles.metricLabelText, { color: colors.mutedForeground }]}>{stat.label}</Text>
-                        </View>
-                    ))}
-                </View>
+                {/* Metrics removed as requested */}
 
                 <View style={styles.tabSwitcher}>
                     <TouchableOpacity 
@@ -146,7 +124,7 @@ export default function MyJobsScreen() {
                     >
                         <Text style={[styles.tabBtnText, { color: activeTab === 'saved' ? '#fff' : colors.foreground }]}>Saved</Text>
                     </TouchableOpacity>
-                    {user?.role === 'hirer' && (
+                    {(user?.role === 'hiring' || user?.role === 'requester') && (
                         <TouchableOpacity 
                             style={[styles.tabBtn, activeTab === 'posted' && { backgroundColor: colors.primary }]} 
                             onPress={() => setActiveTab('posted')}
@@ -197,30 +175,17 @@ export default function MyJobsScreen() {
                 keyExtractor={(item) => item._id || item.id}
                 ListHeaderComponent={renderHeader()}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
                 contentContainerStyle={{ paddingBottom: 100 }}
                 renderItem={({ item }) => (
                     <View style={styles.jobItemWrapper}>
-                        {activeTab === 'applied' && (
-                            <TouchableOpacity 
-                                style={styles.matcherReviewCard}
-                                onPress={() => navigation.navigate("JobDetail", { id: item._id || item.id })}
-                            >
-                                <View style={styles.reviewerIconWrap}>
-                                    <Feather name="user" size={20} color="#3B82F6" />
-                                </View>
-                                <View style={styles.reviewContent}>
-                                    <Text style={styles.reviewerName}>Matcher Review</Text>
-                                    <Text style={styles.reviewSubText}>1 updated job</Text>
-                                </View>
-                                <View style={styles.miniBadge}>
-                                    <Text style={styles.miniBadgeText}>2</Text>
-                                </View>
-                            </TouchableOpacity>
-                        )}
                         <View style={{ paddingHorizontal: 16 }}>
-                            <JobCard job={item} />
+                            <JobCard 
+                                job={item} 
+                                isSaved={savedJobIds.includes(item._id || item.id)}
+                                onSave={toggleSaveJob}
+                            />
                         </View>
                     </View>
                 )}
@@ -232,8 +197,10 @@ export default function MyJobsScreen() {
                 )}
             />
             {loading && !refreshing && (
-                <View style={styles.loader}>
-                    <ActivityIndicator size="large" color={colors.primary} />
+                <View style={{ padding: 16 }}>
+                    <JobCardSkeleton />
+                    <JobCardSkeleton />
+                    <JobCardSkeleton />
                 </View>
             )}
         </View>

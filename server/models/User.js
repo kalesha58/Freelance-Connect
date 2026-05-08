@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
+
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -11,6 +13,15 @@ const userSchema = new mongoose.Schema({
     bio: { type: String, default: "" },
     tagline: { type: String, default: "" },
     location: { type: String, default: "" },
+    username: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: (value) => !value || USERNAME_REGEX.test(value),
+            message: 'Username must be 3-20 characters and only contain letters, numbers, and underscores.'
+        }
+    },
+    usernameLower: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     companyName: { type: String, default: "" },
     companyWebsite: { type: String, default: "" },
     industry: { type: String, default: "" },
@@ -56,12 +67,17 @@ const userSchema = new mongoose.Schema({
     referralCode: { type: String, unique: true, sparse: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isVerified: { type: Boolean, default: false },
+    savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     createdAt: { type: Date, default: Date.now }
 });
 
 // Hash password before saving
 userSchema.pre('save', async function () {
     console.log('User pre-save hook triggered. Modified password:', this.isModified('password'));
+    if (this.isModified('username')) {
+        this.username = this.username ? String(this.username).trim() : this.username;
+        this.usernameLower = this.username ? this.username.toLowerCase() : undefined;
+    }
     if (!this.isModified('password')) {
         return;
     }

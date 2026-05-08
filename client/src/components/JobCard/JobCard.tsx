@@ -29,12 +29,14 @@ export interface IJob {
 
 interface IJobCardProps {
     job: IJob;
+    onSave?: (jobId: string) => void;
+    isSaved?: boolean;
 }
 
 /**
  * Modern JobCard providing a high-fidelity summary of a job posting.
  */
-export function JobCard({ job }: IJobCardProps) {
+export function JobCard({ job, onSave, isSaved }: IJobCardProps) {
     const colors = useColors();
     const navigation = useNavigation<any>();
 
@@ -52,19 +54,23 @@ export function JobCard({ job }: IJobCardProps) {
             activeOpacity={0.9}
         >
             <View style={styles.topRow}>
-                <View style={styles.statusBadge}>
-                    <Text style={[styles.statusText, { color: colors.mutedForeground }]}>
-                        MATCHER REVIEWING APPLICATIONS
-                    </Text>
-                </View>
-                <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
+                <Text style={[styles.postedTime, { color: colors.success }]}>
+                    {formatRelativeTime(job.postedAt)}
+                </Text>
+                <TouchableOpacity 
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={(e) => {
+                        e.stopPropagation();
+                        onSave && onSave(job._id || job.id);
+                    }}
+                >
+                    <Ionicons 
+                        name={isSaved ? "bookmark" : "bookmark-outline"} 
+                        size={20} 
+                        color={colors.primary} 
+                    />
                 </TouchableOpacity>
             </View>
-
-            <Text style={[styles.postedTime, { color: colors.success }]}>
-                {formatRelativeTime(job.postedAt)}
-            </Text>
 
             <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={2}>
                 {job.title}
@@ -86,13 +92,15 @@ export function JobCard({ job }: IJobCardProps) {
 
             <View style={styles.footerInfo}>
                 <View style={styles.footerItem}>
-                    <Text style={[styles.footerLabel, { color: colors.mutedForeground }]}>Est. Length:</Text>
-                    <Text style={[styles.footerValue, { color: colors.foreground }]}>2-3 months</Text>
-                </View>
-                <View style={styles.footerItem}>
                     <Text style={[styles.footerLabel, { color: colors.mutedForeground }]}>Budget:</Text>
                     <Text style={[styles.footerValue, { color: colors.success }]}>{displayBudgetINR(job.budget)}</Text>
                 </View>
+                <TouchableOpacity 
+                    style={[styles.viewDetailsBtn, { backgroundColor: colors.primary }]}
+                    onPress={handlePress}
+                >
+                    <Text style={styles.viewDetailsText}>View Details</Text>
+                </TouchableOpacity>
             </View>
         </TouchableOpacity>
     );
@@ -176,5 +184,15 @@ const styles = StyleSheet.create({
     footerValue: {
         fontSize: 13,
         fontWeight: '700',
+    },
+    viewDetailsBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    viewDetailsText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#FFF',
     },
 });

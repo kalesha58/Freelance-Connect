@@ -8,7 +8,9 @@ import {
     Animated,
     Dimensions,
     StatusBar,
+    SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/navigation/types';
@@ -59,6 +61,7 @@ const slides: Slide[] = [
 
 const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
     const colors = useColors();
+    const insets = useSafeAreaInsets();
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef<FlatList>(null);
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -91,11 +94,13 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle={colors.background === '#F8FAFC' ? 'dark-content' : 'light-content'} backgroundColor={colors.background} />
 
-            <View style={styles.skipRow}>
-                <TouchableOpacity onPress={handleSkip}>
-                    <Text style={[styles.skipText, { color: colors.primary }]}>Skip</Text>
-                </TouchableOpacity>
-            </View>
+            {currentIndex < slides.length - 1 && (
+                <View style={[styles.skipRow, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
+                    <TouchableOpacity onPress={handleSkip}>
+                        <Text style={[styles.skipText, { color: colors.primary }]}>Skip</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             <Animated.FlatList
                 ref={flatListRef}
@@ -155,9 +160,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     skipRow: {
-        paddingTop: Spacing.xl,
         paddingHorizontal: Spacing.xl,
         alignItems: 'flex-end',
+        zIndex: 10,
     },
     skipText: {
         fontSize: Typography.base,
