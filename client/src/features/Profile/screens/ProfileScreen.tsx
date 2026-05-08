@@ -184,7 +184,7 @@ export default function ProfileScreen() {
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
             {/* Minimal Brand Header */}
-            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 12, paddingBottom: 25 }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 8, paddingBottom: 15 }]}>
                 <View style={styles.headerContent}>
                     {(!isOwnProfile || navigation.canGoBack()) && (
                         <TouchableOpacity
@@ -559,13 +559,12 @@ const styles = StyleSheet.create({
     },
     headerContent: {
         flexDirection: "row",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingTop: 10
     },
     headerTitleGroup: { flex: 1, paddingRight: 10 },
-    screenHeading: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
+    screenHeading: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
     screenSubtitle: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
     headerActionGroup: { flexDirection: "row", gap: 10, alignItems: 'center' },
     headerActionBtn: {

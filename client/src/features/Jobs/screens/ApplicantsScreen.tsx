@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import {
-    FlatList,
+    ActivityIndicator,
+    Alert,
     Platform,
+    ScrollView,
+    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -67,103 +69,144 @@ export default function ApplicantsScreen() {
 
     return (
         <View style={[styles.applicantsRoot, { backgroundColor: colors.background }]}>
-            <View style={[styles.stickyHeader, { paddingTop: topInsetOffset + 6, borderBottomColor: colors.border }]}>
+            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+            <View style={[styles.stickyHeader, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 6 }]}>
                 <TouchableOpacity
                     style={[styles.circularBackBtn, { backgroundColor: 'transparent' }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={20} color={colors.foreground} />
+                    <Feather name="arrow-left" size={20} color="#fff" />
                 </TouchableOpacity>
-                <View style={{ flex: 1, marginHorizontal: 12 }}>
-                    <Text style={[styles.headerHeading, { color: colors.foreground }]}>Applicants</Text>
-                    <Text style={[styles.headerContextLabel, { color: colors.mutedForeground }]} numberOfLines={1}>{jobTitle}</Text>
+                <View style={{ flex: 1, marginHorizontal: 12, alignItems: 'center' }}>
+                    <Text style={[styles.headerHeading, { color: '#fff' }]}>Applicants</Text>
+                    <Text style={[styles.headerContextLabel, { color: 'rgba(255,255,255,0.7)' }]} numberOfLines={1}>{jobTitle}</Text>
                 </View>
-                <View style={[styles.totalCountBadge, { backgroundColor: colors.headerBackground }]}>
-                    <Text style={styles.totalCountVal}>{applicants.length}</Text>
+                <View style={[styles.totalCountBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                    <Text style={[styles.totalCountVal, { color: '#fff' }]}>{applicants.length}</Text>
                 </View>
             </View>
 
-            <FlatList
-                data={applicants}
-                keyExtractor={item => item._id}
-                contentContainerStyle={[styles.applicantListArea, { paddingBottom: 40 }]}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                    <View style={[styles.proposalCardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <View style={styles.proposalCardHeader}>
-                            <TouchableOpacity
-                                style={[styles.proposalAvatarCircle, { backgroundColor: colors.headerBackground }]}
-                                onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
-                            >
-                                {item.applicantAvatar ? (
-                                    <View /> // Placeholder for real avatar
-                                ) : (
-                                    <Text style={styles.proposalAvatarInitials}>{item.applicantName?.charAt(0)}</Text>
-                                )}
-                            </TouchableOpacity>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[styles.candidateNameLabel, { color: colors.foreground }]}>{item.applicantName}</Text>
-                                <Text style={[styles.candidateProfessionalTitle, { color: colors.mutedForeground }]}>{item.status.toUpperCase()}</Text>
-                                <View style={styles.ratingInfoRow}>
-                                    <Ionicons name="star" size={12} color={colors.warning} />
-                                    <Text style={[styles.ratingValCopy, { color: colors.foreground }]}>4.9</Text>
-                                    <Text style={[styles.reviewsCountCopy, { color: colors.mutedForeground }]}>(Placeholder)</Text>
+            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+                <View style={[styles.infoBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Text style={[styles.infoTitle, { color: colors.foreground }]}>What happens when you hire?</Text>
+                    <View style={styles.infoStepsRow}>
+                        {[
+                            { icon: "file-text", label: "Contract" },
+                            { icon: "message-circle", label: "Chat" },
+                            { icon: "play", label: "Start" }
+                        ].map((step, i) => (
+                            <View key={i} style={styles.infoStepItem}>
+                                <View style={[styles.infoStepIcon, { backgroundColor: colors.headerBackground + "15" }]}>
+                                    <Feather name={step.icon as any} size={14} color={colors.headerBackground} />
                                 </View>
+                                <Text style={[styles.infoStepLabel, { color: colors.mutedForeground }]}>{step.label}</Text>
                             </View>
-                            <View style={styles.bidContextBox}>
-                                <Text style={[styles.bidValueLabel, { color: colors.primary }]}>{item.status === 'hired' ? 'HIRED' : ''}</Text>
-                                <Text style={[styles.submissionAgeLabel, { color: colors.mutedForeground }]}>{formatSafeLocaleDate(item.createdAt)}</Text>
-                            </View>
-                        </View>
+                        ))}
+                    </View>
+                </View>
 
-                        <View style={[styles.pitchTextContainer, { backgroundColor: colors.muted }]}>
-                            <Text style={[styles.proposalHeadingLabel, { color: colors.mutedForeground }]}>Proposal</Text>
-                            <Text style={[styles.proposalBodyText, { color: colors.foreground }]} numberOfLines={3}>{item.coverLetter || "No cover letter provided."}</Text>
-                        </View>
+                {isLoading ? (
+                    <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
+                ) : (
+                    <View style={styles.applicantListArea}>
+                        {applicants.map((item) => (
+                            <View key={item._id} style={[styles.proposalCardSurface, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                                <View style={styles.proposalCardHeader}>
+                                    <TouchableOpacity
+                                        style={[styles.proposalAvatarCircle, { backgroundColor: colors.headerBackground }]}
+                                        onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
+                                    >
+                                        <Text style={styles.proposalAvatarInitials}>{item.applicantName?.charAt(0)}</Text>
+                                    </TouchableOpacity>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.candidateNameLabel, { color: colors.foreground }]}>{item.applicantName}</Text>
+                                        <Text style={[styles.candidateProfessionalTitle, { color: colors.mutedForeground }]}>{item.status.toUpperCase()}</Text>
+                                        <View style={styles.ratingInfoRow}>
+                                            <Ionicons name="star" size={12} color={colors.warning} />
+                                            <Text style={[styles.ratingValCopy, { color: colors.foreground }]}>4.9</Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.bidContextBox}>
+                                        <Text style={[styles.submissionAgeLabel, { color: colors.mutedForeground }]}>{formatSafeLocaleDate(item.createdAt)}</Text>
+                                    </View>
+                                </View>
 
-                        {item.status === 'pending' && (
-                            <View style={styles.proposalActionsRow}>
-                                <TouchableOpacity
-                                    style={[styles.declineActionBtn, { borderColor: colors.destructive + "60" }]}
-                                    activeOpacity={0.8}
-                                    onPress={() => handleUpdateStatus(item._id, 'rejected')}
-                                >
-                                    <Feather name="x" size={16} color={colors.destructive} />
-                                    <Text style={[styles.declineActionLabel, { color: colors.destructive }]}>Decline</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.reviewProfileBtn, { borderColor: colors.border }]}
-                                    onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={[styles.reviewProfileLabel, { color: colors.foreground }]}>View Profile</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.acceptHireBtn, { backgroundColor: colors.success }]}
-                                    onPress={() => navigation.navigate("HireConfirm", { 
-                                        applicationId: item._id,
-                                        freelancerId: item.applicantId,
-                                        freelancerName: item.applicantName,
-                                        freelancerAvatar: item.applicantAvatar
-                                    })}
-                                    activeOpacity={0.8}
-                                >
-                                    <Feather name="check" size={16} color="#fff" />
-                                    <Text style={styles.acceptHireLabel}>Hire</Text>
-                                </TouchableOpacity>
+                                <View style={[styles.pitchTextContainer, { backgroundColor: colors.muted }]}>
+                                    <Text style={[styles.proposalBodyText, { color: colors.foreground }]} numberOfLines={3}>{item.coverLetter || "No cover letter provided."}</Text>
+                                </View>
+
+                                {item.status === 'pending' && (
+                                    <View style={styles.proposalActionsRow}>
+                                        <TouchableOpacity
+                                            style={[styles.declineActionBtn, { borderColor: colors.destructive + "60" }]}
+                                            onPress={() => handleUpdateStatus(item._id, 'rejected')}
+                                        >
+                                            <Text style={[styles.declineActionLabel, { color: colors.destructive }]}>Decline</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.reviewProfileBtn, { borderColor: colors.border }]}
+                                            onPress={() => navigation.navigate("FreelancerProfile", { id: item.applicantId })}
+                                        >
+                                            <Text style={[styles.reviewProfileLabel, { color: colors.foreground }]}>Profile</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.acceptHireBtn, { backgroundColor: colors.success }]}
+                                            onPress={() => navigation.navigate("HireConfirm", { 
+                                                applicationId: item._id,
+                                                freelancerId: item.applicantId,
+                                                freelancerName: item.applicantName,
+                                                freelancerAvatar: item.applicantAvatar
+                                            })}
+                                        >
+                                            <Text style={styles.acceptHireLabel}>Hire</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
                             </View>
-                        )}
+                        ))}
                     </View>
                 )}
-            />
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     applicantsRoot: { flex: 1 },
-    stickyHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
+    stickyHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 14 },
     circularBackBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+    infoBanner: {
+        margin: 16,
+        padding: 16,
+        borderRadius: 20,
+        borderWidth: 1,
+        gap: 12,
+    },
+    infoTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    infoStepsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    infoStepItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    infoStepIcon: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    infoStepLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
     headerHeading: { fontSize: 16, fontWeight: '700' },
     headerContextLabel: { fontSize: 12, fontWeight: '400' },
     totalCountBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },

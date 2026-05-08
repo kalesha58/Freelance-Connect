@@ -85,20 +85,19 @@ export default function JobDetailScreen() {
     }
 
     return (
-        <View style={[styles.jobDetailRoot, { backgroundColor: '#F8F9FB' }]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FB" />
+        <View style={[styles.jobDetailRoot, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
             
-            {/* Minimalist Header */}
-            <View style={[styles.navBar, { paddingTop: topInsetPadding + 10 }]}>
+            <View style={[styles.navBar, { backgroundColor: colors.headerBackground, paddingTop: topInsetPadding + 10 }]}>
                 <TouchableOpacity
-                    style={[styles.backCircleBtn, { backgroundColor: '#FFF' }]}
+                    style={[styles.backCircleBtn, { backgroundColor: 'transparent' }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="chevron-left" size={24} color="#000" />
+                    <Feather name="chevron-left" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Text style={styles.navBarTitle}>Job Details</Text>
-                <TouchableOpacity style={[styles.backCircleBtn, { backgroundColor: '#FFF' }]}>
-                    <Feather name="share-2" size={20} color="#000" />
+                <Text style={[styles.navBarTitle, { color: '#fff' }]}>Job Details</Text>
+                <TouchableOpacity style={[styles.backCircleBtn, { backgroundColor: 'transparent' }]}>
+                    <Feather name="share-2" size={20} color="#fff" />
                 </TouchableOpacity>
             </View>
 
@@ -212,16 +211,10 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         alignItems: "center",
         justifyContent: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
     },
     navBarTitle: {
         fontSize: 17,
         fontWeight: '700',
-        color: '#111',
     },
     scrollContent: {
         paddingHorizontal: 16,
