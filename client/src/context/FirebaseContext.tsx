@@ -20,7 +20,8 @@ import {
     updateDoc, 
     writeBatch, 
     increment,
-    getDocs
+    getDocs,
+    getDoc
 } from '@react-native-firebase/firestore';
 import { 
     getDatabase, 
@@ -218,6 +219,10 @@ export function FirebaseProvider({ children, currentUserId }: { children: React.
         if (!db) return;
         try {
             const convRef = doc(db, 'conversations', conversationId);
+            const convoSnap = await getDoc(convRef);
+            
+            if (!convoSnap.exists) return;
+
             await updateDoc(convRef, { [`unreadCounts.${userId}`]: 0 });
 
             // Mark individual messages as read (avoid read + senderId != composite index — filter in memory)

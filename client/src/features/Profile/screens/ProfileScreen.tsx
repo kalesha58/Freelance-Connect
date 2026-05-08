@@ -188,7 +188,7 @@ export default function ProfileScreen() {
                 <View style={styles.headerContent}>
                     {(!isOwnProfile || navigation.canGoBack()) && (
                         <TouchableOpacity
-                            style={[styles.headerActionBtn, { marginRight: 12, backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
+                            style={[styles.headerActionBtn, { marginRight: 12 }]}
                             onPress={() => navigation.goBack()}
                         >
                             <Feather name="arrow-left" size={20} color="#fff" />
@@ -202,14 +202,14 @@ export default function ProfileScreen() {
                     <View style={styles.headerActionGroup}>
                         {isOwnProfile ? (
                             <TouchableOpacity
-                                style={[styles.headerActionBtn, { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
+                                style={[styles.headerActionBtn]}
                                 onPress={() => navigation.navigate("Settings")}
                             >
                                 <Feather name="settings" size={20} color="#fff" />
                             </TouchableOpacity>
                         ) : (
                             <TouchableOpacity
-                                style={[styles.headerActionBtn, { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.2)' }]}
+                                style={[styles.headerActionBtn]}
                                 onPress={() => navigation.navigate("Messages")}
                             >
                                 <Feather name="message-circle" size={20} color="#fff" />

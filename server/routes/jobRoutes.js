@@ -63,12 +63,39 @@ router.get('/my/applied', protect, async (req, res) => {
 });
 
 // @desc    Get jobs posted by current user
-// @route   GET /api/jobs/my/postings
-// @access  Private
 router.get('/my/postings', protect, async (req, res) => {
     try {
         const jobs = await Job.find({ clientId: req.user._id }).sort({ postedAt: -1 });
         res.json(jobs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get all freelancers hired by current user
+// @route   GET /api/jobs/my/hires
+// @access  Private
+router.get('/my/hires', protect, async (req, res) => {
+    try {
+        const jobs = await Job.find({ clientId: req.user._id }, '_id');
+        const jobIds = jobs.map(j => j._id);
+        const applications = await Application.find({ jobId: { $in: jobIds }, status: 'hired' })
+            .populate('applicantId', 'name avatar skills tagline rating')
+            .populate('jobId', 'title');
+
+        const hires = applications.map(app => ({
+            _id: app._id,
+            freelancerId: app.applicantId?._id,
+            name: app.applicantId?.name || app.applicantName,
+            avatar: app.applicantId?.avatar || app.applicantAvatar,
+            title: app.applicantId?.tagline || 'Freelancer',
+            skills: app.applicantId?.skills || [],
+            rating: app.applicantId?.rating || 0,
+            jobTitle: app.jobId?.title || 'Project',
+            hiredAt: app.createdAt
+        }));
+
+        res.json(hires);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
