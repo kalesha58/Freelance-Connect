@@ -45,14 +45,13 @@ export default function MessageSettings() {
 
     return (
         <View style={[styles.root, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="dark-content" />
-
-            <View style={[styles.header, { paddingTop: topInsetOffset + 10, borderBottomColor: colors.border }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.header, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 10 }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Feather name="arrow-left" size={24} color={colors.foreground} />
+                        <Feather name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: colors.foreground }]}>Message Settings</Text>
+                    <Text style={[styles.headerTitle, { color: "#fff" }]}>Message Settings</Text>
                     <View style={{ width: 40 }} />
                 </View>
             </View>
@@ -95,7 +94,7 @@ export default function MessageSettings() {
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
-    header: { paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1 },
+    header: { paddingHorizontal: 16, paddingBottom: 16 },
     headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     headerTitle: { fontSize: 18, fontWeight: "700" },

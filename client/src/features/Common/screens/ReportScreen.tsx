@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
     Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -18,6 +16,7 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { apiClient } from "@/utils/apiClient";
 import { RootStackParamList } from "@/navigation/types";
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 const REASONS = [
     "Spam or misleading content",
@@ -99,22 +98,19 @@ export default function ReportScreen() {
     }
 
     return (
-        <KeyboardAvoidingView
-            style={[styles.reportFormRoot, { backgroundColor: colors.background }]}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-            <View style={[styles.reportHeaderBar, { paddingTop: topInsetOffset + 6, borderBottomColor: colors.border }]}>
+        <View style={[styles.reportFormRoot, { backgroundColor: colors.background }]}>
+            <View style={[styles.reportHeaderBar, { paddingTop: topInsetOffset + 6, backgroundColor: colors.headerBackground, borderBottomColor: "rgba(0,0,0,0.1)" }]}>
                 <TouchableOpacity
-                    style={[styles.circularNavBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    style={[styles.circularNavBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.2)" }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={20} color={colors.foreground} />
+                    <Feather name="arrow-left" size={20} color="#fff" />
                 </TouchableOpacity>
-                <Text style={[styles.reportHeaderHeading, { color: colors.foreground }]}>Report / Block</Text>
+                <Text style={[styles.reportHeaderHeading, { color: "#fff" }]}>Report / Block</Text>
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView contentContainerStyle={[styles.reportScrollArea, { paddingBottom: 100 }]} showsVerticalScrollIndicator={false}>
+            <KeyboardAwareScrollViewCompat contentContainerStyle={[styles.reportScrollArea, { paddingBottom: 100 }]} showsVerticalScrollIndicator={false}>
                 <View style={[styles.policyWarningBanner, { backgroundColor: colors.warning + "15", borderColor: colors.warning + "30" }]}>
                     <Feather name="alert-triangle" size={18} color={colors.warning} />
                     <Text style={[styles.policyWarningText, { color: colors.warning }]}>
@@ -178,8 +174,8 @@ export default function ReportScreen() {
                         {isSubmitting ? "Submitting..." : "Submit Report"}
                     </Text>
                 </TouchableOpacity>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            </KeyboardAwareScrollViewCompat>
+        </View>
     );
 }
 
@@ -190,7 +186,7 @@ const styles = StyleSheet.create({
     successHeadingTitle: { fontSize: 22, fontWeight: '700' },
     successContextDescription: { fontSize: 14, fontWeight: '400', textAlign: "center", lineHeight: 21 },
     reportHeaderBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     reportHeaderHeading: { fontSize: 18, fontWeight: '700' },
     reportScrollArea: { padding: 16, gap: 14 },
     policyWarningBanner: { flexDirection: "row", gap: 10, padding: 14, borderRadius: 12, borderWidth: 1, alignItems: "flex-start" },

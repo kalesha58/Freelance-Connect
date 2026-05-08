@@ -4,7 +4,6 @@ import {
     Animated as RNAnimated,
     FlatList,
     Image,
-    KeyboardAvoidingView,
     Platform,
     StyleSheet,
     Text,
@@ -12,6 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -80,17 +80,17 @@ function ReplyRow({ reply, postOwnerId, colors }: ReplyRowProps) {
 }
 
 const replyStyles = StyleSheet.create({
-    container: { flexDirection: "row", gap: 10, marginTop: 10, paddingLeft: 20 },
-    avatar: { width: 28, height: 28, borderRadius: 14, marginTop: 2 },
-    avatarPlaceholder: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 2 },
-    avatarLetter: { color: "#fff", fontSize: 11, fontWeight: "700" },
+    container: { flexDirection: "row", gap: 8, marginTop: 8, paddingLeft: 16 },
+    avatar: { width: 24, height: 24, borderRadius: 12, marginTop: 2 },
+    avatarPlaceholder: { width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", marginTop: 2 },
+    avatarLetter: { color: "#fff", fontSize: 10, fontWeight: "700" },
     bubble: { flex: 1 },
-    nameRow: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 3 },
-    name: { fontSize: 12, fontWeight: "700" },
-    authorBadge: { borderWidth: 1, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
-    authorBadgeText: { fontSize: 9, fontWeight: "700", letterSpacing: 0.3 },
-    time: { fontSize: 11 },
-    text: { fontSize: 13, lineHeight: 18 },
+    nameRow: { flexDirection: "row", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 2 },
+    name: { fontSize: 11, fontWeight: "700" },
+    authorBadge: { borderWidth: 1, borderRadius: 3, paddingHorizontal: 4, paddingVertical: 0.5 },
+    authorBadgeText: { fontSize: 8, fontWeight: "700", letterSpacing: 0.2 },
+    time: { fontSize: 10 },
+    text: { fontSize: 12, lineHeight: 16 },
 });
 
 // ─── Comment Row ──────────────────────────────────────────────────────────────
@@ -178,28 +178,28 @@ function CommentRow({ comment, postOwnerId, colors, onReply, currentUserId }: Co
 }
 
 const commentStyles = StyleSheet.create({
-    container: { paddingHorizontal: 16, marginBottom: 20 },
-    row: { flexDirection: "row", gap: 10 },
-    avatar: { width: 36, height: 36, borderRadius: 18, marginTop: 2 },
-    avatarPlaceholder: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", marginTop: 2 },
-    avatarLetter: { color: "#fff", fontSize: 14, fontWeight: "700" },
+    container: { paddingHorizontal: 12, marginBottom: 16 },
+    row: { flexDirection: "row", gap: 8 },
+    avatar: { width: 32, height: 32, borderRadius: 16, marginTop: 2 },
+    avatarPlaceholder: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", marginTop: 2 },
+    avatarLetter: { color: "#fff", fontSize: 12, fontWeight: "700" },
     contentArea: { flex: 1 },
     bubble: {
-        borderRadius: 16,
+        borderRadius: 12,
         borderWidth: 1,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
     },
-    nameRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-    name: { fontSize: 13, fontWeight: "700" },
-    authorBadge: { borderWidth: 1, borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
-    authorBadgeText: { fontSize: 10, fontWeight: "700", letterSpacing: 0.3 },
-    text: { fontSize: 14, lineHeight: 20 },
-    actionRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 6, paddingLeft: 4 },
-    time: { fontSize: 11 },
-    replyBtn: { fontSize: 12, fontWeight: "700" },
-    repliesToggle: { flexDirection: "row", alignItems: "center", gap: 3 },
-    repliesCount: { fontSize: 12 },
+    nameRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 },
+    name: { fontSize: 12, fontWeight: "700" },
+    authorBadge: { borderWidth: 1, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1.5 },
+    authorBadgeText: { fontSize: 9, fontWeight: "700", letterSpacing: 0.2 },
+    text: { fontSize: 13, lineHeight: 18 },
+    actionRow: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4, paddingLeft: 2 },
+    time: { fontSize: 10 },
+    replyBtn: { fontSize: 11, fontWeight: "700" },
+    repliesToggle: { flexDirection: "row", alignItems: "center", gap: 2 },
+    repliesCount: { fontSize: 11 },
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -284,15 +284,15 @@ export default function PostCommentsScreen() {
     return (
         <KeyboardAvoidingView
             style={[styles.root, { backgroundColor: colors.background }]}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
             keyboardVerticalOffset={0}
         >
             {/* ── Header ── */}
-            <View style={[styles.header, { backgroundColor: colors.card, borderColor: colors.border, paddingTop: insets.top + 8 }]}>
+            <View style={[styles.header, { backgroundColor: colors.headerBackground, borderBottomColor: "rgba(0,0,0,0.1)", paddingTop: insets.top + 8 }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-                    <Ionicons name="close" size={24} color={colors.foreground} />
+                    <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: colors.foreground }]}>Comments</Text>
+                <Text style={[styles.headerTitle, { color: "#fff" }]}>Comments</Text>
                 <View style={{ width: 36 }} />
             </View>
 
@@ -431,99 +431,90 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 16,
-        paddingBottom: 14,
+        paddingHorizontal: 14,
+        paddingBottom: 10,
         borderBottomWidth: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 6,
-        elevation: 3,
     },
     closeBtn: { padding: 4 },
-    headerTitle: { fontSize: 16, fontWeight: "700", letterSpacing: -0.3 },
+    headerTitle: { fontSize: 15, fontWeight: "700", letterSpacing: -0.2 },
 
     // Post preview
     postPreview: {
         flexDirection: "row",
         alignItems: "flex-start",
-        gap: 12,
-        padding: 14,
+        gap: 10,
+        padding: 12,
         borderBottomWidth: 1,
-        marginBottom: 4,
+        marginBottom: 2,
     },
-    previewAvatar: { width: 38, height: 38, borderRadius: 19 },
-    previewAvatarPlaceholder: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
-    previewAvatarText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+    previewAvatar: { width: 32, height: 32, borderRadius: 16 },
+    previewAvatarPlaceholder: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+    previewAvatarText: { color: "#fff", fontWeight: "700", fontSize: 13 },
     previewMeta: { flex: 1 },
-    previewUserName: { fontSize: 13, fontWeight: "700", marginBottom: 3 },
-    previewCaption: { fontSize: 13, lineHeight: 18 },
-    previewLikes: { flexDirection: "row", alignItems: "center", gap: 4 },
-    previewLikesCount: { fontSize: 12, fontWeight: "600" },
+    previewUserName: { fontSize: 12, fontWeight: "700", marginBottom: 2 },
+    previewCaption: { fontSize: 12, lineHeight: 16 },
+    previewLikes: { flexDirection: "row", alignItems: "center", gap: 3 },
+    previewLikesCount: { fontSize: 11, fontWeight: "600" },
 
     // Section header
     sectionHeader: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
         borderBottomWidth: 1,
     },
-    sectionTitle: { fontSize: 13, fontWeight: "700", letterSpacing: 0.2 },
+    sectionTitle: { fontSize: 12, fontWeight: "700", letterSpacing: 0.1 },
 
     // List
-    listContent: { paddingTop: 16 },
+    listContent: { paddingTop: 12 },
 
     // Loading / Empty
-    loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingTop: 60 },
-    loadingText: { fontSize: 14 },
-    emptyState: { alignItems: "center", paddingTop: 60, gap: 10, paddingHorizontal: 32 },
-    emptyTitle: { fontSize: 18, fontWeight: "700" },
-    emptySub: { fontSize: 14, textAlign: "center", lineHeight: 20 },
+    loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10, paddingTop: 40 },
+    loadingText: { fontSize: 13 },
+    emptyState: { alignItems: "center", paddingTop: 40, gap: 8, paddingHorizontal: 24 },
+    emptyTitle: { fontSize: 16, fontWeight: "700" },
+    emptySub: { fontSize: 13, textAlign: "center", lineHeight: 18 },
 
     // Reply chip
     replyChip: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        gap: 6,
+        paddingHorizontal: 14,
+        paddingVertical: 6,
         borderTopWidth: 1,
     },
-    replyChipText: { flex: 1, fontSize: 13 },
+    replyChipText: { flex: 1, fontSize: 12 },
     replyChipClose: { padding: 2 },
 
     // Input bar
     inputBar: {
         flexDirection: "row",
         alignItems: "flex-end",
-        gap: 10,
-        paddingTop: 10,
-        paddingHorizontal: 14,
+        gap: 8,
+        paddingTop: 8,
+        paddingHorizontal: 12,
         borderTopWidth: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 10,
+        elevation: 5,
     },
-    inputAvatar: { width: 34, height: 34, borderRadius: 17, marginBottom: 6 },
-    inputAvatarPlaceholder: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", marginBottom: 6 },
-    inputAvatarText: { color: "#fff", fontWeight: "700", fontSize: 13 },
+    inputAvatar: { width: 30, height: 30, borderRadius: 15, marginBottom: 5 },
+    inputAvatarPlaceholder: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", marginBottom: 5 },
+    inputAvatarText: { color: "#fff", fontWeight: "700", fontSize: 12 },
     textInput: {
         flex: 1,
-        borderRadius: 22,
+        borderRadius: 18,
         borderWidth: 1,
-        paddingHorizontal: 16,
-        paddingTop: 10,
-        paddingBottom: 10,
-        fontSize: 14,
-        lineHeight: 20,
-        maxHeight: 120,
-        minHeight: 42,
+        paddingHorizontal: 14,
+        paddingTop: 8,
+        paddingBottom: 8,
+        fontSize: 13,
+        lineHeight: 18,
+        maxHeight: 100,
+        minHeight: 36,
     },
     sendBtn: {
-        width: 38,
-        height: 38,
-        borderRadius: 19,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 4,

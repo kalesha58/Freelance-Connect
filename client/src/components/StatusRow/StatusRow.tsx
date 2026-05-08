@@ -89,7 +89,9 @@ export function StatusRow() {
         try {
             const result = await launchImageLibrary({
                 mediaType: "photo",
-                quality: 0.8,
+                quality: 0.5,
+                maxWidth: 1000,
+                maxHeight: 1000,
                 selectionLimit: 1,
             });
             if (result.didCancel) return;

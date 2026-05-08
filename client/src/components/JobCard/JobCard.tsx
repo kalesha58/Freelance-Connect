@@ -51,88 +51,48 @@ export function JobCard({ job }: IJobCardProps) {
             onPress={handlePress}
             activeOpacity={0.9}
         >
-            {/* Header: Category & Bookmark */}
-            <View style={styles.header}>
-                <View style={[styles.catBadge, { backgroundColor: colors.primary + "08" }]}>
-                    <Text style={[styles.catText, { color: colors.primary }]}>{job.category}</Text>
-                </View>
-                <View style={styles.headerActions}>
-                    <TouchableOpacity style={styles.bookmarkBtn} activeOpacity={0.7}>
-                        <Ionicons name="bookmark-outline" size={22} color={colors.mutedForeground} />
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            {/* Title & Budget Section */}
-            <View style={styles.contentBody}>
-                <View style={styles.titleWrapper}>
-                    <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={2}>
-                        {job.title}
+            <View style={styles.topRow}>
+                <View style={styles.statusBadge}>
+                    <Text style={[styles.statusText, { color: colors.mutedForeground }]}>
+                        MATCHER REVIEWING APPLICATIONS
                     </Text>
                 </View>
-                <View style={[styles.budgetWrapper]}>
-                    <Text style={[styles.budgetLabel, { color: colors.mutedForeground }]}>Budget</Text>
-                    <Text style={[styles.budgetText, { color: colors.success }]}>{displayBudgetINR(job.budget)}</Text>
-                </View>
+                <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
+                </TouchableOpacity>
             </View>
 
-            {/* Description Snippet (Upwork style) */}
-            {job.description && (
-                <Text style={[styles.description, { color: colors.mutedForeground }]} numberOfLines={2}>
-                    {job.description}
-                </Text>
-            )}
+            <Text style={[styles.postedTime, { color: colors.success }]}>
+                {formatRelativeTime(job.postedAt)}
+            </Text>
 
-            {/* Metadata (Location & Time) */}
-            <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                    <Feather name="map-pin" size={12} color={colors.mutedForeground} />
-                    <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{job.location}</Text>
-                </View>
-                <View style={styles.metaSeparator} />
-                <View style={styles.metaItem}>
-                    <Feather name="clock" size={12} color={colors.mutedForeground} />
-                    <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{formatRelativeTime(job.postedAt)}</Text>
-                </View>
-            </View>
+            <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={2}>
+                {job.title}
+            </Text>
 
-            {/* Skills Chips */}
             <View style={styles.skillsWrapper}>
                 {job.skills.slice(0, 3).map((skill, idx) => (
-                    <View key={`${skill}-${idx}`} style={[styles.skillChip, { backgroundColor: colors.muted + "20" }]}>
-                        <Text style={[styles.skillText, { color: colors.mutedForeground }]}>{skill}</Text>
+                    <View key={`${skill}-${idx}`} style={[styles.skillChip, { backgroundColor: colors.blueLight }]}>
+                        <Feather name="arrow-up-circle" size={12} color={colors.primary} />
+                        <Text style={[styles.skillText, { color: colors.foreground }]}>{skill}</Text>
                     </View>
                 ))}
-
                 {job.skills.length > 3 && (
-                    <View style={styles.moreSkillsChip}>
-                        <Text style={[styles.moreSkillsText, { color: colors.primary }]}>+{job.skills.length - 3}</Text>
+                    <View style={[styles.skillChip, { backgroundColor: colors.muted + "20" }]}>
+                        <Text style={[styles.skillText, { color: colors.mutedForeground }]}>...</Text>
                     </View>
                 )}
             </View>
 
-            {/* Footer: Client Info */}
-            <View style={[styles.footer, { borderTopColor: colors.border + "50" }]}>
-                <View style={styles.clientInfo}>
-                    <View style={[styles.clientAvatar, { backgroundColor: colors.headerBackground }]}>
-                        <Text style={styles.avatarLabel}>{job.clientName.charAt(0)}</Text>
-                        <View style={[styles.onlineIndicator, { backgroundColor: colors.success }]} />
-                    </View>
-                    <View>
-                        <View style={styles.clientNameRow}>
-                            <Text style={[styles.clientNameText, { color: colors.foreground }]}>{job.clientName}</Text>
-                            <MaterialCommunityIcons name="check-decagram" size={14} color={colors.primary} style={styles.verifiedIcon} />
-                        </View>
-                        <View style={styles.ratingRow}>
-                            <Ionicons name="star" size={10} color="#FFB01F" />
-                            <Text style={[styles.ratingText, { color: colors.mutedForeground }]}>{job.clientRating}</Text>
-                            <Text style={[styles.clientSpentText, { color: colors.mutedForeground }]}>• ₹10k+ spent</Text>
-                        </View>
-                    </View>
+            <View style={styles.footerInfo}>
+                <View style={styles.footerItem}>
+                    <Text style={[styles.footerLabel, { color: colors.mutedForeground }]}>Est. Length:</Text>
+                    <Text style={[styles.footerValue, { color: colors.foreground }]}>2-3 months</Text>
                 </View>
-                <TouchableOpacity style={[styles.applyBtn, { backgroundColor: colors.buttonPrimary }]}>
-                    <Text style={[styles.applyBtnText, { color: colors.onButtonPrimary }]}>Apply Now</Text>
-                </TouchableOpacity>
+                <View style={styles.footerItem}>
+                    <Text style={[styles.footerLabel, { color: colors.mutedForeground }]}>Budget:</Text>
+                    <Text style={[styles.footerValue, { color: colors.success }]}>{displayBudgetINR(job.budget)}</Text>
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -140,96 +100,44 @@ export function JobCard({ job }: IJobCardProps) {
 
 const styles = StyleSheet.create({
     card: {
-        borderRadius: 24,
+        borderRadius: 20,
         padding: 20,
-        marginBottom: 16,
+        marginBottom: 12,
         borderWidth: 1,
-        shadowColor: "#64748b",
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 10,
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
         elevation: 2,
     },
-    header: {
+    topRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 16,
+        marginBottom: 8,
     },
-    headerActions: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
+    statusBadge: {
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
     },
-    catBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
-    },
-    catText: {
+    statusText: {
         fontSize: 10,
         fontWeight: '700',
-        textTransform: "uppercase",
-        letterSpacing: 0.8,
+        letterSpacing: 0.5,
     },
-    bookmarkBtn: {
-        padding: 4,
-    },
-    contentBody: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        gap: 16,
-        marginBottom: 12,
-    },
-    titleWrapper: {
-        flex: 1,
+    postedTime: {
+        fontSize: 12,
+        fontWeight: '600',
+        marginBottom: 6,
     },
     title: {
         fontSize: 18,
-        fontWeight: '700',
-        lineHeight: 26,
-        letterSpacing: -0.2,
-    },
-    budgetWrapper: {
-        alignItems: 'flex-end',
-    },
-    budgetLabel: {
-        fontSize: 10,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        marginBottom: 2,
-    },
-    budgetText: {
-        fontSize: 18,
         fontWeight: '800',
-    },
-    description: {
-        fontSize: 13,
-        lineHeight: 20,
-        fontWeight: '400',
+        lineHeight: 24,
         marginBottom: 16,
-    },
-    metaRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 18,
-        gap: 12,
-    },
-    metaItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-    },
-    metaText: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    metaSeparator: {
-        width: 3,
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: '#cbd5e1',
+        letterSpacing: -0.3,
     },
     skillsWrapper: {
         flexDirection: "row",
@@ -238,89 +146,34 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     skillChip: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12,
+        borderRadius: 20,
     },
     skillText: {
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: '600',
     },
-    moreSkillsChip: {
-        justifyContent: 'center',
-        paddingHorizontal: 4,
-    },
-    moreSkillsText: {
-        fontSize: 11,
-        fontWeight: '700',
-    },
-    footer: {
+    footerInfo: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-        paddingTop: 18,
         borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.05)',
+        paddingTop: 16,
     },
-    clientInfo: {
+    footerItem: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 12,
-    },
-    clientAvatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-    },
-    avatarLabel: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    onlineIndicator: {
-        position: "absolute",
-        bottom: -1,
-        right: -1,
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        borderWidth: 2,
-        borderColor: "#fff",
-    },
-    clientNameRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
         gap: 4,
-        marginBottom: 2,
     },
-    clientNameText: {
+    footerLabel: {
         fontSize: 13,
-        fontWeight: '700',
-    },
-    verifiedIcon: {
-        marginTop: 1,
-    },
-    ratingRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-    },
-    ratingText: {
-        fontSize: 11,
-        fontWeight: '700',
-    },
-    clientSpentText: {
-        fontSize: 11,
         fontWeight: '500',
     },
-    applyBtn: {
-        paddingHorizontal: 18,
-        paddingVertical: 10,
-        borderRadius: 14,
-    },
-    applyBtnText: {
+    footerValue: {
         fontSize: 13,
         fontWeight: '700',
     },

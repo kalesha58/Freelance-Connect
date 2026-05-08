@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DashboardScreen from '@/features/Dashboard/screens/DashboardScreen';
 import FeedScreen from '@/features/Feed/screens/FeedScreen';
 import HomeScreen from '@/features/Jobs/screens/HomeScreen';
+import MyJobsScreen from '@/features/Jobs/screens/MyJobsScreen';
 import MessagesScreen from '@/features/Messages/screens/MessagesScreen';
 import ProfileScreen from '@/features/Profile/screens/ProfileScreen';
 import { useColors } from '@/hooks/useColors';
@@ -32,25 +33,22 @@ export const MainTabNavigator = () => {
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors.mutedForeground,
                 tabBarStyle: {
-                    position: 'absolute',
-                    backgroundColor: isIOS ? 'transparent' : colors.card,
+                    backgroundColor: colors.card,
                     borderTopWidth: 1,
                     borderTopColor: colors.border,
-                    elevation: 0,
-                    height: (isIOS ? 80 : 65) + insets.bottom,
-                    paddingBottom: insets.bottom > 0 ? insets.bottom : (isIOS ? 20 : 10),
+                    elevation: 8,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 10,
+                    height: (isIOS ? 64 : 60) + insets.bottom,
+                    paddingBottom: insets.bottom > 0 ? insets.bottom : (isIOS ? 12 : 8),
+                    paddingTop: 8,
                 },
-                tabBarBackground: () =>
-                    isIOS ? (
-                        <BlurView
-                            style={StyleSheet.absoluteFill}
-                            blurType="regular"
-                            blurAmount={15}
-                        />
-                    ) : null,
                 tabBarLabelStyle: {
-                    fontSize: 10,
-                    fontWeight: '500',
+                    fontSize: 11,
+                    fontWeight: '600',
+                    marginBottom: isIOS ? 0 : 4,
                 },
             }}
         >
@@ -68,6 +66,14 @@ export const MainTabNavigator = () => {
                 options={{
                     tabBarLabel: 'Jobs',
                     tabBarIcon: ({ color, size }) => <Feather name="briefcase" size={size - 2} color={color} />,
+                }}
+            />
+            <Tab.Screen
+                name="MyJobs"
+                component={MyJobsScreen}
+                options={{
+                    tabBarLabel: 'My Jobs',
+                    tabBarIcon: ({ color, size }) => <Feather name="folder" size={size - 2} color={color} />,
                 }}
             />
             <Tab.Screen

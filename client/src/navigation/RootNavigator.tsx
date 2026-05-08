@@ -84,6 +84,7 @@ export const RootNavigator = () => {
                     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
                     <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
                     <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                    <Stack.Screen name="Terms" component={TermsScreen} />
                 </>
             ) : user.isProfileComplete === false ? (
                 <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
@@ -100,8 +101,8 @@ export const RootNavigator = () => {
                     <Stack.Screen name="FreelancerProfile" component={FreelancerProfileScreen} />
                     <Stack.Screen name="Search" component={SearchScreen} />
                     <Stack.Screen name="FilterModal" component={FilterModal} options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="PostComments" component={PostCommentsScreen} options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'fullScreenModal' }} />
+                    <Stack.Screen name="PostComments" component={PostCommentsScreen} options={{ presentation: 'fullScreenModal' }} />
                     <Stack.Screen name="Settings" component={SettingsScreen} />
                     <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                     <Stack.Screen name="FollowList" component={FollowListScreen} />

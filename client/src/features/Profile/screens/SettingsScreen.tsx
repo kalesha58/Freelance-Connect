@@ -249,7 +249,7 @@ const SettingRow = ({
 const styles = StyleSheet.create({
     settingsRoot: { flex: 1 },
     settingsHeaderBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     headerHeadingTitle: { fontSize: 18, fontWeight: '700' },
     settingsScrollPadding: { padding: 16 },
     profileBriefCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 20 },

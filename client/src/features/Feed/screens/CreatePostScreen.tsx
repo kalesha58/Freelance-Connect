@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-    KeyboardAvoidingView,
     Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -13,24 +11,24 @@ import {
     Keyboard,
     Animated,
     Dimensions,
-    KeyboardEvent,
     StatusBar
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
-import { BlurView } from "@react-native-community/blur";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { uploadImage } from "@/utils/apiClient";
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 const { width } = Dimensions.get("window");
 
 /**
  * Phase 2 Redesign for a "Rich & Premium" UI.
- * Inspired by modern post-creation interfaces like LinkedIn, Twitter, and Threads.
+ * Optimized with KeyboardAwareScrollViewCompat for robust keyboard handling.
  */
 export default function CreatePostScreen() {
     const colors = useColors();
@@ -46,8 +44,7 @@ export default function CreatePostScreen() {
     const [isPosting, setIsPosting] = useState(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
     
-    // Animation refs
-    const scrollY = useRef(new Animated.Value(0)).current;
+    // Animation refs for the toolbar
     const keyboardTranslateY = useRef(new Animated.Value(60)).current;
 
     useEffect(() => {
@@ -87,9 +84,9 @@ export default function CreatePostScreen() {
     const pickImage = async (useCamera: boolean) => {
         const options: any = {
             mediaType: 'photo',
-            quality: 0.8,
-            maxWidth: 1200,
-            maxHeight: 1200,
+            quality: 0.5,
+            maxWidth: 1000,
+            maxHeight: 1000,
             saveToPhotos: useCamera,
         };
 
@@ -150,146 +147,147 @@ export default function CreatePostScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-            >
-                {/* Clean Header */}
-                <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: colors.headerBackground }]}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-                        <Feather name="x" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    
-                    <Text style={[styles.headerTitle, { color: "#fff" }]}>Create Post</Text>
-                    
-                    <TouchableOpacity
-                        style={[
-                            styles.submitBtn, 
-                            { 
-                                backgroundColor: canSubmit ? colors.headerBackground : colors.card,
-                                shadowColor: canSubmit ? colors.headerBackground : "transparent",
-                                shadowOpacity: canSubmit ? 0.3 : 0,
-                            }
-                        ]}
+            
+            {/* Clean Header */}
+            <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: colors.headerBackground }]}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
+                    <Feather name="x" size={24} color="#fff" />
+                </TouchableOpacity>
+                
+                <Text style={[styles.headerTitle, { color: "#fff" }]}>Create Post</Text>
+                
+                <TouchableOpacity
+                    style={[
+                        styles.submitBtn, 
+                        { 
+                            backgroundColor: canSubmit ? colors.headerBackground : colors.card,
+                            shadowColor: canSubmit ? colors.headerBackground : "transparent",
+                            shadowOpacity: canSubmit ? 0.3 : 0,
+                        }
+                    ]}
 
-                        onPress={handlePost}
-                        disabled={!canSubmit}
-                    >
-                        <Text style={[styles.submitBtnText, { color: canSubmit ? "#fff" : colors.mutedForeground }]}>
-                            {isPosting ? "..." : "Post"}
-                        </Text>
-                    </TouchableOpacity>
+                    onPress={handlePost}
+                    disabled={!canSubmit}
+                >
+                    <Text style={[styles.submitBtnText, { color: canSubmit ? "#fff" : colors.mutedForeground }]}>
+                        {isPosting ? "..." : "Post"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            <KeyboardAwareScrollViewCompat
+                style={{ flex: 1 }}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingBottom: isKeyboardVisible ? 60 + insets.bottom : 20 + insets.bottom }
+                ]}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="always"
+            >
+                {/* User Info Section */}
+                <View style={styles.userRow}>
+                    <Image
+                        source={{ uri: user?.avatar || "https://ui-avatars.com/api/?name=" + (user?.name || "User") }}
+                        style={styles.avatar}
+                    />
+                    <View style={styles.userInfo}>
+                        <View style={styles.nameRow}>
+                            <Text style={[styles.userName, { color: colors.foreground }]}>{user?.name || "User"}</Text>
+                            <Feather name="check-circle" size={14} color={colors.primary} style={styles.verifiedIcon} />
+                        </View>
+                        <TouchableOpacity 
+                            style={[styles.postTypeBadge, { backgroundColor: colors.card, borderColor: colors.border }]}
+                            onPress={() => setPostType(t => t === 'social' ? 'portfolio' : 'social')}
+                        >
+                            <Feather name={postType === 'portfolio' ? 'briefcase' : 'message-circle'} size={12} color={colors.primary} />
+                            <Text style={[styles.postTypeText, { color: colors.mutedForeground }]}>
+                                {postType === 'portfolio' ? 'Portfolio Piece' : 'Social Update'}
+                            </Text>
+                            <Feather name="chevron-down" size={12} color={colors.mutedForeground} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
-                <ScrollView
-                    style={{ flex: 1 }}
-                    contentContainerStyle={[
-                        styles.scrollContent,
-                        { paddingBottom: 40 + insets.bottom }
-                    ]}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="always"
-                >
-                    {/* User Info Section */}
-                    <View style={styles.userRow}>
-                        <Image
-                            source={{ uri: user?.avatar || "https://ui-avatars.com/api/?name=" + (user?.name || "User") }}
-                            style={styles.avatar}
-                        />
-                        <View style={styles.userInfo}>
-                            <View style={styles.nameRow}>
-                                <Text style={[styles.userName, { color: colors.foreground }]}>{user?.name || "User"}</Text>
-                                <Feather name="check-circle" size={14} color={colors.primary} style={styles.verifiedIcon} />
-                            </View>
-                            <TouchableOpacity 
-                                style={[styles.postTypeBadge, { backgroundColor: colors.card, borderColor: colors.border }]}
-                                onPress={() => setPostType(t => t === 'social' ? 'portfolio' : 'social')}
+                {/* Text Area */}
+                <TextInput
+                    style={[styles.input, { color: colors.foreground }]}
+                    placeholder="What do you want to talk about?"
+                    placeholderTextColor={colors.mutedForeground}
+                    multiline
+                    value={caption}
+                    onChangeText={setCaption}
+                    autoFocus
+                    textAlignVertical="top"
+                />
+
+                {/* Tags List */}
+                {tags.length > 0 && (
+                    <View style={styles.tagsContainer}>
+                        {tags.map((tag) => (
+                            <TouchableOpacity
+                                key={tag}
+                                style={[styles.tagChip, { backgroundColor: colors.card, borderColor: colors.border }]}
+                                onPress={() => removeTag(tag)}
                             >
-                                <Feather name={postType === 'portfolio' ? 'briefcase' : 'message-circle'} size={12} color={colors.primary} />
-                                <Text style={[styles.postTypeText, { color: colors.mutedForeground }]}>
-                                    {postType === 'portfolio' ? 'Portfolio Piece' : 'Social Update'}
-                                </Text>
-                                <Feather name="chevron-down" size={12} color={colors.mutedForeground} />
+                                <Text style={[styles.tagChipText, { color: colors.foreground }]}>#{tag}</Text>
+                                <Feather name="x" size={14} color={colors.mutedForeground} />
                             </TouchableOpacity>
-                        </View>
+                        ))}
                     </View>
+                )}
 
-                    {/* Text Area */}
-                    <TextInput
-                        style={[styles.input, { color: colors.foreground }]}
-                        placeholder="What do you want to talk about?"
-                        placeholderTextColor={colors.mutedForeground}
-                        multiline
-                        value={caption}
-                        onChangeText={setCaption}
-                        autoFocus
-                        textAlignVertical="top"
-                    />
+                {/* Image Attachment Preview */}
+                {selectedImage && (
+                    <View style={styles.imagePreviewContainer}>
+                        <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+                        <TouchableOpacity 
+                            style={styles.removeImageBtn} 
+                            onPress={() => setSelectedImage(null)}
+                        >
+                            <View style={styles.removeIconCircle}>
+                                <Feather name="x" size={18} color="#fff" />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                )}
 
-                    {/* Tags List */}
-                    {tags.length > 0 && (
-                        <View style={styles.tagsContainer}>
-                            {tags.map((tag) => (
-                                <TouchableOpacity
-                                    key={tag}
-                                    style={[styles.tagChip, { backgroundColor: colors.card, borderColor: colors.border }]}
-                                    onPress={() => removeTag(tag)}
+                {/* "Add to your post" Section (Only visible when keyboard is hidden) */}
+                {!isKeyboardVisible && (
+                    <View style={styles.addToPostContainer}>
+                        <View style={styles.divider} />
+                        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Add to your post</Text>
+                        <View style={styles.actionGrid}>
+                            {actionItems.map((item) => (
+                                <TouchableOpacity 
+                                    key={item.id} 
+                                    style={[styles.actionCard, { backgroundColor: colors.card }]}
+                                    onPress={item.action}
                                 >
-                                    <Text style={[styles.tagChipText, { color: colors.foreground }]}>#{tag}</Text>
-                                    <Feather name="x" size={14} color={colors.mutedForeground} />
+                                    <View style={[styles.itemIconContainer, { backgroundColor: item.color + '15' }]}>
+                                        <Feather name={item.icon} size={24} color={item.color} />
+                                    </View>
+                                    <Text style={[styles.actionLabel, { color: colors.foreground }]}>{item.label}</Text>
+                                    <Feather name="plus" size={14} color={colors.mutedForeground} style={styles.plusIcon} />
                                 </TouchableOpacity>
                             ))}
                         </View>
-                    )}
+                    </View>
+                )}
+            </KeyboardAwareScrollViewCompat>
 
-                    {/* Image Attachment Preview */}
-                    {selectedImage && (
-                        <View style={styles.imagePreviewContainer}>
-                            <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-                            <TouchableOpacity 
-                                style={styles.removeImageBtn} 
-                                onPress={() => setSelectedImage(null)}
-                            >
-                                <View style={styles.removeIconCircle}>
-                                    <Feather name="x" size={18} color="#fff" />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* "Add to your post" Section (Only visible when keyboard is hidden or scrolled down) */}
-                    {!isKeyboardVisible && (
-                        <View style={styles.addToPostContainer}>
-                            <View style={styles.divider} />
-                            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Add to your post</Text>
-                            <View style={styles.actionGrid}>
-                                {actionItems.map((item) => (
-                                    <TouchableOpacity 
-                                        key={item.id} 
-                                        style={[styles.actionCard, { backgroundColor: colors.card }]}
-                                        onPress={item.action}
-                                    >
-                                        <View style={[styles.itemIconContainer, { backgroundColor: item.color + '15' }]}>
-                                            <Feather name={item.icon} size={24} color={item.color} />
-                                        </View>
-                                        <Text style={[styles.actionLabel, { color: colors.foreground }]}>{item.label}</Text>
-                                        <Feather name="plus" size={14} color={colors.mutedForeground} style={styles.plusIcon} />
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                    )}
-                </ScrollView>
-
-                {/* Floating Keyboard Toolbar */}
-                {isKeyboardVisible && (
+            {/* Floating Keyboard Toolbar */}
+            {isKeyboardVisible && (
+                <KeyboardAvoidingView 
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                    style={styles.toolbarWrapper}
+                >
                     <Animated.View 
                         style={[
                             styles.keyboardToolbar, 
                             { 
                                 backgroundColor: colors.background, 
                                 borderTopColor: colors.border,
-                                paddingBottom: Platform.OS === 'ios' ? insets.bottom : insets.bottom + 5,
                                 transform: [{ translateY: keyboardTranslateY }]
                             }
                         ]}
@@ -307,8 +305,8 @@ export default function CreatePostScreen() {
                             </Text>
                         </View>
                     </Animated.View>
-                )}
-            </KeyboardAvoidingView>
+                </KeyboardAvoidingView>
+            )}
         </View>
     );
 }
@@ -319,64 +317,71 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingBottom: 15,
+        paddingHorizontal: 16,
+        paddingBottom: 12,
     },
-    headerBtn: { padding: 4 },
-    headerTitle: { fontSize: 18, fontWeight: '700' },
+    headerBtn: { 
+        width: 36, 
+        height: 36, 
+        borderRadius: 18, 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.1)'
+    },
+    headerTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
     submitBtn: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 20,
-        minWidth: 75,
+        borderRadius: 18,
+        minWidth: 70,
         alignItems: 'center',
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 10,
     },
-    submitBtnText: { fontSize: 15, fontWeight: '700' },
+    submitBtnText: { fontSize: 14, fontWeight: '800' },
     
     scrollContent: {
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 40,
+        paddingHorizontal: 16,
+        paddingTop: 16,
     },
     
     userRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 25,
+        marginBottom: 20,
     },
     avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 15,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        marginRight: 12,
+        borderWidth: 1.5,
+        borderColor: '#fff',
     },
     userInfo: { flex: 1 },
     nameRow: { 
         flexDirection: 'row', 
         alignItems: 'center',
-        marginBottom: 4,
+        marginBottom: 2,
     },
-    userName: { fontSize: 17, fontWeight: '700' },
-    verifiedIcon: { marginLeft: 6 },
+    userName: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
+    verifiedIcon: { marginLeft: 4 },
     postTypeBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 15,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 10,
         borderWidth: 1,
         alignSelf: 'flex-start',
-        gap: 6,
+        gap: 4,
     },
-    postTypeText: { fontSize: 12, fontWeight: '600' },
+    postTypeText: { fontSize: 11, fontWeight: '700' },
     
     input: {
-        fontSize: 19,
-        lineHeight: 28,
-        minHeight: 120,
+        fontSize: 16,
+        lineHeight: 24,
+        minHeight: 100,
         marginBottom: 20,
+        fontWeight: '500',
     },
     
     tagsContainer: {
@@ -388,34 +393,39 @@ const styles = StyleSheet.create({
     tagChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 10,
         borderWidth: 1,
-        gap: 6,
+        gap: 5,
     },
-    tagChipText: { fontSize: 14, fontWeight: '500' },
+    tagChipText: { fontSize: 13, fontWeight: '600' },
 
     imagePreviewContainer: {
-        marginVertical: 15,
-        borderRadius: 12,
+        marginVertical: 8,
+        borderRadius: 16,
         overflow: 'hidden',
         position: 'relative',
-        height: 120,
-        width: 120,
-        backgroundColor: '#f1f5f9',
+        height: 140,
+        width: 140,
+        backgroundColor: '#f8fafc',
         borderWidth: 1,
         borderColor: '#e2e8f0',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
     },
     imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
     removeImageBtn: {
         position: 'absolute',
-        top: 6,
-        right: 6,
+        top: 8,
+        right: 8,
         zIndex: 10,
     },
     removeIconCircle: {
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         width: 24,
         height: 24,
         borderRadius: 12,
@@ -425,55 +435,64 @@ const styles = StyleSheet.create({
     
     addToPostContainer: {
         marginTop: 10,
+        paddingTop: 10,
     },
     divider: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: '#e2e8f0',
-        marginBottom: 20,
+        height: 1,
+        backgroundColor: '#f1f5f9',
+        marginBottom: 16,
     },
-    sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 20 },
+    sectionTitle: { fontSize: 15, fontWeight: '800', marginBottom: 16, letterSpacing: -0.2 },
     actionGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
     },
     actionCard: {
-        width: (width - 52) / 2,
-        padding: 16,
+        width: (width - 44) / 2,
+        padding: 12,
         borderRadius: 16,
         flexDirection: 'row',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
     },
     itemIconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
+        width: 38,
+        height: 38,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
+        marginRight: 10,
     },
-    actionLabel: { fontSize: 14, fontWeight: '600', flex: 1 },
-    plusIcon: { marginLeft: 4 },
+    actionLabel: { fontSize: 13, fontWeight: '700', flex: 1 },
+    plusIcon: { marginLeft: 2, opacity: 0.4 },
 
-    keyboardToolbar: {
+    toolbarWrapper: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        paddingBottom: Platform.OS === 'ios' ? 0 : 5,
+    },
+    keyboardToolbar: {
+        borderTopWidth: 1,
     },
     toolbarContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        height: 54,
+        height: 50,
     },
     toolbarIcons: {
         flexDirection: 'row',
-        gap: 20,
+        gap: 18,
     },
-    toolbarIconBtn: { padding: 4 },
-    charCount: { fontSize: 13, fontWeight: '600', color: '#64748b' },
+    toolbarIconBtn: { padding: 2 },
+    charCount: { fontSize: 12, fontWeight: '700', opacity: 0.6 },
 });

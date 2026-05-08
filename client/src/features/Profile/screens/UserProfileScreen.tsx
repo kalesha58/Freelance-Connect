@@ -59,8 +59,8 @@ export default function UserProfileScreen() {
             const data = await apiClient(`/profile/${userId}`);
             setTargetUser(data);
             
-            // Check follow status if not own profile
-            if (!isOwnProfile && currentUser) {
+            // Check follow status if not own profile and user is a freelancer
+            if (!isOwnProfile && currentUser && currentUser.role === "freelancer") {
                 try {
                     const status = await apiClient(`/follow/status/${userId}`);
                     setIsFollowing(!!status.isFollowing);
@@ -87,7 +87,7 @@ export default function UserProfileScreen() {
     };
 
     const handleFollowToggle = async () => {
-        if (!userId || followLoading) return;
+        if (!userId || followLoading || currentUser?.role !== "freelancer") return;
         setFollowLoading(true);
         try {
             if (isFollowing) {
@@ -147,13 +147,14 @@ export default function UserProfileScreen() {
     
     const roleAccentColor = targetUser.role === "freelancer" ? colors.primary : colors.purpleAccent;
     const roleName = targetUser.role === "freelancer" ? "Freelancer" : "Hiring Partner";
+    const canFollow = currentUser?.role === "freelancer";
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
             {/* Premium Header */}
-            <View style={[styles.header, { backgroundColor: colors.headerBackground, paddingTop: insets.top + 10 }]}>
+            <View style={[styles.header, { backgroundColor: colors.headerBackground, paddingTop: insets.top + 10, paddingBottom: 15 }]}>
                 <View style={styles.headerContent}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
                         <Feather name="arrow-left" size={22} color="#fff" />
@@ -220,37 +221,41 @@ export default function UserProfileScreen() {
                     <View style={styles.actionRow}>
                         {!isOwnProfile ? (
                             <>
-                                <TouchableOpacity 
-                                    style={[
-                                        styles.primaryBtn, 
-                                        { backgroundColor: isFollowing ? colors.muted + "20" : colors.primary }
-                                    ]}
-                                    onPress={handleFollowToggle}
-                                    disabled={followLoading}
-                                >
-                                    {followLoading ? (
-                                        <ActivityIndicator size="small" color={isFollowing ? colors.foreground : "#fff"} />
-                                    ) : (
-                                        <Text style={[styles.btnText, { color: isFollowing ? colors.foreground : "#fff" }]}>
-                                            {isFollowing ? "Following" : "Follow"}
-                                        </Text>
-                                    )}
-                                </TouchableOpacity>
+                                {canFollow && (
+                                    <TouchableOpacity 
+                                        style={[
+                                            styles.primaryBtn, 
+                                            { backgroundColor: isFollowing ? colors.muted + "20" : colors.primary }
+                                        ]}
+                                        onPress={handleFollowToggle}
+                                        disabled={followLoading}
+                                    >
+                                        {followLoading ? (
+                                            <ActivityIndicator size="small" color={isFollowing ? colors.foreground : "#fff"} />
+                                        ) : (
+                                            <Text style={[styles.btnText, { color: isFollowing ? colors.foreground : "#fff" }]}>
+                                                {isFollowing ? "Following" : "Follow"}
+                                            </Text>
+                                        )}
+                                    </TouchableOpacity>
+                                )}
                                 <TouchableOpacity 
                                     style={[styles.secondaryBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
                                     onPress={handleMessagePress}
                                 >
                                     <Text style={[styles.secondaryBtnText, { color: colors.foreground }]}>Message</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.secondaryBtn, { backgroundColor: colors.destructive + "10", borderColor: colors.destructive }]}
-                                    onPress={async () => {
-                                        await blockUser(userId, "Blocked from profile");
-                                        navigation.goBack();
-                                    }}
-                                >
-                                    <Text style={[styles.secondaryBtnText, { color: colors.destructive }]}>Block</Text>
-                                </TouchableOpacity>
+                                {canFollow && (
+                                    <TouchableOpacity
+                                        style={[styles.secondaryBtn, { backgroundColor: colors.destructive + "10", borderColor: colors.destructive }]}
+                                        onPress={async () => {
+                                            await blockUser(userId, "Blocked from profile");
+                                            navigation.goBack();
+                                        }}
+                                    >
+                                        <Text style={[styles.secondaryBtnText, { color: colors.destructive }]}>Block</Text>
+                                    </TouchableOpacity>
+                                )}
                             </>
                         ) : (
                             <TouchableOpacity 
@@ -339,32 +344,32 @@ const styles = StyleSheet.create({
     headerBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff", flex: 1, textAlign: "center", marginHorizontal: 10 },
     profileInfo: { padding: 20, borderBottomWidth: 1 },
-    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 15 },
-    avatarBorder: { width: 90, height: 90, borderRadius: 45, borderWidth: 2, padding: 3, alignItems: "center", justifyContent: "center" },
-    avatar: { width: 78, height: 78, borderRadius: 39 },
-    avatarPlaceholder: { width: 78, height: 78, borderRadius: 39, alignItems: "center", justifyContent: "center" },
-    avatarInitial: { color: "#fff", fontSize: 32, fontWeight: "800" },
-    statsContainer: { flex: 1, flexDirection: "row", justifyContent: "space-around", marginLeft: 15 },
+    topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+    avatarBorder: { width: 84, height: 84, borderRadius: 42, borderWidth: 2, padding: 3, alignItems: "center", justifyContent: "center" },
+    avatar: { width: 72, height: 72, borderRadius: 36 },
+    avatarPlaceholder: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center" },
+    avatarInitial: { color: "#fff", fontSize: 28, fontWeight: "800" },
+    statsContainer: { flex: 1, flexDirection: "row", justifyContent: "space-around", marginLeft: 10 },
     statItem: { alignItems: "center" },
-    statValue: { fontSize: 17, fontWeight: "800" },
-    statLabel: { fontSize: 11, fontWeight: "500", marginTop: 2 },
-    bioContainer: { marginBottom: 20 },
-    name: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
+    statValue: { fontSize: 16, fontWeight: "800" },
+    statLabel: { fontSize: 10, fontWeight: "500", marginTop: 2 },
+    bioContainer: { marginBottom: 16 },
+    name: { fontSize: 17, fontWeight: "800", marginBottom: 4 },
     roleBadge: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-    roleDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
-    roleText: { fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
-    location: { fontSize: 12, fontWeight: "400" },
-    tagline: { fontSize: 14, fontWeight: "600", marginBottom: 8 },
-    bioText: { fontSize: 14, lineHeight: 20 },
-    actionRow: { flexDirection: "row", gap: 10 },
-    primaryBtn: { flex: 1, height: 42, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-    secondaryBtn: { flex: 1, height: 42, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-    btnText: { fontSize: 14, fontWeight: "700" },
-    secondaryBtnText: { fontSize: 14, fontWeight: "700" },
-    tabBar: { flexDirection: "row", borderBottomWidth: 1 },
-    tabItem: { flex: 1, alignItems: "center", paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: "transparent" },
-    grid: { flexDirection: "row", flexWrap: "wrap" },
-    gridItem: { width: width / 3, height: width / 3, borderWidth: 0.5, borderColor: "rgba(0,0,0,0.05)" },
+    roleDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 6 },
+    roleText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
+    location: { fontSize: 11, fontWeight: "400" },
+    tagline: { fontSize: 13, fontWeight: "600", marginBottom: 6 },
+    bioText: { fontSize: 13, lineHeight: 18 },
+    actionRow: { flexDirection: "row", gap: 8 },
+    primaryBtn: { flex: 1.2, height: 40, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+    secondaryBtn: { flex: 1, height: 40, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    btnText: { fontSize: 13, fontWeight: "700" },
+    secondaryBtnText: { fontSize: 13, fontWeight: "700" },
+    tabBar: { flexDirection: "row", borderBottomWidth: 1, marginBottom: 1 },
+    tabItem: { flex: 1, alignItems: "center", paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: "transparent" },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: 1 },
+    gridItem: { width: width / 3 - 0.7, aspectRatio: 1 },
     gridImage: { width: "100%", height: "100%" },
     emptyGrid: { width: "100%", paddingVertical: 60, alignItems: "center", justifyContent: "center" },
     portfolioOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, padding: 8, backgroundColor: "rgba(0,0,0,0.4)" },

@@ -68,7 +68,7 @@ const MOCK_JOBS: IJob[] = [
 export default function HomeScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
-    const { user, jobs, searchFreelancers } = useApp();
+    const { user, jobs, searchFreelancers, searchJobs, fetchJobs } = useApp();
     const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
@@ -110,24 +110,48 @@ export default function HomeScreen() {
         }
     };
 
-    useEffect(() => {
-        if (isHiringRole) {
-            const delayDebounceFn = setTimeout(() => {
-                loadFreelancers();
-            }, 500);
-
-            return () => clearTimeout(delayDebounceFn);
+    const loadJobs = async () => {
+        try {
+            const category = activeFilter === "All" ? undefined : activeFilter;
+            await searchJobs(search, category);
+        } catch (error) {
+            console.error("Load Jobs Error:", error);
         }
+    };
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (isHiringRole) {
+                loadFreelancers();
+            } else {
+                // If searching or filtering, use searchJobs, otherwise fetch all
+                if (search || activeFilter !== "All") {
+                    loadJobs();
+                } else {
+                    fetchJobs();
+                }
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
     }, [search, activeFilter, isHiringRole]);
 
 
     const filteredJobs = jobs.filter(j => {
-        const isSearchMatch = search === "" || j.title.toLowerCase().includes(search.toLowerCase());
-        const isFilterMatch = activeFilter === "All" || j.category.toLowerCase().includes(activeFilter.toLowerCase());
+        const query = search.toLowerCase();
+        const isSearchMatch = search === "" || 
+            j.title?.toLowerCase().includes(query) || 
+            j.description?.toLowerCase().includes(query) ||
+            (Array.isArray(j.skills) && j.skills.some(s => s.toLowerCase().includes(query)));
+            
+        const isFilterMatch = activeFilter === "All" || 
+            j.category?.toLowerCase().includes(activeFilter.toLowerCase()) ||
+            (Array.isArray(j.skills) && j.skills.some(s => s.toLowerCase() === activeFilter.toLowerCase()));
+            
         return isSearchMatch && isFilterMatch;
     });
 
-    const RequesterHeader = () => (
+    const renderRequesterHeader = () => (
         <View style={styles.headerContainer}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
             <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
@@ -222,7 +246,7 @@ export default function HomeScreen() {
         </View>
     );
 
-    const FreelancerHeader = () => (
+    const renderFreelancerHeader = () => (
         <View style={styles.headerContainer}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
             <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
@@ -333,7 +357,7 @@ export default function HomeScreen() {
                         </View>
                     );
                 }}
-                ListHeaderComponent={isHiringRole ? RequesterHeader : FreelancerHeader}
+                ListHeaderComponent={isHiringRole ? renderRequesterHeader() : renderFreelancerHeader()}
                 contentContainerStyle={[
                     styles.mainListContent,
                     { paddingBottom: 80 + insets.bottom }

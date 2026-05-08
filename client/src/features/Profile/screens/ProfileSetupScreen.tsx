@@ -4,10 +4,8 @@ import {
     View,
     Text,
     TouchableOpacity,
-    ScrollView,
     TextInput,
     Platform,
-    KeyboardAvoidingView,
     Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +14,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 const { width } = Dimensions.get("window");
 
@@ -164,7 +163,6 @@ export default function ProfileSetupScreen() {
 
         try {
             await updateProfile(profileData);
-            navigation.navigate("Main", { screen: "Profile" });
         } catch (error) {
             console.error("Update Profile Error:", error);
         }
@@ -312,7 +310,7 @@ export default function ProfileSetupScreen() {
                 );
             case 2:
                 return (
-                    <ScrollView style={styles.stepContainer} showsVerticalScrollIndicator={false}>
+                    <View style={styles.stepContainer}>
                         <Text style={[styles.stepTitle, { color: colors.foreground }]}>Education</Text>
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                             Add your academic background.
@@ -365,11 +363,11 @@ export default function ProfileSetupScreen() {
                                 <Text style={{ color: colors.primary, fontWeight: '600' }}>Add Education</Text>
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
+                    </View>
                 );
             case 3:
                 return (
-                    <ScrollView style={styles.stepContainer} showsVerticalScrollIndicator={false}>
+                    <View style={styles.stepContainer}>
                         <Text style={[styles.stepTitle, { color: colors.foreground }]}>Work Experience</Text>
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                             Showcase your previous roles and achievements.
@@ -429,7 +427,7 @@ export default function ProfileSetupScreen() {
                                 <Text style={{ color: colors.primary, fontWeight: '600' }}>Add Experience</Text>
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
+                    </View>
                 );
             case 4:
                 return (
@@ -459,10 +457,7 @@ export default function ProfileSetupScreen() {
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={[styles.container, { backgroundColor: colors.background }]}
-        >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <Text style={[styles.headerTitle, { color: colors.foreground }]}>Complete Your Profile</Text>
                 <Text style={[styles.headerSubtitle, { color: colors.mutedForeground }]}>Step {currentStep + 1} of {STEPS.length}</Text>
@@ -487,9 +482,10 @@ export default function ProfileSetupScreen() {
                 ))}
             </View>
 
-            <View style={styles.content}>
+            <KeyboardAwareScrollViewCompat style={styles.content} showsVerticalScrollIndicator={false}>
                 {renderStepContent()}
-            </View>
+                <View style={{ height: 40 }} />
+            </KeyboardAwareScrollViewCompat>
 
             <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
                 {currentStep > 0 && (
@@ -517,103 +513,103 @@ export default function ProfileSetupScreen() {
                     <Feather name="arrow-right" size={18} color={isNextDisabled() ? colors.mutedForeground : colors.onButtonPrimary} style={{ marginLeft: 8, opacity: isNextDisabled() ? 0.5 : 1 }} />
                 </TouchableOpacity>
             </View>
-        </KeyboardAvoidingView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { paddingHorizontal: 24, marginBottom: 20 },
-    headerTitle: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
-    headerSubtitle: { fontSize: 14, fontWeight: '500', marginTop: 4 },
+    header: { paddingHorizontal: 16, marginBottom: 16 },
+    headerTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
+    headerSubtitle: { fontSize: 13, fontWeight: '500', marginTop: 2 },
     stepperContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 30,
-        marginBottom: 30,
+        paddingHorizontal: 20,
+        marginBottom: 20,
     },
     stepIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
     stepLine: {
         flex: 1,
         height: 2,
-        marginHorizontal: 8,
+        marginHorizontal: 6,
     },
-    content: { flex: 1, paddingHorizontal: 24 },
+    content: { flex: 1, paddingHorizontal: 16 },
     stepContainer: { flex: 1 },
-    stepTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
-    stepDesc: { fontSize: 14, lineHeight: 20, marginBottom: 8 },
-    helperText: { fontSize: 12, fontStyle: 'italic', marginBottom: 12, opacity: 0.8 },
+    stepTitle: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
+    stepDesc: { fontSize: 13, lineHeight: 18, marginBottom: 6 },
+    helperText: { fontSize: 11, fontStyle: 'italic', marginBottom: 10, opacity: 0.8 },
     textArea: {
-        borderRadius: 16,
-        padding: 16,
-        fontSize: 16,
+        borderRadius: 12,
+        padding: 12,
+        fontSize: 14,
         textAlignVertical: 'top',
         borderWidth: 1,
     },
     input: {
-        borderRadius: 12,
-        padding: 14,
-        fontSize: 16,
+        borderRadius: 10,
+        padding: 10,
+        fontSize: 14,
         borderWidth: 1,
-        marginBottom: 12,
+        marginBottom: 10,
     },
-    inputRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-    addBtn: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    tagCloud: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    inputRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+    addBtn: { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    tagCloud: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     tag: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 15,
     },
-    tagText: { fontSize: 14, fontWeight: '600' },
-    form: { gap: 4 },
-    row: { flexDirection: 'row', gap: 10 },
+    tagText: { fontSize: 13, fontWeight: '600' },
+    form: { gap: 2 },
+    row: { flexDirection: 'row', gap: 8 },
     outlineBtn: {
-        height: 48,
-        borderRadius: 12,
+        height: 42,
+        borderRadius: 10,
         borderWidth: 1.5,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 10,
+        marginTop: 8,
     },
     itemCard: {
-        padding: 16,
-        borderRadius: 16,
+        padding: 12,
+        borderRadius: 12,
         borderWidth: 1,
-        marginBottom: 12,
+        marginBottom: 10,
     },
-    itemTitle: { fontSize: 16, fontWeight: '700' },
-    itemSubtitle: { fontSize: 14, fontWeight: '500', marginTop: 2 },
-    itemDate: { fontSize: 12, fontWeight: '400', marginTop: 4 },
+    itemTitle: { fontSize: 14, fontWeight: '700' },
+    itemSubtitle: { fontSize: 13, fontWeight: '500', marginTop: 2 },
+    itemDate: { fontSize: 11, fontWeight: '400', marginTop: 2 },
     footer: {
         flexDirection: 'row',
-        paddingHorizontal: 24,
-        paddingTop: 16,
-        gap: 12,
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        gap: 10,
     },
     backBtn: {
-        height: 56,
-        paddingHorizontal: 24,
-        borderRadius: 16,
+        height: 48,
+        paddingHorizontal: 20,
+        borderRadius: 12,
         borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    backBtnText: { fontSize: 16, fontWeight: '600' },
+    backBtnText: { fontSize: 15, fontWeight: '600' },
     nextBtn: {
-        height: 56,
-        borderRadius: 16,
+        height: 48,
+        borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    nextBtnText: { fontSize: 16, fontWeight: '700' },
+    nextBtnText: { fontSize: 15, fontWeight: '700' },
 });

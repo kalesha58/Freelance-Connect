@@ -8,16 +8,66 @@ const { getBlockedUserIdsFor } = require('../utils/blocking');
 // @desc    Get all jobs
 // @route   GET /api/jobs
 // @access  Public
+// @desc    Get all jobs
+// @route   GET /api/jobs
+// @access  Public
 router.get('/', optionalAuth, async (req, res) => {
     try {
-        const query = {};
+        const { search, category } = req.query;
+        let query = {};
+
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { skills: { $in: [new RegExp(search, 'i')] } }
+            ];
+        }
+
+        if (category && category !== 'All') {
+            query.category = category;
+        }
+
         if (req.user?._id) {
             const blockedUserIds = await getBlockedUserIdsFor(req.user._id);
             if (blockedUserIds.length > 0) {
-                query.clientId = { $nin: blockedUserIds };
+                query.clientId = { ...query.clientId, $nin: blockedUserIds };
             }
         }
+        
         const jobs = await Job.find(query).sort({ postedAt: -1 });
+        res.json(jobs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get jobs applied for by current user
+// @route   GET /api/jobs/my/applied
+// @access  Private
+router.get('/my/applied', protect, async (req, res) => {
+    try {
+        const applications = await Application.find({ applicantId: req.user._id }).populate('jobId');
+        const jobs = applications.map(app => {
+            if (!app.jobId) return null;
+            return {
+                ...app.jobId.toObject(),
+                applicationStatus: app.status,
+                appliedAt: app.createdAt
+            };
+        }).filter(Boolean);
+        res.json(jobs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get jobs posted by current user
+// @route   GET /api/jobs/my/postings
+// @access  Private
+router.get('/my/postings', protect, async (req, res) => {
+    try {
+        const jobs = await Job.find({ clientId: req.user._id }).sort({ postedAt: -1 });
         res.json(jobs);
     } catch (error) {
         res.status(500).json({ message: error.message });

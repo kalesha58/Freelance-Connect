@@ -4,20 +4,20 @@ import {
     View,
     Text,
     TouchableOpacity,
-    ScrollView,
     TextInput,
     Platform,
-    KeyboardAvoidingView,
     Modal,
     Alert,
     ActivityIndicator,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 function formatFollowCount(n?: number) {
     if (typeof n === "number" && !Number.isNaN(n)) return String(n);
@@ -49,9 +49,9 @@ export default function EditProfileScreen() {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     // Temp Form State (Education)
-    const [eduForm, setEduForm] = useState({ institution: "", degree: "", startYear: "", endYear: "" });
+    const [eduForm, setEduForm] = useState({ institution: "", degree: "", startYear: "", endYear: "", currentlyStudying: false });
     // Temp Form State (Experience)
-    const [expForm, setExpForm] = useState({ company: "", role: "", startYear: "", endYear: "", description: "" });
+    const [expForm, setExpForm] = useState({ company: "", role: "", startYear: "", endYear: "", description: "", currentlyWorking: false });
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
 
@@ -65,7 +65,7 @@ export default function EditProfileScreen() {
                 education,
                 experience,
                 services,
-                ...(user?.role === "freelancer" ? { portfolioUrl: portfolioUrl.trim() } : {}),
+                portfolioUrl: portfolioUrl.trim(),
 
             });
             Alert.alert("Success", "Profile updated successfully!");
@@ -80,10 +80,13 @@ export default function EditProfileScreen() {
     // --- Education Actions ---
     const openEduModal = (index: number | null = null) => {
         if (index !== null) {
-            setEduForm(education[index]);
+            setEduForm({
+                ...education[index],
+                currentlyStudying: education[index].endYear === "Present" || education[index].endYear === new Date().getFullYear().toString()
+            });
             setEditingIndex(index);
         } else {
-            setEduForm({ institution: "", degree: "", startYear: "", endYear: "" });
+            setEduForm({ institution: "", degree: "", startYear: "", endYear: "", currentlyStudying: false });
             setEditingIndex(null);
         }
         setIsEduModalVisible(true);
@@ -116,10 +119,13 @@ export default function EditProfileScreen() {
     // --- Experience Actions ---
     const openExpModal = (index: number | null = null) => {
         if (index !== null) {
-            setExpForm(experience[index]);
+            setExpForm({
+                ...experience[index],
+                currentlyWorking: experience[index].endYear === "Present" || experience[index].endYear === new Date().getFullYear().toString()
+            });
             setEditingIndex(index);
         } else {
-            setExpForm({ company: "", role: "", startYear: "", endYear: "", description: "" });
+            setExpForm({ company: "", role: "", startYear: "", endYear: "", description: "", currentlyWorking: false });
             setEditingIndex(null);
         }
         setIsExpModalVisible(true);
@@ -150,10 +156,7 @@ export default function EditProfileScreen() {
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={[styles.container, { backgroundColor: colors.background }]}
-        >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Custom Header */}
             <View style={[styles.header, { paddingTop: topInsetOffset + 10, backgroundColor: colors.headerBackground }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -169,7 +172,7 @@ export default function EditProfileScreen() {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <KeyboardAwareScrollViewCompat contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Basic Info Section */}
                 <SectionHeader title="Basic Info" icon="user" colors={colors} />
                 <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -203,26 +206,25 @@ export default function EditProfileScreen() {
                     />
                 </View>
 
-                {user?.role === "freelancer" && (
-                    <>
-                        <SectionHeader title="Portfolio link" icon="link" colors={colors} />
-                        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                            <Text style={[styles.inputLabel, { color: colors.mutedForeground }]}>
-                                Website (Behance, Dribbble, personal site)
-                            </Text>
-                            <TextInput
-                                style={[styles.input, { color: colors.foreground, backgroundColor: colors.muted + "10", borderColor: colors.border }]}
-                                value={portfolioUrl}
-                                onChangeText={setPortfolioUrl}
-                                placeholder="https://"
-                                placeholderTextColor={colors.mutedForeground}
-                                keyboardType="url"
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                            />
-                        </View>
-                    </>
-                )}
+                <SectionHeader title="Portfolio link" icon="link" colors={colors} />
+                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Text style={[styles.inputLabel, { color: colors.mutedForeground }]}>
+                        Website (Behance, Dribbble, personal site)
+                    </Text>
+                    <View style={styles.portfolioInputRow}>
+                        <Feather name="globe" size={18} color={colors.mutedForeground} style={styles.inputIconLeft} />
+                        <TextInput
+                            style={[styles.input, { flex: 1, color: colors.foreground, backgroundColor: colors.muted + "10", borderColor: "transparent", paddingLeft: 40 }]}
+                            value={portfolioUrl}
+                            onChangeText={setPortfolioUrl}
+                            placeholder="https://yourportfolio.com"
+                            placeholderTextColor={colors.mutedForeground}
+                            keyboardType="url"
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
+                    </View>
+                </View>
 
                 <SectionHeader title="Your Services" icon="settings" colors={colors} />
                 <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -355,132 +357,202 @@ export default function EditProfileScreen() {
                 )}
 
                 <View style={{ height: 40 }} />
-            </ScrollView>
+            </KeyboardAwareScrollViewCompat>
 
             {/* Modal: Add/Edit Education */}
-            <Modal visible={isEduModalVisible} transparent animationType="slide">
+            <Modal visible={isEduModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.modalTitle, { color: colors.foreground }]}>{editingIndex !== null ? "Edit Education" : "Add Education"}</Text>
-                        
-                        <ScrollView style={{ maxHeight: 400 }}>
-                            <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Institution</Text>
-                            <TextInput 
-                                style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                value={eduForm.institution} 
-                                onChangeText={t => setEduForm({...eduForm, institution: t})}
-                            />
-
-                            <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Degree</Text>
-                            <TextInput 
-                                style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                value={eduForm.degree} 
-                                onChangeText={t => setEduForm({...eduForm, degree: t})}
-                            />
-
-                            <View style={styles.modalRow}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Start Year</Text>
-                                    <TextInput 
-                                        style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                        value={eduForm.startYear} 
-                                        onChangeText={t => setEduForm({...eduForm, startYear: t.replace(/[^0-9]/g, "")})}
-                                        keyboardType="number-pad"
-                                        maxLength={4}
-                                    />
-                                </View>
-                                <View style={{ width: 16 }} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>End Year</Text>
-                                    <TextInput 
-                                        style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                        value={eduForm.endYear} 
-                                        onChangeText={t => setEduForm({...eduForm, endYear: t})}
-                                        placeholder="or Present"
-                                        placeholderTextColor={colors.mutedForeground}
-                                    />
-                                </View>
+                    <TouchableOpacity style={{ flex: 1 }} onPress={() => setIsEduModalVisible(false)} />
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                            <View style={styles.modalHeader}>
+                                <Text style={[styles.modalTitle, { color: colors.foreground }]}>{editingIndex !== null ? "Edit Education" : "Add Education"}</Text>
+                                <TouchableOpacity onPress={() => setIsEduModalVisible(false)}>
+                                    <Feather name="x" size={20} color={colors.mutedForeground} />
+                                </TouchableOpacity>
                             </View>
-                        </ScrollView>
+                            
+                            <KeyboardAwareScrollViewCompat style={{ maxHeight: 450 }} showsVerticalScrollIndicator={false}>
+                                <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Institution</Text>
+                                <TextInput 
+                                    style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                    value={eduForm.institution} 
+                                    onChangeText={t => setEduForm({...eduForm, institution: t})}
+                                    placeholder="e.g. Stanford University"
+                                    placeholderTextColor={colors.mutedForeground}
+                                />
 
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity style={[styles.modalCancelBtn, { borderColor: colors.border }]} onPress={() => setIsEduModalVisible(false)}>
-                                <Text style={[styles.modalCancelText, { color: colors.foreground }]}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: colors.buttonPrimary }]} onPress={saveEducation}>
-                                <Text style={[styles.modalSaveText, { color: colors.onButtonPrimary }]}>Done</Text>
-                            </TouchableOpacity>
+                                <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Degree</Text>
+                                <TextInput 
+                                    style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                    value={eduForm.degree} 
+                                    onChangeText={t => setEduForm({...eduForm, degree: t})}
+                                    placeholder="e.g. Bachelor of Science in Design"
+                                    placeholderTextColor={colors.mutedForeground}
+                                />
+
+                                <View style={styles.checkboxRow}>
+                                    <TouchableOpacity 
+                                        style={[styles.checkbox, { borderColor: eduForm.currentlyStudying ? colors.primary : colors.border, backgroundColor: eduForm.currentlyStudying ? colors.primary : "transparent" }]}
+                                        onPress={() => {
+                                            const newState = !eduForm.currentlyStudying;
+                                            setEduForm({
+                                                ...eduForm,
+                                                currentlyStudying: newState,
+                                                endYear: newState ? new Date().getFullYear().toString() : ""
+                                            });
+                                        }}
+                                    >
+                                        {eduForm.currentlyStudying && <Feather name="check" size={12} color="#fff" />}
+                                    </TouchableOpacity>
+                                    <Text style={[styles.checkboxLabel, { color: colors.foreground }]}>I am currently studying here</Text>
+                                </View>
+
+                                <View style={styles.modalRow}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Start Year</Text>
+                                        <TextInput 
+                                            style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                            value={eduForm.startYear} 
+                                            onChangeText={t => setEduForm({...eduForm, startYear: t.replace(/[^0-9]/g, "")})}
+                                            keyboardType="number-pad"
+                                            maxLength={4}
+                                            placeholder="YYYY"
+                                            placeholderTextColor={colors.mutedForeground}
+                                        />
+                                    </View>
+                                    <View style={{ width: 16 }} />
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>End Year</Text>
+                                        <TextInput 
+                                            style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: eduForm.currentlyStudying ? colors.muted + "10" : colors.muted + "05" }]} 
+                                            value={eduForm.endYear} 
+                                            onChangeText={t => setEduForm({...eduForm, endYear: t})}
+                                            placeholder="or Present"
+                                            placeholderTextColor={colors.mutedForeground}
+                                            editable={!eduForm.currentlyStudying}
+                                        />
+                                    </View>
+                                </View>
+                            </KeyboardAwareScrollViewCompat>
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity style={[styles.modalCancelBtn, { borderColor: colors.border }]} onPress={() => setIsEduModalVisible(false)}>
+                                    <Text style={[styles.modalCancelText, { color: colors.foreground }]}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: colors.buttonPrimary }]} onPress={saveEducation}>
+                                    <Text style={[styles.modalSaveText, { color: colors.onButtonPrimary }]}>Done</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
             {/* Modal: Add/Edit Experience */}
-            <Modal visible={isExpModalVisible} transparent animationType="slide">
+            <Modal visible={isExpModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.modalTitle, { color: colors.foreground }]}>{editingIndex !== null ? "Edit Experience" : "Add Experience"}</Text>
-                        
-                        <ScrollView style={{ maxHeight: 450 }}>
-                            <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Company</Text>
-                            <TextInput 
-                                style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                value={expForm.company} 
-                                onChangeText={t => setExpForm({...expForm, company: t})}
-                            />
-
-                            <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Role</Text>
-                            <TextInput 
-                                style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                value={expForm.role} 
-                                onChangeText={t => setExpForm({...expForm, role: t})}
-                            />
-
-                            <View style={styles.modalRow}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Start Year</Text>
-                                    <TextInput 
-                                        style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                        value={expForm.startYear} 
-                                        onChangeText={t => setExpForm({...expForm, startYear: t.replace(/[^0-9]/g, "")})}
-                                        keyboardType="number-pad"
-                                        maxLength={4}
-                                    />
-                                </View>
-                                <View style={{ width: 16 }} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>End Year</Text>
-                                    <TextInput 
-                                        style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border }]} 
-                                        value={expForm.endYear} 
-                                        onChangeText={t => setExpForm({...expForm, endYear: t})}
-                                        placeholder="or Present"
-                                        placeholderTextColor={colors.mutedForeground}
-                                    />
-                                </View>
+                    <TouchableOpacity style={{ flex: 1 }} onPress={() => setIsExpModalVisible(false)} />
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                            <View style={styles.modalHeader}>
+                                <Text style={[styles.modalTitle, { color: colors.foreground }]}>{editingIndex !== null ? "Edit Experience" : "Add Experience"}</Text>
+                                <TouchableOpacity onPress={() => setIsExpModalVisible(false)}>
+                                    <Feather name="x" size={20} color={colors.mutedForeground} />
+                                </TouchableOpacity>
                             </View>
+                            
+                            <KeyboardAwareScrollViewCompat style={{ maxHeight: 500 }} showsVerticalScrollIndicator={false}>
+                                <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Company</Text>
+                                <TextInput 
+                                    style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                    value={expForm.company} 
+                                    onChangeText={t => setExpForm({...expForm, company: t})}
+                                    placeholder="e.g. Google"
+                                    placeholderTextColor={colors.mutedForeground}
+                                />
 
-                            <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Description</Text>
-                            <TextInput 
-                                style={[styles.modalInput, { height: 80, paddingVertical: 10, textAlignVertical: "top", color: colors.foreground, borderColor: colors.border }]} 
-                                value={expForm.description} 
-                                onChangeText={t => setExpForm({...expForm, description: t})}
-                                multiline
-                            />
-                        </ScrollView>
+                                <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Role</Text>
+                                <TextInput 
+                                    style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                    value={expForm.role} 
+                                    onChangeText={t => setExpForm({...expForm, role: t})}
+                                    placeholder="e.g. Senior Product Designer"
+                                    placeholderTextColor={colors.mutedForeground}
+                                />
 
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity style={[styles.modalCancelBtn, { borderColor: colors.border }]} onPress={() => setIsExpModalVisible(false)}>
-                                <Text style={[styles.modalCancelText, { color: colors.foreground }]}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: colors.buttonPrimary }]} onPress={saveExperience}>
-                                <Text style={[styles.modalSaveText, { color: colors.onButtonPrimary }]}>Done</Text>
-                            </TouchableOpacity>
+                                <View style={styles.checkboxRow}>
+                                    <TouchableOpacity 
+                                        style={[styles.checkbox, { borderColor: expForm.currentlyWorking ? colors.primary : colors.border, backgroundColor: expForm.currentlyWorking ? colors.primary : "transparent" }]}
+                                        onPress={() => {
+                                            const newState = !expForm.currentlyWorking;
+                                            setExpForm({
+                                                ...expForm,
+                                                currentlyWorking: newState,
+                                                endYear: newState ? new Date().getFullYear().toString() : ""
+                                            });
+                                        }}
+                                    >
+                                        {expForm.currentlyWorking && <Feather name="check" size={12} color="#fff" />}
+                                    </TouchableOpacity>
+                                    <Text style={[styles.checkboxLabel, { color: colors.foreground }]}>I am currently working in this role</Text>
+                                </View>
+
+                                <View style={styles.modalRow}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Start Year</Text>
+                                        <TextInput 
+                                            style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                            value={expForm.startYear} 
+                                            onChangeText={t => setExpForm({...expForm, startYear: t.replace(/[^0-9]/g, "")})}
+                                            keyboardType="number-pad"
+                                            maxLength={4}
+                                            placeholder="YYYY"
+                                            placeholderTextColor={colors.mutedForeground}
+                                        />
+                                    </View>
+                                    <View style={{ width: 16 }} />
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>End Year</Text>
+                                        <TextInput 
+                                            style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: expForm.currentlyWorking ? colors.muted + "10" : colors.muted + "05" }]} 
+                                            value={expForm.endYear} 
+                                            onChangeText={t => setExpForm({...expForm, endYear: t})}
+                                            placeholder="or Present"
+                                            placeholderTextColor={colors.mutedForeground}
+                                            editable={!expForm.currentlyWorking}
+                                        />
+                                    </View>
+                                </View>
+
+                                <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>Description</Text>
+                                <TextInput 
+                                    style={[styles.modalInput, { height: 100, paddingVertical: 10, textAlignVertical: "top", color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted + "05" }]} 
+                                    value={expForm.description} 
+                                    onChangeText={t => setExpForm({...expForm, description: t})}
+                                    multiline
+                                    placeholder="Describe your responsibilities and achievements..."
+                                    placeholderTextColor={colors.mutedForeground}
+                                />
+                            </KeyboardAwareScrollViewCompat>
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity style={[styles.modalCancelBtn, { borderColor: colors.border }]} onPress={() => setIsExpModalVisible(false)}>
+                                    <Text style={[styles.modalCancelText, { color: colors.foreground }]}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: colors.buttonPrimary }]} onPress={saveExperience}>
+                                    <Text style={[styles.modalSaveText, { color: colors.onButtonPrimary }]}>Done</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
-        </KeyboardAvoidingView>
+        </View>
     );
 }
 
@@ -504,14 +576,17 @@ function HistoryItem({ title, subtitle, date, icon, colors, onEdit, onDelete }: 
             <View style={styles.historyInfo}>
                 <Text style={[styles.historyTitle, { color: colors.foreground }]} numberOfLines={1}>{title}</Text>
                 <Text style={[styles.historySubtitle, { color: colors.mutedForeground }]} numberOfLines={1}>{subtitle}</Text>
-                <Text style={[styles.historyDate, { color: colors.mutedForeground }]}>{date}</Text>
+                <View style={styles.dateBadge}>
+                    <Feather name="calendar" size={10} color={colors.mutedForeground} style={{ marginRight: 4 }} />
+                    <Text style={[styles.historyDate, { color: colors.mutedForeground }]}>{date}</Text>
+                </View>
             </View>
             <View style={styles.historyActions}>
-                <TouchableOpacity onPress={onEdit} style={styles.actionIconButton}>
-                    <Feather name="edit-2" size={18} color={colors.primary} />
+                <TouchableOpacity onPress={onEdit} style={[styles.actionIconButton, { backgroundColor: colors.primary + "10" }]}>
+                    <Feather name="edit-2" size={14} color={colors.primary} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onDelete} style={styles.actionIconButton}>
-                    <Feather name="trash-2" size={18} color={colors.destructive} />
+                <TouchableOpacity onPress={onDelete} style={[styles.actionIconButton, { backgroundColor: colors.destructive + "10" }]}>
+                    <Feather name="trash-2" size={14} color={colors.destructive} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -532,58 +607,87 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 20,
-        paddingBottom: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 12,
     },
     backBtn: { padding: 4 },
-    headerTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
-    saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-    scrollContent: { padding: 20 },
-    sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12, marginTop: 10 },
-    sectionTitle: { fontSize: 16, fontWeight: "800" },
-    sectionHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, marginTop: 20 },
-    card: { padding: 16, borderRadius: 20, borderWidth: 1, marginBottom: 10 },
-    inputLabel: { fontSize: 12, fontWeight: "700", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 },
-    input: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, borderWidth: 1 },
-    textArea: { borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, height: 100, textAlignVertical: "top", borderWidth: 1 },
-    addInlineBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-    addInlineLabel: { fontSize: 13, fontWeight: "700" },
-    historyCard: { flexDirection: "row", alignItems: "center", padding: 14, borderRadius: 18, borderWidth: 1, marginBottom: 12, gap: 12 },
+    headerTitle: { color: "#fff", fontSize: 17, fontWeight: "700" },
+    saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+    scrollContent: { padding: 16 },
+    sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10, marginTop: 8 },
+    sectionTitle: { fontSize: 14, fontWeight: "800" },
+    sectionHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10, marginTop: 16 },
+    card: { padding: 14, borderRadius: 16, borderWidth: 1, marginBottom: 10 },
+    inputLabel: { fontSize: 11, fontWeight: "700", marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.3 },
+    input: { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, borderWidth: 1 },
+    textArea: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, height: 90, textAlignVertical: "top", borderWidth: 1 },
+    addInlineBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+    addInlineLabel: { fontSize: 12, fontWeight: "700" },
+    historyCard: { 
+        flexDirection: "row", 
+        alignItems: "center", 
+        padding: 16, 
+        borderRadius: 18, 
+        borderWidth: 1, 
+        marginBottom: 12, 
+        gap: 14,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+        elevation: 1,
+    },
     historyIconBox: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
     historyInfo: { flex: 1 },
-    historyTitle: { fontSize: 15, fontWeight: "700" },
-    historySubtitle: { fontSize: 13, fontWeight: "500", marginTop: 2 },
-    historyDate: { fontSize: 11, fontWeight: "400", marginTop: 4 },
-    historyActions: { flexDirection: "row", gap: 4 },
-    actionIconButton: { padding: 8 },
-    emptyCard: { padding: 20, borderRadius: 18, borderWidth: 1, borderStyle: "dashed", alignItems: "center", justifyContent: "center" },
-    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-    modalContent: { borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, paddingBottom: Platform.OS === "ios" ? 40 : 24 },
-    modalTitle: { fontSize: 20, fontWeight: "800", marginBottom: 20, textAlign: "center" },
-    modalLabel: { fontSize: 13, fontWeight: "700", marginBottom: 8, marginTop: 16 },
-    modalInput: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, borderWidth: 1 },
+    historyTitle: { fontSize: 15, fontWeight: "700", marginBottom: 2 },
+    historySubtitle: { fontSize: 13, fontWeight: "500", opacity: 0.8 },
+    dateBadge: { flexDirection: "row", alignItems: "center", marginTop: 6 },
+    historyDate: { fontSize: 11, fontWeight: "600" },
+    historyActions: { flexDirection: "row", gap: 8 },
+    actionIconButton: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+    emptyCard: { padding: 24, borderRadius: 18, borderWidth: 1, borderStyle: "dashed", alignItems: "center", justifyContent: "center" },
+    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+    modalContent: { 
+        borderTopLeftRadius: 32, 
+        borderTopRightRadius: 32, 
+        padding: 24, 
+        paddingBottom: Platform.OS === "ios" ? 40 : 24,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 20,
+    },
+    modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+    modalTitle: { fontSize: 20, fontWeight: "800" },
+    modalLabel: { fontSize: 12, fontWeight: "700", marginBottom: 8, marginTop: 16, textTransform: "uppercase", letterSpacing: 0.5 },
+    modalInput: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, borderWidth: 1 },
     modalRow: { flexDirection: "row" },
-    modalActions: { flexDirection: "row", gap: 12, marginTop: 24 },
+    modalActions: { flexDirection: "row", gap: 12, marginTop: 28 },
     modalCancelBtn: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-    modalCancelText: { fontSize: 16, fontWeight: "600" },
+    modalCancelText: { fontSize: 15, fontWeight: "600" },
     modalSaveBtn: { flex: 2, height: 50, borderRadius: 14, alignItems: "center", justifyContent: "center" },
-    modalSaveText: { fontSize: 16, fontWeight: "700" },
+    modalSaveText: { fontSize: 15, fontWeight: "700" },
+    checkboxRow: { flexDirection: "row", alignItems: "center", marginTop: 20, marginBottom: 4 },
+    checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, alignItems: "center", justifyContent: "center", marginRight: 10 },
+    checkboxLabel: { fontSize: 14, fontWeight: "600" },
     networkRow: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        gap: 10,
+        gap: 8,
     },
-    networkRowLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-    networkRowLabel: { fontSize: 15, fontWeight: "600" },
-    networkRowMeta: { fontSize: 14, fontWeight: "600", marginRight: 4 },
-    networkHint: { fontSize: 12, lineHeight: 17, marginTop: 8, marginBottom: 8, paddingHorizontal: 4 },
-    addServiceRow: { flexDirection: "row", gap: 10, alignItems: "center" },
-    addBtnSmall: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-    servicesChipContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 16 },
-    serviceChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
-    serviceChipText: { fontSize: 13, fontWeight: "600" },
+    networkRowLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+    networkRowLabel: { fontSize: 14, fontWeight: "600" },
+    networkRowMeta: { fontSize: 13, fontWeight: "600", marginRight: 2 },
+    networkHint: { fontSize: 11, lineHeight: 16, marginTop: 6, marginBottom: 6, paddingHorizontal: 4 },
+    addServiceRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+    addBtnSmall: { width: 40, height: 40, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+    servicesChipContainer: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 },
+    serviceChip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1 },
+    serviceChipText: { fontSize: 12, fontWeight: "600" },
+    portfolioInputRow: { position: "relative", justifyContent: "center" },
+    inputIconLeft: { position: "absolute", left: 14, zIndex: 1 },
 });
-

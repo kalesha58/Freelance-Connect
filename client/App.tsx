@@ -29,7 +29,7 @@ function AppWithFirebase(): React.JSX.Element {
 function App(): React.JSX.Element {
     return (
         <SafeAreaProvider>
-            <KeyboardProvider>
+            <KeyboardProvider statusBarTranslucent={true}>
                 <ThemeProvider>
                     <AppProvider>
                         <AppWithFirebase />
