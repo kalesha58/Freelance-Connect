@@ -16,6 +16,7 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 import { apiClient } from "@/utils/apiClient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
@@ -71,10 +72,96 @@ export default function ProfileSetupScreen() {
     const [expEnd, setExpEnd] = useState("");
     const [expDesc, setExpDesc] = useState("");
     const [portfolioUrl, setPortfolioUrl] = useState((user as { portfolioUrl?: string })?.portfolioUrl || "");
+    const [workStatus, setWorkStatus] = useState<"none" | "freelance" | "company">("none");
 
     const isHiring = user?.role === "hiring" || user?.role === "requester";
     const STEPS = isHiring ? HIRING_STEPS : FREELANCER_STEPS;
     const currentUsernameLower = (user?.username || "").trim().toLowerCase();
+    const STORAGE_KEY = `PROFILE_SETUP_PROGRESS_${user?._id || "guest"}`;
+
+    // Load progress on mount
+    useEffect(() => {
+        const loadProgress = async () => {
+            try {
+                const saved = await AsyncStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.currentStep !== undefined) setCurrentStep(data.currentStep);
+                    if (data.bio) setBio(data.bio);
+                    if (data.tagline) setTagline(data.tagline);
+                    if (data.username) setUsername(data.username);
+                    if (data.services) setServices(data.services);
+                    if (data.companyName) setCompanyName(data.companyName);
+                    if (data.companyWebsite) setCompanyWebsite(data.companyWebsite);
+                    if (data.location) setLocation(data.location);
+                    if (data.industry) setIndustry(data.industry);
+                    if (data.education) setEducation(data.education);
+                    if (data.experience) setExperience(data.experience);
+                    if (data.portfolioUrl) setPortfolioUrl(data.portfolioUrl);
+                    if (data.workStatus) setWorkStatus(data.workStatus);
+
+                    // Temp fields
+                    if (data.eduInstitution) setEduInstitution(data.eduInstitution);
+                    if (data.eduDegree) setEduDegree(data.eduDegree);
+                    if (data.eduStart) setEduStart(data.eduStart);
+                    if (data.eduEnd) setEduEnd(data.eduEnd);
+                    if (data.expCompany) setExpCompany(data.expCompany);
+                    if (data.expRole) setExpRole(data.expRole);
+                    if (data.expStart) setExpStart(data.expStart);
+                    if (data.expEnd) setExpEnd(data.expEnd);
+                    if (data.expDesc) setExpDesc(data.expDesc);
+                }
+            } catch (e) {
+                console.error("Failed to load profile setup progress", e);
+            }
+        };
+        loadProgress();
+    }, []);
+
+    // Save progress on state change
+    useEffect(() => {
+        const saveProgress = async () => {
+            try {
+                const data = {
+                    currentStep,
+                    bio,
+                    tagline,
+                    username,
+                    services,
+                    companyName,
+                    companyWebsite,
+                    location,
+                    industry,
+                    education,
+                    experience,
+                    portfolioUrl,
+                    workStatus,
+                    eduInstitution,
+                    eduDegree,
+                    eduStart,
+                    eduEnd,
+                    expCompany,
+                    expRole,
+                    expStart,
+                    expEnd,
+                    expDesc
+                };
+                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.error("Failed to save profile setup progress", e);
+            }
+        };
+
+        // Debounce save to avoid excessive writes
+        const timer = setTimeout(saveProgress, 1000);
+        return () => clearTimeout(timer);
+    }, [
+        currentStep, bio, tagline, username, services, 
+        companyName, companyWebsite, location, industry, 
+        education, experience, portfolioUrl, workStatus,
+        eduInstitution, eduDegree, eduStart, eduEnd,
+        expCompany, expRole, expStart, expEnd, expDesc
+    ]);
 
     useEffect(() => {
         const trimmed = username.trim();
@@ -222,6 +309,7 @@ export default function ProfileSetupScreen() {
 
         try {
             await updateProfile(profileData);
+            await AsyncStorage.removeItem(STORAGE_KEY);
         } catch (error) {
             console.error("Update Profile Error:", error);
             const errorMessage = String((error as Error)?.message || "");
@@ -478,7 +566,54 @@ export default function ProfileSetupScreen() {
                     <View style={styles.stepContainer}>
                         <Text style={[styles.stepTitle, { color: colors.foreground }]}>Work Experience</Text>
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
-                            Showcase your previous roles and achievements.
+                            Are you currently working or freelancing?
+                        </Text>
+
+                        <View style={styles.statusToggleRow}>
+                            {[
+                                { id: "freelance", label: "Freelancing", icon: "user-check" },
+                                { id: "company", label: "At a Company", icon: "briefcase" },
+                                { id: "none", label: "Not Working", icon: "x-circle" },
+                            ].map((opt) => (
+                                <TouchableOpacity
+                                    key={opt.id}
+                                    style={[
+                                        styles.statusToggleBtn,
+                                        { 
+                                            backgroundColor: workStatus === opt.id ? colors.primary : colors.muted + "15",
+                                            borderColor: workStatus === opt.id ? colors.primary : colors.border
+                                        }
+                                    ]}
+                                    onPress={() => {
+                                        setWorkStatus(opt.id as any);
+                                        if (opt.id === "freelance") {
+                                            setExpCompany("Self-employed / Freelance");
+                                            setExpRole("Freelancer");
+                                            setExpStart(new Date().getFullYear().toString());
+                                            setExpEnd("Present");
+                                        } else if (opt.id === "none") {
+                                            setExpCompany("");
+                                            setExpRole("");
+                                            setExpStart("");
+                                            setExpEnd("");
+                                        } else {
+                                            setExpCompany("");
+                                            setExpRole("");
+                                            setExpStart("");
+                                            setExpEnd("");
+                                        }
+                                    }}
+                                >
+                                    <Feather name={opt.icon as any} size={14} color={workStatus === opt.id ? "#fff" : colors.mutedForeground} />
+                                    <Text style={[styles.statusToggleLabel, { color: workStatus === opt.id ? "#fff" : colors.foreground }]}>{opt.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+                        <Text style={[styles.stepDesc, { color: colors.mutedForeground, marginTop: 10 }]}>
+                            Add your detailed work history below.
                         </Text>
 
                         {experience.map((exp, idx) => (
@@ -721,4 +856,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     nextBtnText: { fontSize: 15, fontWeight: '700' },
+    statusToggleRow: { flexDirection: 'row', gap: 8, marginVertical: 12 },
+    statusToggleBtn: { 
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: 6, 
+        paddingVertical: 10, 
+        borderRadius: 12, 
+        borderWidth: 1 
+    },
+    statusToggleLabel: { fontSize: 12, fontWeight: '600' },
+    divider: { height: 1, width: '100%', marginVertical: 10 },
 });

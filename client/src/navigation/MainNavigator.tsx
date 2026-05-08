@@ -14,6 +14,7 @@ import MyJobsScreen from '@/features/Jobs/screens/MyJobsScreen';
 import MessagesScreen from '@/features/Messages/screens/MessagesScreen';
 import ProfileScreen from '@/features/Profile/screens/ProfileScreen';
 import { useColors } from '@/hooks/useColors';
+import { useApp } from '@/context/AppContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,6 +25,7 @@ const Tab = createBottomTabNavigator();
 export const MainTabNavigator = () => {
     const insets = useSafeAreaInsets();
     const colors = useColors();
+    const { user } = useApp();
     const isIOS = Platform.OS === 'ios';
 
     return (
@@ -72,7 +74,7 @@ export const MainTabNavigator = () => {
                 name="MyJobs"
                 component={MyJobsScreen}
                 options={{
-                    tabBarLabel: 'My Jobs',
+                    tabBarLabel: (user?.role === 'hiring' || user?.role === 'requester') ? 'Postings' : 'My Jobs',
                     tabBarIcon: ({ color, size }) => <Feather name="folder" size={size - 2} color={color} />,
                 }}
             />

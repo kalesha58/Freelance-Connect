@@ -163,6 +163,7 @@ interface AppContextType {
     searchJobs: (query?: string, category?: string) => Promise<Job[]>;
     fetchMyPostings: () => Promise<Job[]>;
     fetchMyAppliedJobs: () => Promise<Job[]>;
+    fetchMyHires: () => Promise<any[]>;
     savedJobIds: string[];
     appliedJobIds: string[];
     toggleSaveJob: (jobId: string) => Promise<void>;
@@ -598,6 +599,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return results;
     };
 
+    const fetchMyHires = async () => {
+        return await apiClient('/jobs/my/hires');
+    };
+
     // unlockChat is deprecated — kept as no-op for any remnant references
     const unlockChat = (_conversationId: string) => {};
 
@@ -834,6 +839,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 searchJobs,
                 fetchMyPostings,
                 fetchMyAppliedJobs,
+                fetchMyHires,
                 savedJobIds,
                 appliedJobIds,
                 toggleSaveJob,

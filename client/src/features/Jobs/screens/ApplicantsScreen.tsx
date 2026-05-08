@@ -69,7 +69,7 @@ export default function ApplicantsScreen() {
         <View style={[styles.applicantsRoot, { backgroundColor: colors.background }]}>
             <View style={[styles.stickyHeader, { paddingTop: topInsetOffset + 6, borderBottomColor: colors.border }]}>
                 <TouchableOpacity
-                    style={[styles.circularNavBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    style={[styles.circularBackBtn, { backgroundColor: 'transparent' }]}
                     onPress={() => navigation.goBack()}
                 >
                     <Feather name="arrow-left" size={20} color={colors.foreground} />
@@ -140,7 +140,12 @@ export default function ApplicantsScreen() {
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.acceptHireBtn, { backgroundColor: colors.success }]}
-                                    onPress={() => handleUpdateStatus(item._id, 'hired')}
+                                    onPress={() => navigation.navigate("HireConfirm", { 
+                                        applicationId: item._id,
+                                        freelancerId: item.applicantId,
+                                        freelancerName: item.applicantName,
+                                        freelancerAvatar: item.applicantAvatar
+                                    })}
                                     activeOpacity={0.8}
                                 >
                                     <Feather name="check" size={16} color="#fff" />
@@ -158,7 +163,7 @@ export default function ApplicantsScreen() {
 const styles = StyleSheet.create({
     applicantsRoot: { flex: 1 },
     stickyHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularBackBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     headerHeading: { fontSize: 16, fontWeight: '700' },
     headerContextLabel: { fontSize: 12, fontWeight: '400' },
     totalCountBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },

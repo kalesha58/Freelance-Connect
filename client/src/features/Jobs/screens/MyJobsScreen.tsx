@@ -21,7 +21,7 @@ import { useApp } from "@/context/AppContext";
 import { JobCard, IJob } from "@/components";
 import { JobCardSkeleton } from "@/components/SkeletonLoader.tsx";
 
-const SKILLS_FILTER = ["All", "React Native", "UI/UX Design", "Python", "Swift", "Branding"];
+
 
 /**
  * MyJobsScreen mirrored from HomeScreen layout to show applied/posted jobs.
@@ -30,25 +30,27 @@ export default function MyJobsScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { user, fetchMyPostings, fetchMyAppliedJobs, savedJobIds, jobs: allJobs, toggleSaveJob } = useApp();
+    const { user, fetchMyPostings, fetchMyAppliedJobs, fetchMyHires, savedJobIds, jobs: allJobs, toggleSaveJob } = useApp();
     
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeTab, setActiveTab] = useState<"applied" | "saved" | "posted">(
-        (user?.role === 'hiring' || user?.role === 'requester') ? "posted" : "applied"
+    const [activeTab, setActiveTab] = useState<"applied" | "saved" | "posted" | "hired">(
+        (user?.role === 'hiring' || user?.role === 'requester') ? "hired" : "applied"
     );
     const [search, setSearch] = useState("");
-    const [activeFilter, setActiveFilter] = useState("All");
 
     const fetchData = async () => {
         if (!refreshing) setLoading(true);
         try {
-            if (activeTab === 'applied') {
+            if (activeTab === 'hired') {
+                const results = await fetchMyHires();
+                setJobs(results || []);
+            } else if (activeTab === 'applied') {
                 const results = await fetchMyAppliedJobs();
                 setJobs(results || []);
             } else if (activeTab === 'saved') {
-                const results = allJobs.filter(j => savedJobIds.includes(j._id || j.id));
+                const results = allJobs.filter(j => savedJobIds.includes((j._id || j.id || "")));
                 setJobs(results || []);
             } else {
                 const results = await fetchMyPostings();
@@ -79,11 +81,7 @@ export default function MyJobsScreen() {
             j.title?.toLowerCase().includes(query) || 
             j.description?.toLowerCase().includes(query);
             
-        const isFilterMatch = activeFilter === "All" || 
-            j.category?.toLowerCase().includes(activeFilter.toLowerCase()) ||
-            (Array.isArray(j.skills) && j.skills.some((s: string) => s.toLowerCase() === activeFilter.toLowerCase()));
-            
-        return isSearchMatch && isFilterMatch;
+        return isSearchMatch;
     });
 
     const renderHeader = () => (
@@ -92,7 +90,9 @@ export default function MyJobsScreen() {
             <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
-                        <Text style={[styles.userNameText, { color: '#fff', marginTop: 10 }]}>My Jobs</Text>
+                        <Text style={[styles.userNameText, { color: '#fff', marginTop: 10 }]}>
+                            {activeTab === 'hired' ? 'My Hires' : activeTab === 'posted' ? 'Manage Postings' : activeTab === 'applied' ? 'Applied Jobs' : 'Saved Items'}
+                        </Text>
                     </View>
                 </View>
             </View>
@@ -102,7 +102,7 @@ export default function MyJobsScreen() {
                     <Feather name="search" size={18} color={colors.mutedForeground} />
                     <TextInput
                         style={[styles.searchField, { color: colors.foreground }]}
-                        placeholder={`Search in ${activeTab === 'applied' ? 'applied jobs' : activeTab === 'saved' ? 'saved jobs' : 'postings'}...`}
+                        placeholder={`Search in ${activeTab === 'hired' ? 'hires' : activeTab === 'applied' ? 'applied jobs' : activeTab === 'saved' ? 'saved items' : 'postings'}...`}
                         placeholderTextColor={colors.mutedForeground}
                         value={search}
                         onChangeText={setSearch}
@@ -113,10 +113,12 @@ export default function MyJobsScreen() {
 
                 <View style={styles.tabSwitcher}>
                     <TouchableOpacity 
-                        style={[styles.tabBtn, activeTab === 'applied' && { backgroundColor: colors.primary }]} 
-                        onPress={() => setActiveTab('applied')}
+                        style={[styles.tabBtn, (activeTab === 'applied' || activeTab === 'hired') && { backgroundColor: colors.primary }]} 
+                        onPress={() => setActiveTab((user?.role === 'hiring' || user?.role === 'requester') ? 'hired' : 'applied')}
                     >
-                        <Text style={[styles.tabBtnText, { color: activeTab === 'applied' ? '#fff' : colors.foreground }]}>Applied</Text>
+                        <Text style={[styles.tabBtnText, { color: (activeTab === 'applied' || activeTab === 'hired') ? '#fff' : colors.foreground }]}>
+                            {(user?.role === 'hiring' || user?.role === 'requester') ? 'Hires' : 'Applied'}
+                        </Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={[styles.tabBtn, activeTab === 'saved' && { backgroundColor: colors.primary }]} 
@@ -134,28 +136,7 @@ export default function MyJobsScreen() {
                     )}
                 </View>
 
-                <Text style={[styles.sectionHeading, { color: colors.foreground }]}>Filter by Expertise</Text>
-                <FlatList
-                    data={SKILLS_FILTER}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={item => item}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity
-                            style={[styles.categoryChip, {
-                                backgroundColor: activeFilter === item ? colors.buttonPrimary : colors.card,
-                                borderColor: activeFilter === item ? colors.buttonPrimary : colors.border,
-                            }]}
-                            onPress={() => setActiveFilter(item)}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={[styles.categoryChipLabel, { color: activeFilter === item ? colors.onButtonPrimary : colors.foreground }]}>
-                                {item}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                    contentContainerStyle={styles.categoryListContent}
-                />
+
                 <View style={styles.resultsHeaderRow}>
                     <Text style={[styles.resultsLabel, { color: colors.foreground }]}>
                         {filteredJobs.length} Jobs Found For You
@@ -178,17 +159,64 @@ export default function MyJobsScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
                 contentContainerStyle={{ paddingBottom: 100 }}
-                renderItem={({ item }) => (
-                    <View style={styles.jobItemWrapper}>
-                        <View style={{ paddingHorizontal: 16 }}>
-                            <JobCard 
-                                job={item} 
-                                isSaved={savedJobIds.includes(item._id || item.id)}
-                                onSave={toggleSaveJob}
-                            />
+                renderItem={({ item }) => {
+                    if (activeTab === 'hired') {
+                        return (
+                            <View style={styles.jobItemWrapper}>
+                                <View style={{ paddingHorizontal: 16 }}>
+                                    <View style={[styles.freelancerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                                        <View style={styles.freelancerHeader}>
+                                            <View style={[styles.freelancerAvatar, { backgroundColor: colors.headerBackground }]}>
+                                                <Text style={styles.avatarInitials}>{item.name?.charAt(0)}</Text>
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={[styles.freelancerName, { color: colors.foreground }]}>{item.name}</Text>
+                                                <Text style={[styles.freelancerTitle, { color: colors.mutedForeground }]}>{item.title}</Text>
+                                                <View style={styles.ratingRow}>
+                                                    <Ionicons name="star" size={12} color={colors.warning} />
+                                                    <Text style={[styles.ratingText, { color: colors.foreground }]}>{item.rating}</Text>
+                                                </View>
+                                            </View>
+                                            <TouchableOpacity 
+                                                style={[styles.convoBtn, { backgroundColor: colors.blueLight }]}
+                                                onPress={() => navigation.navigate("Chat", { 
+                                                    participantId: item.freelancerId, 
+                                                    participantName: item.name 
+                                                })}
+                                            >
+                                                <Feather name="message-circle" size={18} color={colors.primary} />
+                                            </TouchableOpacity>
+                                        </View>
+                                        
+                                        <View style={[styles.hireJobTag, { backgroundColor: colors.muted }]}>
+                                            <Text style={[styles.hireJobLabel, { color: colors.mutedForeground }]}>Hired for:</Text>
+                                            <Text style={[styles.hireJobValue, { color: colors.foreground }]} numberOfLines={1}>{item.jobTitle}</Text>
+                                        </View>
+
+                                        <View style={styles.skillBadgeRow}>
+                                            {item.skills.slice(0, 3).map((skill: string) => (
+                                                <View key={skill} style={[styles.miniSkillBadge, { backgroundColor: colors.border + "40" }]}>
+                                                    <Text style={[styles.miniSkillText, { color: colors.mutedForeground }]}>{skill}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        );
+                    }
+                    return (
+                        <View style={styles.jobItemWrapper}>
+                            <View style={{ paddingHorizontal: 16 }}>
+                                <JobCard 
+                                    job={item} 
+                                    isSaved={savedJobIds.includes(item._id || item.id)}
+                                    onSave={toggleSaveJob}
+                                />
+                            </View>
                         </View>
-                    </View>
-                )}
+                    );
+                }}
                 ListEmptyComponent={() => !loading && (
                     <View style={styles.emptyContainer}>
                         <Feather name="briefcase" size={48} color="#CBD5E1" />
@@ -404,5 +432,89 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(255,255,255,0.5)',
+    },
+    freelancerCard: {
+        padding: 16,
+        borderRadius: 20,
+        borderWidth: 1,
+        gap: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
+    },
+    freelancerHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    freelancerAvatar: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    avatarInitials: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    freelancerName: {
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    freelancerTitle: {
+        fontSize: 12,
+        fontWeight: '400',
+    },
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 2,
+    },
+    ratingText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    convoBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    hireJobTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    hireJobLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    hireJobValue: {
+        fontSize: 11,
+        fontWeight: '700',
+        flex: 1,
+    },
+    skillBadgeRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 6,
+    },
+    miniSkillBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    miniSkillText: {
+        fontSize: 10,
+        fontWeight: '600',
     },
 });
