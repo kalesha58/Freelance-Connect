@@ -1,8 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
+const { sendPasswordResetOtpEmail } = require('../utils/mailer');
+
+const OTP_TTL_MS = 10 * 60 * 1000;
+const MAX_OTP_ATTEMPTS = 5;
+const PASSWORD_POLICY_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const hashOtp = (otp) => crypto.createHash('sha256').update(String(otp)).digest('hex');
+const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 // @desc    Complete user profile
 // @route   POST /api/auth/complete-profile
@@ -110,30 +120,129 @@ router.post('/login', async (req, res) => {
 // @route   POST /api/auth/forgot-password
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
-    const { emailOrPhone } = req.body;
-    // For now, simulate sending OTP
-    res.json({ message: 'If an account exists, a reset code has been sent.' });
+    const emailOrPhone = typeof req.body?.emailOrPhone === 'string' ? req.body.emailOrPhone.trim().toLowerCase() : '';
+    const genericResponse = { message: 'If an account exists, a reset code has been sent.' };
+
+    if (!EMAIL_REGEX.test(emailOrPhone)) {
+        return res.status(400).json({ message: 'Please enter a valid email address.' });
+    }
+
+    try {
+        const user = await User.findOne({ email: emailOrPhone });
+        if (!user) {
+            return res.json(genericResponse);
+        }
+
+        const otp = generateOtp();
+        user.passwordResetOtpHash = hashOtp(otp);
+        user.passwordResetOtpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+        user.passwordResetOtpAttempts = 0;
+        await user.save();
+
+        await sendPasswordResetOtpEmail({ to: user.email, otp });
+        return res.json(genericResponse);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 });
 
 // @desc    Reset password
 // @route   POST /api/auth/reset-password
 // @access  Public
 router.post('/reset-password', async (req, res) => {
-    const { emailOrPhone, otp, password } = req.body;
-    // For now, simulate successful reset
-    res.json({ message: 'Password has been reset successfully.' });
+    const emailOrPhone = typeof req.body?.emailOrPhone === 'string' ? req.body.emailOrPhone.trim().toLowerCase() : '';
+    const otp = typeof req.body?.otp === 'string' ? req.body.otp.trim() : '';
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+
+    if (!EMAIL_REGEX.test(emailOrPhone)) {
+        return res.status(400).json({ message: 'Please enter a valid email address.' });
+    }
+    if (!/^\d{6}$/.test(otp)) {
+        return res.status(400).json({ message: 'OTP must be a 6-digit code.' });
+    }
+    if (!PASSWORD_POLICY_REGEX.test(password)) {
+        return res.status(400).json({ message: 'Password must be 6+ chars with uppercase, number, and special character.' });
+    }
+
+    try {
+        const user = await User.findOne({ email: emailOrPhone });
+        if (!user || !user.passwordResetOtpHash || !user.passwordResetOtpExpiresAt) {
+            return res.status(400).json({ message: 'Invalid or expired reset request.' });
+        }
+
+        if (user.passwordResetOtpExpiresAt.getTime() < Date.now()) {
+            user.passwordResetOtpHash = undefined;
+            user.passwordResetOtpExpiresAt = undefined;
+            user.passwordResetOtpAttempts = 0;
+            await user.save();
+            return res.status(400).json({ message: 'OTP has expired. Please request a new code.' });
+        }
+
+        if ((user.passwordResetOtpAttempts || 0) >= MAX_OTP_ATTEMPTS) {
+            user.passwordResetOtpHash = undefined;
+            user.passwordResetOtpExpiresAt = undefined;
+            user.passwordResetOtpAttempts = 0;
+            await user.save();
+            return res.status(400).json({ message: 'Too many failed attempts. Please request a new code.' });
+        }
+
+        if (hashOtp(otp) !== user.passwordResetOtpHash) {
+            user.passwordResetOtpAttempts = (user.passwordResetOtpAttempts || 0) + 1;
+            await user.save();
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        user.password = password;
+        user.passwordResetOtpHash = undefined;
+        user.passwordResetOtpExpiresAt = undefined;
+        user.passwordResetOtpAttempts = 0;
+        await user.save();
+
+        return res.json({ message: 'Password has been reset successfully.' });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 });
 
 // @desc    Verify OTP
 // @route   POST /api/auth/verify-otp
 // @access  Public
 router.post('/verify-otp', async (req, res) => {
-    const { email, otp } = req.body;
-    // For now, accept '123456' as valid
-    if (otp === '123456') {
-        res.json({ message: 'OTP verified successfully.' });
-    } else {
-        res.status(400).json({ message: 'Invalid OTP' });
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const otp = typeof req.body?.otp === 'string' ? req.body.otp.trim() : '';
+
+    if (!EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ message: 'Please enter a valid email address.' });
+    }
+    if (!/^\d{6}$/.test(otp)) {
+        return res.status(400).json({ message: 'OTP must be a 6-digit code.' });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user || !user.passwordResetOtpHash || !user.passwordResetOtpExpiresAt) {
+            return res.status(400).json({ message: 'Invalid or expired OTP request.' });
+        }
+
+        if (user.passwordResetOtpExpiresAt.getTime() < Date.now()) {
+            return res.status(400).json({ message: 'OTP has expired. Please request a new code.' });
+        }
+
+        if ((user.passwordResetOtpAttempts || 0) >= MAX_OTP_ATTEMPTS) {
+            return res.status(400).json({ message: 'Too many failed attempts. Please request a new code.' });
+        }
+
+        if (hashOtp(otp) !== user.passwordResetOtpHash) {
+            user.passwordResetOtpAttempts = (user.passwordResetOtpAttempts || 0) + 1;
+            await user.save();
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        user.passwordResetOtpAttempts = 0;
+        await user.save();
+        return res.json({ message: 'OTP verified successfully.' });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 });
 

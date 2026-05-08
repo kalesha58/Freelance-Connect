@@ -43,7 +43,9 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const requirements: Requirement[] = [
         { label: 'At least 6 characters', met: newPassword.length >= 6 },
+        { label: 'Contains an uppercase letter', met: /[A-Z]/.test(newPassword) },
         { label: 'Contains a number', met: /\d/.test(newPassword) },
+        { label: 'Contains a special character (@$!%*?&)', met: /[@$!%*?&]/.test(newPassword) },
         { label: 'Passwords match', met: !!newPassword && newPassword === confirmPassword },
     ];
 
@@ -53,7 +55,7 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
         const errs: typeof errors = {};
 
         if (!isValidPassword(newPassword)) {
-            errs.newPassword = 'Password must be at least 6 characters';
+            errs.newPassword = 'Password must be 6+ chars with uppercase, number, and special character.';
         }
         if (!passwordsMatch(newPassword, confirmPassword)) {
             errs.confirmPassword = 'Passwords do not match';
@@ -119,7 +121,7 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 <Input
                     label="New Password"
-                    placeholder="Min. 6 characters"
+                    placeholder="6+ chars, uppercase, number, special char"
                     value={newPassword}
                     onChangeText={(t) => {
                         setNewPassword(t);
