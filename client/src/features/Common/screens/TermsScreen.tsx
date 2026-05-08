@@ -58,14 +58,14 @@ export default function TermsScreen() {
 
     return (
         <View style={[styles.termsRoot, { backgroundColor: colors.background }]}>
-            <View style={[styles.termsHeaderBar, { paddingTop: topInsetOffset + 6, borderBottomColor: colors.border }]}>
+            <View style={[styles.termsHeaderBar, { paddingTop: topInsetOffset + 6, backgroundColor: colors.headerBackground, borderBottomColor: "rgba(0,0,0,0.1)" }]}>
                 <TouchableOpacity
-                    style={[styles.circularNavBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    style={[styles.circularNavBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.2)" }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={20} color={colors.foreground} />
+                    <Feather name="arrow-left" size={20} color="#fff" />
                 </TouchableOpacity>
-                <Text style={[styles.headerHeadingTitle, { color: colors.foreground }]}>Terms & Privacy</Text>
+                <Text style={[styles.headerHeadingTitle, { color: "#fff" }]}>Terms & Privacy</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -100,7 +100,7 @@ export default function TermsScreen() {
 const styles = StyleSheet.create({
     termsRoot: { flex: 1 },
     termsHeaderBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     headerHeadingTitle: { fontSize: 18, fontWeight: '700' },
     termsContentArea: { padding: 16, gap: 20 },
     legalSummaryCard: { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 14, borderRadius: 14, borderWidth: 1 },

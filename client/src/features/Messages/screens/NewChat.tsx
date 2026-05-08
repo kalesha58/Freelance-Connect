@@ -114,31 +114,29 @@ export default function NewChat() {
 
     return (
         <View style={[styles.root, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle="dark-content" />
-
-            {/* Header */}
-            <View style={[styles.header, { paddingTop: topInsetOffset + 10, borderBottomColor: colors.border }]}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+            <View style={[styles.header, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 10 }]}>
                 <View style={styles.headerRow}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Feather name="arrow-left" size={24} color={colors.foreground} />
+                        <Feather name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: colors.foreground }]}>New Message</Text>
+                    <Text style={[styles.headerTitle, { color: "#fff" }]}>New Message</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 {/* Search */}
-                <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <Feather name="search" size={16} color={colors.mutedForeground} />
+                <View style={[styles.searchBar, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.2)" }]}>
+                    <Feather name="search" size={16} color="#fff" />
                     <TextInput
-                        style={[styles.searchInput, { color: colors.foreground }]}
+                        style={[styles.searchInput, { color: "#fff" }]}
                         placeholder="Search users..."
-                        placeholderTextColor={colors.mutedForeground}
+                        placeholderTextColor="rgba(255,255,255,0.6)"
                         value={search}
                         onChangeText={handleSearch}
                     />
                     {search.length > 0 && (
                         <TouchableOpacity onPress={() => handleSearch("")}>
-                            <Feather name="x" size={16} color={colors.mutedForeground} />
+                            <Feather name="x" size={16} color="#fff" />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -210,7 +208,7 @@ export default function NewChat() {
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
-    header: { paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1 },
+    header: { paddingHorizontal: 16, paddingBottom: 12 },
     headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
     backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     headerTitle: { fontSize: 18, fontWeight: "700" },

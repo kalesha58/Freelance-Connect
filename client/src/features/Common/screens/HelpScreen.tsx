@@ -36,14 +36,14 @@ export default function HelpScreen() {
 
     return (
         <View style={[styles.helpRoot, { backgroundColor: colors.background }]}>
-            <View style={[styles.helpHeaderBar, { paddingTop: topInsetOffset + 6, borderBottomColor: colors.border }]}>
+            <View style={[styles.helpHeaderBar, { paddingTop: topInsetOffset + 6, backgroundColor: colors.headerBackground, borderBottomColor: "rgba(0,0,0,0.1)" }]}>
                 <TouchableOpacity
-                    style={[styles.circularNavBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    style={[styles.circularNavBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.2)" }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={20} color={colors.foreground} />
+                    <Feather name="arrow-left" size={20} color="#fff" />
                 </TouchableOpacity>
-                <Text style={[styles.headerHeadingLabel, { color: colors.foreground }]}>Help & Support</Text>
+                <Text style={[styles.headerHeadingLabel, { color: "#fff" }]}>Help & Support</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -103,7 +103,7 @@ export default function HelpScreen() {
 const styles = StyleSheet.create({
     helpRoot: { flex: 1 },
     helpHeaderBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     headerHeadingLabel: { fontSize: 18, fontWeight: '700' },
     helpContentArea: { padding: 16, gap: 12 },
     heroContextCard: { borderRadius: 20, padding: 24, alignItems: "center", gap: 8, marginBottom: 6 },

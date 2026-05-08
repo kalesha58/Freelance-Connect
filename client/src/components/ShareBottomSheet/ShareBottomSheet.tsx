@@ -2,27 +2,31 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     Alert,
     Animated,
+    BackHandler,
     Clipboard,
     Dimensions,
     FlatList,
     Image,
     Modal,
     PanResponder,
+    Platform,
     Share,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.65;
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.55; // Reduced height as requested
 
 interface IShareBottomSheetProps {
     visible: boolean;
@@ -35,7 +39,7 @@ interface IShareBottomSheetProps {
 
 /**
  * ShareBottomSheet provides an Instagram-style share experience.
- * Can share with friends, set post image as status, copy link, or use the system share dialog.
+ * Optimized with reduced height, search functionality, and better platform compatibility.
  */
 export function ShareBottomSheet({
     visible,
@@ -49,12 +53,11 @@ export function ShareBottomSheet({
     const navigation = useNavigation<any>();
     const { user, statuses } = useApp();
     const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-    const [setAsStatusLoading, setSetAsStatusLoading] = useState(false);
+    
     const [sentTo, setSentTo] = useState<string[]>([]);
-    const [statusDone, setStatusDone] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Build uniquely filtered "friends" list from active statuses
-    // We normalize the ID to string to prevent duplicates from mixed types
     const contacts = useMemo(() => {
         const map = new Map();
         statuses.forEach(s => {
@@ -64,13 +67,28 @@ export function ShareBottomSheet({
                 map.set(uid, { id: uid, name: s.userName, avatar: s.userAvatar });
             }
         });
-        return Array.from(map.values());
-    }, [statuses, user?._id]);
+        
+        const list = Array.from(map.values());
+        if (!searchQuery) return list;
+        
+        return list.filter(c => 
+            c.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [statuses, user?._id, searchQuery]);
 
+    const close = useCallback(() => {
+        Animated.timing(slideAnim, {
+            toValue: SHEET_HEIGHT,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(() => {
+            onClose();
+            setSearchQuery(""); // Reset search on close
+        });
+    }, [onClose, slideAnim]);
 
     useEffect(() => {
         if (visible) {
-            setStatusDone(false);
             setSentTo([]);
             Animated.spring(slideAnim, {
                 toValue: 0,
@@ -85,17 +103,22 @@ export function ShareBottomSheet({
                 useNativeDriver: true,
             }).start();
         }
-    }, [visible]);
+    }, [visible, slideAnim]);
 
-    const close = useCallback(() => {
-        Animated.timing(slideAnim, {
-            toValue: SHEET_HEIGHT,
-            duration: 250,
-            useNativeDriver: true,
-        }).start(() => onClose());
-    }, [onClose]);
+    // Handle Android Back Button
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+            if (visible) {
+                close();
+                return true;
+            }
+            return false;
+        });
+        return () => backHandler.remove();
+    }, [visible, close]);
 
     const handleSendToFriend = (friendId: string) => {
+        if (sentTo.includes(friendId)) return;
         setSentTo(prev => [...prev, friendId]);
     };
 
@@ -104,12 +127,7 @@ export function ShareBottomSheet({
             Alert.alert("No Image", "This post doesn't have an image to set as status.");
             return;
         }
-        
-        // Close the bottom sheet first
         close();
-        
-        // Navigate to the markup/caption screen
-        // We use setTimeout to ensure the sheet is closed and modal unmounted before navigation
         setTimeout(() => {
             navigation.navigate('CreateStatus', { imageUri: postImageUrl });
         }, 300);
@@ -155,10 +173,10 @@ export function ShareBottomSheet({
     const options = [
         {
             id: "status",
-            icon: statusDone ? "check-circle" : "clock",
+            icon: "clock",
             iconLib: "feather",
-            label: statusDone ? "Added to Status!" : (setAsStatusLoading ? "Setting..." : "Set as Status"),
-            color: statusDone ? colors.success : colors.primary,
+            label: "Set as Status",
+            color: colors.primary,
             onPress: handleSetAsStatus,
         },
         {
@@ -185,112 +203,137 @@ export function ShareBottomSheet({
                 <View style={styles.backdrop} />
             </TouchableWithoutFeedback>
 
-            <Animated.View
-                style={[
-                    styles.sheet,
-                    { backgroundColor: colors.card, transform: [{ translateY: slideAnim }] },
-                ]}
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={styles.keyboardView}
             >
-                {/* Drag Handle */}
-                <View {...PanGestureHandler.panHandlers} style={styles.handleArea}>
-                    <View style={[styles.handle, { backgroundColor: colors.border }]} />
-                </View>
+                <Animated.View
+                    style={[
+                        styles.sheet,
+                        { backgroundColor: colors.card, transform: [{ translateY: slideAnim }] },
+                    ]}
+                >
+                    {/* Drag Handle */}
+                    <View {...PanGestureHandler.panHandlers} style={styles.handleArea}>
+                        <View style={[styles.handle, { backgroundColor: colors.border }]} />
+                    </View>
 
-                {/* Header */}
-                <View style={[styles.header, { borderBottomColor: colors.border }]}>
-                    {postImageUrl && (
-                        <Image source={{ uri: postImageUrl }} style={styles.postThumb} />
-                    )}
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Share Post</Text>
-                        {postUserName && (
-                            <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-                                by {postUserName}
-                            </Text>
+                    {/* Header */}
+                    <View style={[styles.header, { borderBottomColor: colors.border }]}>
+                        {postImageUrl && (
+                            <Image source={{ uri: postImageUrl }} style={styles.postThumb} />
                         )}
-                    </View>
-                    <TouchableOpacity onPress={close} style={styles.closeBtn}>
-                        <Feather name="x" size={20} color={colors.mutedForeground} />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Friends Row */}
-                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Send to</Text>
-                {contacts.length > 0 ? (
-                    <FlatList
-                        data={contacts}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        keyExtractor={c => c.id}
-                        contentContainerStyle={styles.contactsRow}
-                        renderItem={({ item }) => {
-                            const isSent = sentTo.includes(item.id);
-                            return (
-                                <TouchableOpacity
-                                    style={styles.contactItem}
-                                    onPress={() => handleSendToFriend(item.id)}
-                                    activeOpacity={0.8}
-                                >
-                                    <View
-                                        style={[
-                                            styles.contactAvatarBorder,
-                                            { borderColor: isSent ? colors.success : colors.border },
-                                        ]}
-                                    >
-                                        {item.avatar ? (
-                                            <Image source={{ uri: item.avatar }} style={styles.contactAvatar} />
-                                        ) : (
-                                            <View style={[styles.contactAvatarFallback, { backgroundColor: colors.primary }]}>
-                                                <Text style={styles.contactInitial}>{item.name.charAt(0)}</Text>
-                                            </View>
-                                        )}
-                                        {isSent && (
-                                            <View style={[styles.sentBadge, { backgroundColor: colors.success }]}>
-                                                <Feather name="check" size={8} color="#fff" />
-                                            </View>
-                                        )}
-                                    </View>
-                                    <Text style={[styles.contactName, { color: colors.foreground }]} numberOfLines={1}>
-                                        {isSent ? "Sent ✓" : item.name.split(" ")[0]}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        }}
-                    />
-                ) : (
-                    <View style={styles.noFriendsRow}>
-                        <Feather name="users" size={20} color={colors.mutedForeground} />
-                        <Text style={[styles.noFriendsText, { color: colors.mutedForeground }]}>
-                            No active contacts right now
-                        </Text>
-                    </View>
-                )}
-
-                {/* Divider */}
-                <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-                {/* Options */}
-                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>More options</Text>
-                <View style={styles.optionsGrid}>
-                    {options.map(opt => (
-                        <TouchableOpacity
-                            key={opt.id}
-                            style={[styles.optionBtn, { backgroundColor: opt.color + "15", borderColor: opt.color + "30" }]}
-                            onPress={opt.onPress}
-                            activeOpacity={0.75}
-                        >
-                            <View style={[styles.optionIconCircle, { backgroundColor: opt.color + "20" }]}>
-                                {opt.iconLib === "ion" ? (
-                                    <Ionicons name={opt.icon as any} size={20} color={opt.color} />
-                                ) : (
-                                    <Feather name={opt.icon as any} size={20} color={opt.color} />
-                                )}
-                            </View>
-                            <Text style={[styles.optionLabel, { color: opt.color }]}>{opt.label}</Text>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.headerTitle, { color: colors.foreground }]}>Share Post</Text>
+                            {postUserName && (
+                                <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
+                                    by {postUserName}
+                                </Text>
+                            )}
+                        </View>
+                        <TouchableOpacity onPress={close} style={styles.closeBtn}>
+                            <Feather name="x" size={20} color={colors.mutedForeground} />
                         </TouchableOpacity>
-                    ))}
-                </View>
-            </Animated.View>
+                    </View>
+
+                    {/* Search Bar */}
+                    <View style={styles.searchContainer}>
+                        <View style={[styles.searchBar, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                            <Feather name="search" size={16} color={colors.mutedForeground} />
+                            <TextInput
+                                placeholder="Search friends..."
+                                placeholderTextColor={colors.mutedForeground}
+                                style={[styles.searchInput, { color: colors.foreground }]}
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                                autoCorrect={false}
+                            />
+                            {searchQuery.length > 0 && (
+                                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                                    <Ionicons name="close-circle" size={18} color={colors.mutedForeground} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+
+                    {/* Friends Row */}
+                    <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Send to</Text>
+                    {contacts.length > 0 ? (
+                        <FlatList
+                            data={contacts}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={c => c.id}
+                            contentContainerStyle={styles.contactsRow}
+                            renderItem={({ item }) => {
+                                const isSent = sentTo.includes(item.id);
+                                return (
+                                    <TouchableOpacity
+                                        style={styles.contactItem}
+                                        onPress={() => handleSendToFriend(item.id)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.contactAvatarBorder,
+                                                { borderColor: isSent ? colors.success : colors.border },
+                                            ]}
+                                        >
+                                            {item.avatar ? (
+                                                <Image source={{ uri: item.avatar }} style={styles.contactAvatar} />
+                                            ) : (
+                                                <View style={[styles.contactAvatarFallback, { backgroundColor: colors.primary }]}>
+                                                    <Text style={styles.contactInitial}>{item.name.charAt(0)}</Text>
+                                                </View>
+                                            )}
+                                            {isSent && (
+                                                <View style={[styles.sentBadge, { backgroundColor: colors.success }]}>
+                                                    <Feather name="check" size={8} color="#fff" />
+                                                </View>
+                                            )}
+                                        </View>
+                                        <Text style={[styles.contactName, { color: colors.foreground }]} numberOfLines={1}>
+                                            {isSent ? "Sent ✓" : item.name.split(" ")[0]}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            }}
+                        />
+                    ) : (
+                        <View style={styles.noFriendsRow}>
+                            <Feather name="users" size={20} color={colors.mutedForeground} />
+                            <Text style={[styles.noFriendsText, { color: colors.mutedForeground }]}>
+                                {searchQuery ? "No matching contacts" : "No active contacts"}
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Divider */}
+                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+                    {/* Options */}
+                    <Text style={[styles.sectionTitle, { color: colors.foreground }]}>More options</Text>
+                    <View style={styles.optionsGrid}>
+                        {options.map(opt => (
+                            <TouchableOpacity
+                                key={opt.id}
+                                style={[styles.optionBtn, { backgroundColor: opt.color + "15", borderColor: opt.color + "30" }]}
+                                onPress={opt.onPress}
+                                activeOpacity={0.75}
+                            >
+                                <View style={[styles.optionIconCircle, { backgroundColor: opt.color + "20" }]}>
+                                    {opt.iconLib === "ion" ? (
+                                        <Ionicons name={opt.icon as any} size={20} color={opt.color} />
+                                    ) : (
+                                        <Feather name={opt.icon as any} size={20} color={opt.color} />
+                                    )}
+                                </View>
+                                <Text style={[styles.optionLabel, { color: opt.color }]}>{opt.label}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </Animated.View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }
@@ -300,15 +343,16 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         backgroundColor: "rgba(0,0,0,0.5)",
     },
+    keyboardView: {
+        flex: 1,
+        justifyContent: "flex-end",
+    },
     sheet: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: SHEET_HEIGHT,
+        backgroundColor: "#fff",
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
         overflow: "hidden",
+        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     },
     handleArea: { paddingTop: 12, paddingBottom: 6, alignItems: "center" },
     handle: { width: 40, height: 4, borderRadius: 2 },
@@ -325,6 +369,25 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: 16, fontWeight: "700" },
     headerSub: { fontSize: 12, fontWeight: "400", marginTop: 2 },
     closeBtn: { padding: 6 },
+    searchContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 4,
+    },
+    searchBar: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 12,
+        height: 44,
+        borderRadius: 12,
+        borderWidth: 1,
+        gap: 10,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 14,
+        paddingVertical: 0,
+    },
     sectionTitle: { fontSize: 13, fontWeight: "700", paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 },
     contactsRow: { paddingHorizontal: 16, gap: 12, paddingBottom: 4 },
     contactItem: { alignItems: "center", width: 68 },
@@ -334,11 +397,11 @@ const styles = StyleSheet.create({
     contactInitial: { color: "#fff", fontSize: 20, fontWeight: "700" },
     sentBadge: { position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#fff" },
     contactName: { fontSize: 11, fontWeight: "500", textAlign: "center" },
-    noFriendsRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, paddingVertical: 14 },
+    noFriendsRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, paddingVertical: 14, minHeight: 80 },
     noFriendsText: { fontSize: 13, fontWeight: "400" },
     divider: { height: 1, marginHorizontal: 20, marginTop: 8 },
-    optionsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 20 },
-    optionBtn: { flex: 1, minWidth: "28%", borderRadius: 16, borderWidth: 1, padding: 16, alignItems: "center", gap: 10 },
+    optionsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 10 },
+    optionBtn: { flex: 1, minWidth: "28%", borderRadius: 16, borderWidth: 1, padding: 14, alignItems: "center", gap: 10 },
     optionIconCircle: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
     optionLabel: { fontSize: 12, fontWeight: "600", textAlign: "center" },
 });

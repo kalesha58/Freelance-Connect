@@ -6,9 +6,7 @@ import {
     Image,
     TouchableOpacity,
     TextInput,
-    KeyboardAvoidingView,
     Platform,
-    ScrollView,
     ActivityIndicator,
     Dimensions,
     Alert,
@@ -21,6 +19,7 @@ import { RootStackParamList } from '@/navigation/types';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { BlurView } from '@react-native-community/blur';
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 const { width, height } = Dimensions.get('window');
 
@@ -111,64 +110,60 @@ export default function CreateStatusScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                <KeyboardAwareScrollViewCompat
                     style={styles.keyboardContent}
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        <View style={styles.spacer} />
+                    <View style={styles.spacer} />
 
-                        {/* Caption Input */}
-                        <View style={styles.inputContainer}>
-                            <BlurView blurType="dark" blurAmount={15} style={styles.inputBlur}>
-                                <TextInput
-                                    placeholder="Add a caption..."
-                                    placeholderTextColor="rgba(255,255,255,0.6)"
-                                    style={styles.textInput}
-                                    multiline
-                                    maxLength={200}
-                                    value={caption}
-                                    onChangeText={setCaption}
-                                />
-                            </BlurView>
-                        </View>
+                    {/* Caption Input */}
+                    <View style={styles.inputContainer}>
+                        <BlurView blurType="dark" blurAmount={15} style={styles.inputBlur}>
+                            <TextInput
+                                placeholder="Add a caption..."
+                                placeholderTextColor="rgba(255,255,255,0.6)"
+                                style={styles.textInput}
+                                multiline
+                                maxLength={200}
+                                value={caption}
+                                onChangeText={setCaption}
+                            />
+                        </BlurView>
+                    </View>
 
-                        {/* Tag Selection */}
-                        <View style={styles.tagsSection}>
-                            <Text style={styles.sectionTitle}>Status Tags</Text>
-                            <View style={styles.tagsContainer}>
-                                {PREDEFINED_TAGS.map(tag => {
-                                    const isSelected = selectedTags.includes(tag);
-                                    return (
-                                        <TouchableOpacity
-                                            key={tag}
-                                            onPress={() => toggleTag(tag)}
-                                            style={[
-                                                styles.tagChip,
-                                                isSelected && { backgroundColor: colors.primary }
-                                            ]}
-                                        >
-                                            {!isSelected && (
-                                                <BlurView
-                                                    blurType="dark"
-                                                    blurAmount={10}
-                                                    style={StyleSheet.absoluteFill}
-                                                />
-                                            )}
-                                            <Text style={[styles.tagText, isSelected && { color: '#FFF' }]}>
-                                                {isSelected ? `#${tag}` : tag}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
+                    {/* Tag Selection */}
+                    <View style={styles.tagsSection}>
+                        <Text style={styles.sectionTitle}>Status Tags</Text>
+                        <View style={styles.tagsContainer}>
+                            {PREDEFINED_TAGS.map(tag => {
+                                const isSelected = selectedTags.includes(tag);
+                                return (
+                                    <TouchableOpacity
+                                        key={tag}
+                                        onPress={() => toggleTag(tag)}
+                                        style={[
+                                            styles.tagChip,
+                                            isSelected && { backgroundColor: colors.primary }
+                                        ]}
+                                    >
+                                        {!isSelected && (
+                                            <BlurView
+                                                blurType="dark"
+                                                blurAmount={10}
+                                                style={StyleSheet.absoluteFill}
+                                            />
+                                        )}
+                                        <Text style={[styles.tagText, isSelected && { color: '#FFF' }]}>
+                                            {isSelected ? `#${tag}` : tag}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
-                        <View style={{ height: insets.bottom + 40 }} />
-                    </ScrollView>
-                </KeyboardAvoidingView>
+                    </View>
+                    <View style={{ height: insets.bottom + 40 }} />
+                </KeyboardAwareScrollViewCompat>
             </View>
         </View>
     );
@@ -240,44 +235,44 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.2)',
     },
     inputBlur: {
-        padding: 18,
+        padding: 14,
     },
     textInput: {
         color: '#FFF',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '500',
-        minHeight: 80,
-        maxHeight: 150,
+        minHeight: 70,
+        maxHeight: 120,
         textAlignVertical: 'top',
     },
     tagsSection: {
-        marginBottom: 20,
+        marginBottom: 16,
     },
     sectionTitle: {
         color: '#FFF',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
-        marginBottom: 12,
+        marginBottom: 10,
         opacity: 0.8,
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 0.5,
     },
     tagsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        gap: 8,
     },
     tagChip: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 20,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 15,
         overflow: 'hidden',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.15)',
     },
     tagText: {
         color: 'rgba(255,255,255,0.9)',
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
     },
 });

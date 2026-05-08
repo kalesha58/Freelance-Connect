@@ -108,17 +108,55 @@ function ConversationItem({
     );
 }
 
-/**
- * MessagesScreen — shows real-time Firebase conversations.
- */
 export default function MessagesScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { user, blockedUserIds } = useApp();
+    const { user, blockedUserIds, isLoading, fetchAllUsers } = useApp();
     const { conversations, onlineUsers } = useFirebase();
+    const [searchQuery, setSearchQuery] = React.useState("");
+    const [allUsers, setAllUsers] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        fetchAllUsers().then(setAllUsers).catch(() => {});
+    }, [fetchAllUsers]);
+
+    const userMap = React.useMemo(() => {
+        const map: Record<string, any> = {};
+        allUsers.forEach(u => {
+            map[u._id] = u;
+        });
+        return map;
+    }, [allUsers]);
+
+    const filteredConversations = React.useMemo(() => {
+        const query = searchQuery.toLowerCase().trim();
+        const base = conversations.filter((item) => {
+            const otherParticipantId = item.participants.find(id => id !== user?._id) ?? "";
+            return !blockedUserIds.includes(otherParticipantId);
+        });
+        if (!query) return base;
+        return base.filter(item => {
+            const otherParticipantId = item.participants.find(id => id !== user?._id) ?? "";
+            const nameFromDoc = item.participantNames?.[otherParticipantId];
+            const nameFromMap = userMap[otherParticipantId]?.name;
+            const name = nameFromDoc || nameFromMap || "User";
+            
+            return name.toLowerCase().includes(query) || (item.lastMessage || "").toLowerCase().includes(query);
+        });
+    }, [conversations, searchQuery, user?._id, blockedUserIds, userMap]);
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
+
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    if (!user) return null;
 
     const ListHeader = () => (
         <View style={styles.headerArea}>
@@ -152,19 +190,25 @@ export default function MessagesScreen() {
             </View>
 
             <View style={styles.overlapSection}>
-                <TouchableOpacity
-                    style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}
-                    activeOpacity={0.7}
-                    onPress={() => navigation.navigate("SearchMessages")}
-                >
+                <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <Feather name="search" size={18} color={colors.mutedForeground} />
-                    <Text style={[styles.searchPlaceholder, { color: colors.mutedForeground }]}>
-                        Search conversations...
-                    </Text>
+                    <TextInput
+                        style={[styles.searchField, { color: colors.foreground }]}
+                        placeholder="Search conversations..."
+                        placeholderTextColor={colors.mutedForeground}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoCorrect={false}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery("")}>
+                            <Ionicons name="close-circle" size={18} color={colors.mutedForeground} />
+                        </TouchableOpacity>
+                    )}
                     <View style={[styles.filterIndicator, { backgroundColor: colors.primary + "15" }]}>
                         <Ionicons name="options-outline" size={16} color={colors.primary} />
                     </View>
-                </TouchableOpacity>
+                </View>
 
                 <View style={styles.listSubHeadingRow}>
                     <Text style={[styles.listSubHeading, { color: colors.foreground }]}>Recent Chats</Text>
@@ -176,23 +220,24 @@ export default function MessagesScreen() {
         </View>
     );
 
-    if (!user) return null;
-
     return (
         <View style={[styles.messagesRoot, { backgroundColor: colors.background }]}>
             <FlatList
-                data={conversations.filter((item) => {
-                    const otherParticipantId = item.participants.find(id => id !== user._id) ?? "";
-                    return !blockedUserIds.includes(otherParticipantId);
-                })}
+                data={filteredConversations}
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={ListHeader}
                 renderItem={({ item }) => {
                     const otherParticipantId = item.participants.find(id => id !== user._id) ?? "";
                     const isOnline = !!onlineUsers[otherParticipantId];
                     const unread = item.unreadCounts?.[user._id] ?? 0;
-                    const participantName = item.participantNames?.[otherParticipantId] ?? "User";
-                    const participantAvatar = item.participantAvatars?.[otherParticipantId];
+                    
+                    const nameFromDoc = item.participantNames?.[otherParticipantId];
+                    const nameFromMap = userMap[otherParticipantId]?.name;
+                    const participantName = nameFromDoc || nameFromMap || "User";
+                    
+                    const avatarFromDoc = item.participantAvatars?.[otherParticipantId];
+                    const avatarFromMap = userMap[otherParticipantId]?.avatar || userMap[otherParticipantId]?.profilePic;
+                    const participantAvatar = avatarFromDoc || avatarFromMap;
 
                     return (
                         <View style={styles.convoWrapper}>
@@ -283,7 +328,7 @@ const styles = StyleSheet.create({
         elevation: 6,
         marginBottom: 20,
     },
-    searchPlaceholder: { flex: 1, fontSize: 16, fontWeight: "400" },
+    searchField: { flex: 1, fontSize: 16, fontWeight: "400", paddingVertical: 0 },
     filterIndicator: {
         width: 32,
         height: 32,

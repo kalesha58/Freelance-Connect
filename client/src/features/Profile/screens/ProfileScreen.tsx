@@ -116,7 +116,7 @@ export default function ProfileScreen() {
     const pickImage = async (useCamera: boolean) => {
         const options: any = {
             mediaType: 'photo',
-            quality: 0.7,
+            quality: 0.5,
             maxWidth: 1000,
             maxHeight: 1000,
         };
@@ -224,7 +224,7 @@ export default function ProfileScreen() {
                 style={styles.mainView}
                 contentContainerStyle={[
                     styles.scrollContentLayout,
-                    { marginTop: -20, paddingBottom: 100 + insets.bottom }
+                    { paddingBottom: 100 + insets.bottom }
                 ]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
@@ -234,7 +234,7 @@ export default function ProfileScreen() {
                 }
             >
                 {/* Modern Identity & Stats Row (Instagram Inspired) */}
-                <View style={[styles.identityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[styles.identityCard, { backgroundColor: colors.card, borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
                     <View style={styles.topInfoRow}>
                         <View style={styles.avatarWrapper}>
                             <View style={[styles.avatarBorder, { borderColor: roleAccentColor }]}>
@@ -302,7 +302,7 @@ export default function ProfileScreen() {
                             </View>
                         ) : null}
 
-                        <Text style={[styles.bioBodyText, { color: colors.foreground }]}>
+                        <Text style={[styles.bioBodyText, { color: colors.foreground }]} numberOfLines={3} ellipsizeMode="tail">
                             {user.bio || (isOwnProfile 
                                 ? "You haven't added a bio yet. Tell the world about your skills!" 
                                 : "This user hasn't added a bio yet.")}
@@ -353,15 +353,6 @@ export default function ProfileScreen() {
                     <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <View style={styles.experienceHeaderRow}>
                             <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Online portfolio</Text>
-                            {isOwnProfile ? (
-                                <TouchableOpacity
-                                    style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]}
-                                    onPress={() => navigation.navigate("EditProfile")}
-                                >
-                                    <Feather name="edit-3" size={14} color={colors.primary} />
-                                    <Text style={[styles.addInlineLabel, { color: colors.primary }]}>Edit</Text>
-                                </TouchableOpacity>
-                            ) : null}
                         </View>
                         {user.portfolioUrl?.trim() ? (
                             <View>
@@ -398,12 +389,6 @@ export default function ProfileScreen() {
                 <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={styles.experienceHeaderRow}>
                         <Text style={[styles.sectionHeader, { color: colors.foreground }]}>Experience & Education</Text>
-                        {isOwnProfile && (
-                            <TouchableOpacity style={[styles.addInlineBtn, { backgroundColor: colors.primary + "10" }]} onPress={() => navigation.navigate("EditProfile")}>
-                                <Feather name="edit-3" size={14} color={colors.primary} />
-                                <Text style={[styles.addInlineLabel, { color: colors.primary }]}>Manage</Text>
-                            </TouchableOpacity>
-                        )}
                     </View>
 
                     {!user.experience?.length && !user.education?.length ? (
@@ -415,32 +400,40 @@ export default function ProfileScreen() {
                     ) : null}
 
                     {user.experience && user.experience.map((exp: any, idx: number) => (
-                        <View key={`exp-${idx}`} style={[styles.historyItem, idx !== user.experience!.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
-                            <View style={[styles.historyIconBox, { backgroundColor: colors.purpleAccent + "10" }]}>
-                                <Feather name="award" size={18} color={colors.purpleAccent} />
+                        <View key={`exp-${idx}`} style={styles.linkedinItem}>
+                            <View style={styles.timelineColumn}>
+                                <View style={[styles.timelineDot, { backgroundColor: colors.primary }]} />
+                                {idx !== user.experience!.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
                             </View>
-                            <View style={styles.historyContent}>
-                                <Text style={[styles.historyTitle, { color: colors.foreground }]}>{exp.role}</Text>
-                                <Text style={[styles.historySubtitle, { color: colors.mutedForeground }]}>{exp.company}</Text>
-                                <Text style={[styles.historyDate, { color: colors.mutedForeground }]}>{exp.startYear} - {exp.endYear}</Text>
+                            <View style={styles.linkedinContent}>
+                                <Text style={[styles.linkedinTitle, { color: colors.foreground }]}>{exp.company}</Text>
+                                <Text style={[styles.linkedinSubTitle, { color: colors.foreground, opacity: 0.9 }]}>{exp.role}</Text>
+                                <Text style={[styles.linkedinDate, { color: colors.mutedForeground }]}>
+                                    {exp.startYear} — {exp.endYear === new Date().getFullYear().toString() ? "Present" : exp.endYear}
+                                </Text>
                                 {exp.description ? (
-                                    <View style={{ marginTop: 8 }}>
-                                        <Text style={{ fontSize: 13, lineHeight: 18, color: colors.foreground }}>{exp.description}</Text>
-                                    </View>
+                                    <Text style={[styles.linkedinDescription, { color: colors.foreground }]}>{exp.description}</Text>
                                 ) : null}
+                                <View style={styles.linkedinSkillsRow}>
+                                    <MaterialCommunityIcons name="diamond-outline" size={14} color={colors.foreground} style={{ opacity: 0.6 }} />
+                                    <Text style={[styles.linkedinSkillsText, { color: colors.foreground }]}>Professional Experience</Text>
+                                </View>
                             </View>
                         </View>
                     ))}
 
                     {user.education && user.education.map((edu: any, idx: number) => (
-                        <View key={`edu-${idx}`} style={[styles.historyItem, idx !== user.education!.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
-                            <View style={[styles.historyIconBox, { backgroundColor: colors.blueLight }]}>
-                                <Feather name="book" size={18} color={colors.primary} />
+                        <View key={`edu-${idx}`} style={styles.linkedinItem}>
+                            <View style={styles.timelineColumn}>
+                                <View style={[styles.timelineDot, { backgroundColor: colors.purpleAccent }]} />
+                                {idx !== user.education!.length - 1 && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
                             </View>
-                            <View style={styles.historyContent}>
-                                <Text style={[styles.historyTitle, { color: colors.foreground }]}>{edu.degree}</Text>
-                                <Text style={[styles.historySubtitle, { color: colors.mutedForeground }]}>{edu.institution}</Text>
-                                <Text style={[styles.historyDate, { color: colors.mutedForeground }]}>{edu.startYear} - {edu.endYear}</Text>
+                            <View style={styles.linkedinContent}>
+                                <Text style={[styles.linkedinTitle, { color: colors.foreground }]}>{edu.institution}</Text>
+                                <Text style={[styles.linkedinSubTitle, { color: colors.foreground, opacity: 0.9 }]}>{edu.degree}</Text>
+                                <Text style={[styles.linkedinDate, { color: colors.mutedForeground }]}>
+                                    {edu.startYear} — {edu.endYear === new Date().getFullYear().toString() ? "Present" : edu.endYear}
+                                </Text>
                             </View>
                         </View>
                     ))}
@@ -467,7 +460,7 @@ export default function ProfileScreen() {
                         )}
                     </View>
                 ) : (
-                    <View style={styles.postsGrid}>
+                    <View style={[styles.postsGrid, { marginHorizontal: -16 }]}>
                         {userPosts.map((post) => (
                             <TouchableOpacity
                                 key={post._id}
@@ -483,7 +476,7 @@ export default function ProfileScreen() {
                                 {(post.likes || []).length > 0 && (
                                     <View style={styles.postGridStats}>
                                         <View style={styles.postGridStatItem}>
-                                            <Ionicons name="heart" size={12} color="#fff" />
+                                            <Ionicons name="heart" size={10} color="#fff" />
                                             <Text style={styles.postGridStatText}>{(post.likes || []).length}</Text>
                                         </View>
                                     </View>
@@ -563,8 +556,6 @@ const styles = StyleSheet.create({
     scrollContentLayout: { paddingHorizontal: 16, paddingBottom: 120, paddingTop: 16 },
     headerSolid: {
         width: '100%',
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
     },
     headerContent: {
         flexDirection: "row",
@@ -583,7 +574,6 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         alignItems: "center",
         justifyContent: "center",
-        borderWidth: 1,
     },
     emptyView: { flex: 1, alignItems: "center", justifyContent: "center", gap: 20 },
     loginPrompt: { fontSize: 18, fontWeight: '600' },
@@ -591,16 +581,9 @@ const styles = StyleSheet.create({
     loginBtnLabel: { fontSize: 16, fontWeight: '700' },
     identityCard: {
         backgroundColor: '#fff',
-        borderRadius: 24,
         padding: 20,
-        paddingTop: 30, // Increased to fix stat visibility
+        paddingTop: 20, 
         marginBottom: 20,
-        borderWidth: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.04,
-        shadowRadius: 15,
-        elevation: 3,
     },
     sectionCard: {
         backgroundColor: '#fff',
@@ -665,34 +648,64 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    historyItem: {
+    linkedinItem: {
         flexDirection: 'row',
-        gap: 16,
-        paddingVertical: 16,
+        marginBottom: 4,
     },
-    historyIconBox: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
+    timelineColumn: {
+        width: 20,
         alignItems: 'center',
-        justifyContent: 'center',
+        paddingTop: 10,
     },
-    historyContent: {
+    timelineDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        zIndex: 2,
+    },
+    timelineLine: {
         flex: 1,
+        width: 2,
+        marginTop: 4,
+        marginBottom: -10, // Overlap with next item
+        opacity: 0.3,
     },
-    historyTitle: {
-        fontSize: 15,
-        fontWeight: '700',
+    linkedinContent: {
+        flex: 1,
+        paddingLeft: 12,
+        paddingBottom: 24,
     },
-    historySubtitle: {
-        fontSize: 13,
-        fontWeight: '500',
+    linkedinTitle: {
+        fontSize: 16,
+        fontWeight: '800',
+        lineHeight: 20,
+    },
+    linkedinSubTitle: {
+        fontSize: 14,
+        fontWeight: '600',
         marginTop: 2,
     },
-    historyDate: {
-        fontSize: 12,
-        fontWeight: '400',
+    linkedinDate: {
+        fontSize: 13,
+        fontWeight: '500',
         marginTop: 4,
+    },
+    linkedinDescription: {
+        fontSize: 14,
+        lineHeight: 20,
+        marginTop: 10,
+        opacity: 0.8,
+    },
+    linkedinSkillsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 12,
+        gap: 6,
+    },
+    linkedinSkillsText: {
+        fontSize: 13,
+        fontWeight: '600',
+        opacity: 0.7,
     },
     portfolioPlaceholder: {
         flex: 1,
@@ -867,11 +880,11 @@ const styles = StyleSheet.create({
     postsGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 2,
+        gap: 1,
         marginBottom: 24,
     },
     postGridItem: {
-        width: width / 3 - 1, // Full width / 3 with minimal gap for Instagram feel
+        width: width / 3 - 0.7, // Edge-to-edge 3 columns
         aspectRatio: 1,
         position: "relative",
     },
@@ -882,12 +895,12 @@ const styles = StyleSheet.create({
     },
     postGridStats: {
         position: "absolute",
-        bottom: 8,
-        left: 8,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
+        bottom: 6,
+        left: 6,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        paddingHorizontal: 5,
+        paddingVertical: 1.5,
+        borderRadius: 3,
     },
 
     postGridStatItem: {

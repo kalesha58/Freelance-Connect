@@ -62,16 +62,16 @@ export default function NotificationsScreen() {
 
     return (
         <View style={[styles.notificationsRoot, { backgroundColor: colors.background }]}>
-            <View style={[styles.notificationsHeaderBar, { paddingTop: topInsetOffset + 6, borderBottomColor: colors.border }]}>
+            <View style={[styles.notificationsHeaderBar, { paddingTop: topInsetOffset + 6, backgroundColor: colors.headerBackground, borderBottomColor: "rgba(0,0,0,0.1)" }]}>
                 <TouchableOpacity
-                    style={[styles.circularNavBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    style={[styles.circularNavBtn, { backgroundColor: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.2)" }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={20} color={colors.foreground} />
+                    <Feather name="arrow-left" size={20} color="#fff" />
                 </TouchableOpacity>
-                <Text style={[styles.headerHeadingTitle, { color: colors.foreground }]}>Notifications</Text>
+                <Text style={[styles.headerHeadingTitle, { color: "#fff" }]}>Notifications</Text>
                 <TouchableOpacity>
-                    <Text style={[styles.markReadAction, { color: colors.primary }]}>Mark all read</Text>
+                    <Text style={[styles.markReadAction, { color: "#fff", opacity: 0.9 }]}>Mark all read</Text>
                 </TouchableOpacity>
             </View>
 
@@ -109,7 +109,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
     notificationsRoot: { flex: 1 },
     notificationsHeaderBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularNavBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     headerHeadingTitle: { fontSize: 18, fontWeight: '700' },
     markReadAction: { fontSize: 13, fontWeight: '500' },
     notificationsListArea: { padding: 16, gap: 8 },

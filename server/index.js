@@ -15,7 +15,8 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Wait for MongoDB before route handlers (avoids Mongoose buffering timeout when connect lags behind requests, e.g. Vercel cold start)
 app.use(async (req, res, next) => {

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
     Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -16,10 +14,11 @@ import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { useColors } from "@/hooks/useColors";
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 /**
  * CreateJobScreen allows requesters to post new project requirements.
- * Modernized with a brand-consistent header, focused input groups, and premium form elements.
+ * Optimized with KeyboardAwareScrollViewCompat for robust keyboard handling.
  */
 export default function CreateJobScreen() {
     const colors = useColors();
@@ -53,10 +52,7 @@ export default function CreateJobScreen() {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={[styles.container, { backgroundColor: colors.background }]}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
 
             {/* Immersive Brand Header */}
@@ -79,8 +75,8 @@ export default function CreateJobScreen() {
                 </View>
             </View>
 
-            <ScrollView
-                contentContainerStyle={[styles.scrollPadding, { paddingBottom: 60 }]}
+            <KeyboardAwareScrollViewCompat
+                contentContainerStyle={[styles.scrollPadding, { paddingBottom: 60 + insets.bottom }]}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Visual Step Indicator (Premium Touch) */}
@@ -264,44 +260,44 @@ export default function CreateJobScreen() {
                         {isSubmitting ? "Finalizing..." : "Review Project Brief"}
                     </Text>
                 </TouchableOpacity>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            </KeyboardAwareScrollViewCompat>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    headerSolid: { width: '100%', paddingBottom: 20, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+    headerSolid: { width: '100%', paddingBottom: 16, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
     headerContent: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 10 },
     backBtn: { padding: 4 },
-    headerTitle: { fontSize: 20, fontWeight: '700' },
-    previewBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
-    previewLabel: { fontSize: 13, fontWeight: '700' },
-    scrollPadding: { paddingHorizontal: 16, paddingTop: 20 },
-    stepperContainer: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 24 },
-    stepCircle: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-    stepNum: { color: "#fff", fontSize: 13, fontWeight: '700' },
-    stepLine: { width: 40, height: 2, marginHorizontal: 4 },
-    card: { borderRadius: 20, padding: 20, borderWidth: 1, marginBottom: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
-    cardHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 18 },
-    cardTitle: { fontSize: 16, fontWeight: '700' },
-    fieldGroup: { marginBottom: 16 },
-    fieldLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
-    inputBox: { height: 50, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 14, fontSize: 15 },
-    textArea: { minHeight: 120, borderRadius: 12, borderWidth: 1.5, padding: 14, fontSize: 15, textAlignVertical: "top", lineHeight: 22 },
-    counter: { fontSize: 10, fontWeight: '400', alignSelf: "flex-end", marginTop: 4 },
-    selectorRow: { flexDirection: "row", gap: 12, marginBottom: 18 },
-    selectorBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, alignItems: "center" },
-    selectorLabel: { fontSize: 13, fontWeight: '600' },
-    inputWrapper: { flexDirection: "row", alignItems: "center", height: 50, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 14, gap: 8 },
-    symbol: { fontSize: 18, fontWeight: '700' },
-    numInput: { flex: 1, fontSize: 18, fontWeight: '700' },
-    unit: { fontSize: 14, fontWeight: '500' },
-    iconInput: { flexDirection: "row", alignItems: "center", height: 50, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 14, gap: 10 },
-    iconText: { flex: 1, fontSize: 15 },
-    uploadBox: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: 14, borderWidth: 2 },
-    uploadLabel: { fontSize: 14, fontWeight: '600' },
-    uploadSub: { fontSize: 11, fontWeight: '400' },
-    submitBtn: { height: 56, borderRadius: 18, alignItems: "center", justifyContent: "center", marginTop: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 5 },
-    submitLabel: { fontSize: 16, fontWeight: '700' },
+    headerTitle: { fontSize: 18, fontWeight: '700' },
+    previewBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 10 },
+    previewLabel: { fontSize: 12, fontWeight: '700' },
+    scrollPadding: { paddingHorizontal: 14, paddingTop: 16 },
+    stepperContainer: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 20 },
+    stepCircle: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+    stepNum: { color: "#fff", fontSize: 12, fontWeight: '700' },
+    stepLine: { width: 30, height: 2, marginHorizontal: 4 },
+    card: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 14, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 8, elevation: 1 },
+    cardHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
+    cardTitle: { fontSize: 14, fontWeight: '700' },
+    fieldGroup: { marginBottom: 12 },
+    fieldLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+    inputBox: { height: 44, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 12, fontSize: 14 },
+    textArea: { minHeight: 100, borderRadius: 10, borderWidth: 1.5, padding: 12, fontSize: 14, textAlignVertical: "top", lineHeight: 20 },
+    counter: { fontSize: 9, fontWeight: '400', alignSelf: "flex-end", marginTop: 4 },
+    selectorRow: { flexDirection: "row", gap: 10, marginBottom: 14 },
+    selectorBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1.5, alignItems: "center" },
+    selectorLabel: { fontSize: 12, fontWeight: '600' },
+    inputWrapper: { flexDirection: "row", alignItems: "center", height: 44, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 12, gap: 6 },
+    symbol: { fontSize: 16, fontWeight: '700' },
+    numInput: { flex: 1, fontSize: 16, fontWeight: '700' },
+    unit: { fontSize: 13, fontWeight: '500' },
+    iconInput: { flexDirection: "row", alignItems: "center", height: 44, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 12, gap: 8 },
+    iconText: { flex: 1, fontSize: 14 },
+    uploadBox: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: 12, borderWidth: 1.5 },
+    uploadLabel: { fontSize: 13, fontWeight: '600' },
+    uploadSub: { fontSize: 10, fontWeight: '400' },
+    submitBtn: { height: 50, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 3 },
+    submitLabel: { fontSize: 15, fontWeight: '700' },
 });

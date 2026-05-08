@@ -157,6 +157,12 @@ interface AppContextType {
     fetchApplicants: (jobId: string) => Promise<any[]>;
     updateApplicationStatus: (applicationId: string, status: string) => Promise<void>;
     searchFreelancers: (query?: string, category?: string) => Promise<any[]>;
+    searchJobs: (query?: string, category?: string) => Promise<Job[]>;
+    fetchMyPostings: () => Promise<Job[]>;
+    fetchMyAppliedJobs: () => Promise<Job[]>;
+    savedJobIds: string[];
+    appliedJobIds: string[];
+    toggleSaveJob: (jobId: string) => Promise<void>;
     fetchComments: (postId: string) => Promise<{ comments: Comment[]; postOwnerId: string }>;
     addComment: (postId: string, text: string) => Promise<Comment>;
     addReply: (postId: string, commentId: string, text: string) => Promise<Reply>;
@@ -197,12 +203,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const [posts, setPosts] = useState<Post[]>([]);
     const [statuses, setStatuses] = useState<IStatus[]>([]);
     const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
+    const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+    const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
 
     // presenceRef holds the RTDB connected listener so we can detach on sign-out
     const presenceRef = useRef<any>(null);
 
     useEffect(() => {
         loadUser();
+        loadSavedJobs();
     }, []);
 
     // Load statuses independently so the story bar appears quickly
@@ -212,6 +221,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadStatuses();
     }, []);
 
+
+    const loadSavedJobs = async () => {
+        try {
+            const saved = await AsyncStorage.getItem("saved_job_ids");
+            if (saved) {
+                setSavedJobIds(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.error("Load Saved Jobs Error:", e);
+        }
+    };
+
+    const toggleSaveJob = async (jobId: string) => {
+        setSavedJobIds(prev => {
+            const newList = prev.includes(jobId) 
+                ? prev.filter(id => id !== jobId) 
+                : [...prev, jobId];
+            AsyncStorage.setItem("saved_job_ids", JSON.stringify(newList));
+            return newList;
+        });
+    };
 
     const refreshCurrentUser = useCallback(async () => {
         try {
@@ -503,6 +533,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             method: "POST",
             body: { coverLetter },
         });
+        setAppliedJobIds(prev => [...prev, jobId]);
         fetchJobs();
     };
 
@@ -523,6 +554,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (category) queryParams.append("category", category);
 
         return await apiClient(`/users/freelancers?${queryParams.toString()}`);
+    };
+
+    const searchJobs = async (search?: string, category?: string) => {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (category) queryParams.append("category", category);
+
+        const results = await apiClient(`/jobs?${queryParams.toString()}`);
+        setJobs(results || []);
+        return results;
+    };
+
+    const fetchMyPostings = async () => {
+        return await apiClient('/jobs/my/postings');
+    };
+
+    const fetchMyAppliedJobs = async () => {
+        const results = await apiClient('/jobs/my/applied');
+        if (Array.isArray(results)) {
+            setAppliedJobIds(results.map((j: any) => j._id || j.id));
+        }
+        return results;
     };
 
     // unlockChat is deprecated — kept as no-op for any remnant references
@@ -758,6 +811,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 fetchApplicants,
                 updateApplicationStatus,
                 searchFreelancers,
+                searchJobs,
+                fetchMyPostings,
+                fetchMyAppliedJobs,
+                savedJobIds,
+                appliedJobIds,
+                toggleSaveJob,
                 toggleLike,
                 addPost,
                 updateProfile,
