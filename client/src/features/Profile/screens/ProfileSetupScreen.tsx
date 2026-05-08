@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     StyleSheet,
     View,
@@ -15,8 +15,11 @@ import { useNavigation } from "@react-navigation/native";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
+import { apiClient } from "@/utils/apiClient";
 
 const { width } = Dimensions.get("window");
+const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
+type UsernameCheckState = "idle" | "checking" | "available" | "taken" | "invalid" | "error";
 
 const FREELANCER_STEPS = [
     { title: "Personal Info", icon: "user" },
@@ -41,6 +44,9 @@ export default function ProfileSetupScreen() {
     const [currentStep, setCurrentStep] = useState(0);
     const [bio, setBio] = useState(user?.bio || "");
     const [tagline, setTagline] = useState(user?.tagline || "");
+    const [username, setUsername] = useState(user?.username || "");
+    const [usernameState, setUsernameState] = useState<UsernameCheckState>(user?.username ? "available" : "idle");
+    const [usernameMessage, setUsernameMessage] = useState("");
     const [services, setServices] = useState<string[]>(user?.services || []);
     const [newService, setNewService] = useState("");
 
@@ -68,6 +74,58 @@ export default function ProfileSetupScreen() {
 
     const isHiring = user?.role === "hiring" || user?.role === "requester";
     const STEPS = isHiring ? HIRING_STEPS : FREELANCER_STEPS;
+    const currentUsernameLower = (user?.username || "").trim().toLowerCase();
+
+    useEffect(() => {
+        const trimmed = username.trim();
+        if (!trimmed) {
+            setUsernameState("idle");
+            setUsernameMessage("Choose a username to continue.");
+            return;
+        }
+        if (!USERNAME_REGEX.test(trimmed)) {
+            setUsernameState("invalid");
+            setUsernameMessage("Use 3-20 characters: letters, numbers, and underscores.");
+            return;
+        }
+        if (trimmed.toLowerCase() === currentUsernameLower && currentUsernameLower) {
+            setUsernameState("available");
+            setUsernameMessage("Username looks good.");
+            return;
+        }
+
+        let cancelled = false;
+        setUsernameState("checking");
+        setUsernameMessage("Checking availability...");
+        const timer = setTimeout(async () => {
+            try {
+                const result = await apiClient(`/users/username-available?username=${encodeURIComponent(trimmed)}`);
+                if (cancelled) return;
+                if (result?.available) {
+                    setUsernameState("available");
+                    setUsernameMessage("Username is available.");
+                } else {
+                    setUsernameState("taken");
+                    setUsernameMessage("Username is already taken.");
+                }
+            } catch (error: any) {
+                if (cancelled) return;
+                const message = String(error?.message || "");
+                if (message.toLowerCase().includes("letters, numbers, and underscores")) {
+                    setUsernameState("invalid");
+                    setUsernameMessage(message);
+                } else {
+                    setUsernameState("error");
+                    setUsernameMessage("Could not verify username. Please try again.");
+                }
+            }
+        }, 450);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [username, currentUsernameLower]);
 
     const addService = () => {
         if (newService.trim()) {
@@ -115,14 +173,14 @@ export default function ProfileSetupScreen() {
     const isNextDisabled = () => {
         if (isHiring) {
             switch (currentStep) {
-                case 0: return companyName.trim().length < 2;
+                case 0: return companyName.trim().length < 2 || usernameState !== "available";
                 case 1: return bio.trim().length < 10;
                 case 2: return industry.trim().length < 2 || location.trim().length < 2;
                 default: return false;
             }
         } else {
             switch (currentStep) {
-                case 0: return bio.trim().length < 10; // Bio at least 10 chars
+                case 0: return bio.trim().length < 10 || usernameState !== "available"; // Bio at least 10 chars
                 case 1: return services.length === 0;
                 case 2: return education.length === 0;
                 case 3: return experience.length === 0;
@@ -147,6 +205,7 @@ export default function ProfileSetupScreen() {
             bio,
             tagline,
             location,
+            username: username.trim(),
             isProfileComplete: true
         };
 
@@ -165,6 +224,11 @@ export default function ProfileSetupScreen() {
             await updateProfile(profileData);
         } catch (error) {
             console.error("Update Profile Error:", error);
+            const errorMessage = String((error as Error)?.message || "");
+            if (errorMessage.toLowerCase().includes("username is already taken")) {
+                setUsernameState("taken");
+                setUsernameMessage("Username is already taken.");
+            }
         }
     };
 
@@ -177,6 +241,28 @@ export default function ProfileSetupScreen() {
                             <Text style={[styles.stepTitle, { color: colors.foreground }]}>Company Details</Text>
                             <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                                 Tell us about your organization or personal brand.
+                            </Text>
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="Username (e.g. AcmeStudio)"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={username}
+                                onChangeText={setUsername}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            <Text style={[
+                                styles.usernameStatus,
+                                {
+                                    color:
+                                        usernameState === "available"
+                                            ? colors.buttonPrimary
+                                            : usernameState === "taken" || usernameState === "invalid" || usernameState === "error"
+                                                ? colors.destructive
+                                                : colors.mutedForeground
+                                }
+                            ]}>
+                                {usernameMessage}
                             </Text>
                             <TextInput
                                 style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
@@ -258,6 +344,28 @@ export default function ProfileSetupScreen() {
                         </Text>
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                             Write a brief bio that highlights your passion and expertise.
+                        </Text>
+                        <TextInput
+                            style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 12 }]}
+                            placeholder="Username (e.g. dev_Sara)"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={username}
+                            onChangeText={setUsername}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
+                        <Text style={[
+                            styles.usernameStatus,
+                            {
+                                color:
+                                    usernameState === "available"
+                                        ? colors.buttonPrimary
+                                        : usernameState === "taken" || usernameState === "invalid" || usernameState === "error"
+                                            ? colors.destructive
+                                            : colors.mutedForeground
+                            }
+                        ]}>
+                            {usernameMessage}
                         </Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 12 }]}
@@ -545,6 +653,7 @@ const styles = StyleSheet.create({
     stepTitle: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
     stepDesc: { fontSize: 13, lineHeight: 18, marginBottom: 6 },
     helperText: { fontSize: 11, fontStyle: 'italic', marginBottom: 10, opacity: 0.8 },
+    usernameStatus: { fontSize: 12, marginBottom: 10, marginTop: -2 },
     textArea: {
         borderRadius: 12,
         padding: 12,

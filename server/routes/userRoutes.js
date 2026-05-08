@@ -6,6 +6,29 @@ const Block = require('../models/Block');
 const { protect } = require('../middleware/authMiddleware');
 const { getBlockedUserIdsFor, toObjectId } = require('../utils/blocking');
 
+const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
+
+// @desc    Check username availability
+// @route   GET /api/users/username-available?username=...
+// @access  Public
+router.get('/username-available', async (req, res) => {
+    try {
+        const username = typeof req.query.username === 'string' ? req.query.username.trim() : '';
+        if (!USERNAME_REGEX.test(username)) {
+            return res.status(400).json({
+                available: false,
+                reason: 'Username must be 3-20 characters and only contain letters, numbers, and underscores.'
+            });
+        }
+
+        const usernameLower = username.toLowerCase();
+        const existing = await User.exists({ usernameLower });
+        return res.json({ available: !existing });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+});
+
 // @desc    Get all freelancers (with filters)
 // @route   GET /api/users/freelancers
 // @access  Private (Hiring Partner focus)

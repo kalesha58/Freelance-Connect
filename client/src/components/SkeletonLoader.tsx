@@ -86,6 +86,34 @@ export const PostCardSkeleton = () => {
     );
 };
 
+export const JobCardSkeleton = () => {
+    const colors = useColors();
+    return (
+        <View style={[styles.jobCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.jobHeader}>
+                <View style={styles.jobHeaderText}>
+                    <SkeletonItem width="70%" height={18} style={{ marginBottom: 8 }} />
+                    <SkeletonItem width="40%" height={12} />
+                </View>
+                <SkeletonItem width={24} height={24} borderRadius={4} />
+            </View>
+            <View style={styles.jobMeta}>
+                <SkeletonItem width={100} height={12} />
+                <SkeletonItem width={80} height={12} />
+            </View>
+            <View style={styles.jobSkills}>
+                <SkeletonItem width={60} height={24} borderRadius={12} />
+                <SkeletonItem width={80} height={24} borderRadius={12} />
+                <SkeletonItem width={70} height={24} borderRadius={12} />
+            </View>
+            <View style={styles.jobFooter}>
+                <SkeletonItem width={120} height={14} />
+                <SkeletonItem width={100} height={14} />
+            </View>
+        </View>
+    );
+};
+
 const styles = StyleSheet.create({
     card: {
         marginBottom: 16,
@@ -109,5 +137,34 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 16,
         marginTop: 4,
+    },
+    jobCard: {
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 16,
+        borderWidth: 1,
+    },
+    jobHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    jobHeaderText: {
+        flex: 1,
+    },
+    jobMeta: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 16,
+    },
+    jobSkills: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 16,
+    },
+    jobFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
 });

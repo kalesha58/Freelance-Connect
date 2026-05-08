@@ -21,46 +21,6 @@ import { useColors } from "@/hooks/useColors";
 const CATEGORIES_FREELANCER = ["All", "Mobile Dev", "Web Dev", "Design", "Data Science"];
 const SKILLS_FILTER = ["All", "React Native", "UI/UX Design", "Python", "Swift", "Branding"];
 
-
-const MOCK_JOBS: IJob[] = [
-    {
-        id: "j1",
-        title: "React Native Developer for E-commerce App",
-        category: "Mobile Dev",
-        isRemote: true,
-        clientName: "Global Shop Inc.",
-        clientRating: "4.9",
-        postedAt: "2h ago",
-        budget: "₹5,000",
-        location: "New York, USA",
-        skills: ["React Native", "TypeScript", "API Integration"],
-    },
-    {
-        id: "j2",
-        title: "UI/UX Designer for Fintech Startup",
-        category: "Design",
-        isRemote: false,
-        clientName: "BankEase",
-        clientRating: "4.7",
-        postedAt: "5h ago",
-        budget: "₹4,500",
-        location: "London, UK",
-        skills: ["Figma", "Fintech", "UX Research"],
-    },
-    {
-        id: "j3",
-        title: "Senior Python Backend Engineer",
-        category: "Backend",
-        isRemote: true,
-        clientName: "LogiTech Solutions",
-        clientRating: "4.8",
-        postedAt: "1d ago",
-        budget: "₹7,200",
-        location: "Remote",
-        skills: ["Python", "Django", "PostgreSQL"],
-    }
-];
-
 /**
  * HomeScreen provides a rich professional marketplace for Jobs and Freelancers.
  * Redesigned for a modern, high-fidelity experience with brand-consistent headers.
@@ -68,12 +28,23 @@ const MOCK_JOBS: IJob[] = [
 export default function HomeScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
-    const { user, jobs, searchFreelancers, searchJobs, fetchJobs } = useApp();
+    const { user, jobs, searchFreelancers, searchJobs, fetchJobs, appliedJobIds, toggleSaveJob, savedJobIds } = useApp();
     const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
     const [freelancers, setFreelancers] = useState<IFreelancerProfile[]>([]);
     const [isLoadingFreelancers, setIsLoadingFreelancers] = useState(false);
+    const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+
+    useEffect(() => {
+        const loadInitialData = async () => {
+            setIsLoadingJobs(true);
+            await fetchJobs();
+            setIsLoadingJobs(false);
+            loadFreelancers();
+        };
+        loadInitialData();
+    }, []);
 
     const topPaddingOffset = Platform.OS === "ios" ? insets.top : 20;
     const isHiringRole = user?.role === "hiring" || user?.role === "requester";
@@ -98,11 +69,7 @@ export default function HomeScreen() {
                 reviewsCount: Array.isArray(f.freelancerReviews) ? f.freelancerReviews.length : 0,
                 isTopRated: (f.rating || 0) >= 4.8
             }));
-            // Deduplicate local state
-            const unique = new Map();
-            formatted.forEach((f: any) => unique.set(f.id, f));
-            setFreelancers(Array.from(unique.values()));
-
+            setFreelancers(formatted);
         } catch (error) {
             console.error("Load Freelancers Error:", error);
         } finally {
@@ -110,14 +77,6 @@ export default function HomeScreen() {
         }
     };
 
-    const loadJobs = async () => {
-        try {
-            const category = activeFilter === "All" ? undefined : activeFilter;
-            await searchJobs(search, category);
-        } catch (error) {
-            console.error("Load Jobs Error:", error);
-        }
-    };
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -126,7 +85,7 @@ export default function HomeScreen() {
             } else {
                 // If searching or filtering, use searchJobs, otherwise fetch all
                 if (search || activeFilter !== "All") {
-                    loadJobs();
+                    searchJobs(search, activeFilter === "All" ? undefined : activeFilter);
                 } else {
                     fetchJobs();
                 }
@@ -199,8 +158,8 @@ export default function HomeScreen() {
                 <View style={styles.quickMetricsRow}>
                     {[
                         { label: "Available", value: freelancers.length, color: "#3b82f6", icon: "people" },
-                        { label: "Rating", value: "4.9 ★", color: "#f59e0b", icon: "star" },
-                        { label: "Price", value: "₹85/h", color: "#10b981", icon: "wallet" },
+                        { label: "Rating", value: user?.rating ? `${user.rating} ★` : "4.5 ★", color: "#f59e0b", icon: "star" },
+                        { label: "Projects", value: user?.projectsCompleted ?? 0, color: "#10b981", icon: "checkmark-circle" },
                     ].map(stat => (
                         <View key={stat.label} style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                             <View style={[styles.metricIconBox, { backgroundColor: stat.color + "15" }]}>
@@ -252,8 +211,7 @@ export default function HomeScreen() {
             <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
-                        <Text style={[styles.roleLabelText, { color: 'rgba(255,255,255,0.7)' }]}>Good morning,</Text>
-                        <Text style={[styles.userNameText, { color: '#fff' }]} numberOfLines={1}>{user?.name ?? "Guest"}</Text>
+                        <Text style={[styles.userNameText, { color: '#fff', marginTop: 10 }]} numberOfLines={1}>{user?.name ?? "Guest"}</Text>
                     </View>
                     <TouchableOpacity
                         style={[styles.headerIconBtnSolid, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
@@ -285,9 +243,9 @@ export default function HomeScreen() {
 
                 <View style={styles.quickMetricsRow}>
                     {[
-                        { label: "Active Jobs", value: MOCK_JOBS.length, color: "#3b82f6", icon: "briefcase" },
-                        { label: "New Leads", value: "+12", color: "#f59e0b", icon: "flash" },
-                        { label: "Earnings", value: "₹4.1K", color: "#10b981", icon: "wallet" },
+                        { label: "Active Jobs", value: jobs.length, color: "#3b82f6", icon: "briefcase" },
+                        { label: "Applied", value: appliedJobIds?.length ?? 0, color: "#f59e0b", icon: "send" },
+                        { label: "Earnings", value: `₹${user?.earnings ?? 0}`, color: "#10b981", icon: "wallet" },
                     ].map(stat => (
                         <View key={stat.label} style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                             <View style={[styles.metricIconBox, { backgroundColor: stat.color + "15" }]}>
@@ -353,7 +311,11 @@ export default function HomeScreen() {
                     }
                     return (
                         <View style={{ paddingHorizontal: 16 }}>
-                            <JobCard job={item as unknown as IJob} />
+                            <JobCard 
+                                job={item as unknown as IJob} 
+                                isSaved={savedJobIds.includes(item._id || item.id)}
+                                onSave={toggleSaveJob}
+                            />
                         </View>
                     );
                 }}

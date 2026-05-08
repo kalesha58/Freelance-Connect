@@ -54,10 +54,11 @@ export default function SettingsScreen() {
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
             <View style={[styles.settingsHeaderBar, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 6 }]}>
                 <TouchableOpacity
-                    style={[styles.circularNavBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
                     onPress={() => navigation.goBack()}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}
                 >
-                    <Feather name="arrow-left" size={20} color="#fff" />
+                    <Feather name="arrow-left" size={24} color="#fff" />
                 </TouchableOpacity>
                 <Text style={[styles.headerHeadingTitle, { color: '#fff' }]}>Settings</Text>
                 <View style={{ width: 40 }} />
