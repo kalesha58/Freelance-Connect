@@ -15,7 +15,7 @@ import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { Typography, Spacing, BorderRadius } from '@/theme';
 import { useColors } from '@/hooks/useColors';
-import { isValidEmailOrPhone } from '@/utils/validation';
+import { isValidEmail } from '@/utils/validation';
 
 import { useApp } from '@/context/AppContext';
 
@@ -27,13 +27,13 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const colors = useColors();
     const { forgotPassword } = useApp();
-    const [emailOrPhone, setEmailOrPhone] = useState('');
+    const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSendOTP = async () => {
-        if (!isValidEmailOrPhone(emailOrPhone)) {
-            setError('Enter a valid email or phone number');
+        if (!isValidEmail(email)) {
+            setError('Enter a valid email address');
             return;
         }
 
@@ -41,10 +41,10 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
         setLoading(true);
 
         try {
-            await forgotPassword(emailOrPhone);
+            await forgotPassword(email);
             setLoading(false);
             navigation.navigate('OTPVerification', {
-                email: emailOrPhone,
+                email,
                 flow: 'forgot',
             });
         } catch (err: any) {
@@ -72,16 +72,16 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
                 <Text style={[styles.heading, { color: colors.text }]}>Reset Password</Text>
                 <Text style={[styles.description, { color: colors.textSecondary }]}>
-                    Enter your registered email or phone number. We'll send you a one-time
+                    Enter your registered email address. We'll send you a one-time
                     code to reset your password.
                 </Text>
 
                 <Input
-                    label="Email / Phone"
-                    placeholder="you@example.com or +91 9876543210"
-                    value={emailOrPhone}
+                    label="Email"
+                    placeholder="you@example.com"
+                    value={email}
                     onChangeText={(t) => {
-                        setEmailOrPhone(t);
+                        setEmail(t);
                         setError('');
                     }}
                     error={error}
@@ -105,7 +105,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
                     title="Send OTP"
                     onPress={handleSendOTP}
                     loading={loading}
-                    disabled={!emailOrPhone}
+                    disabled={!email}
                 />
             </View>
         </KeyboardAvoidingView>

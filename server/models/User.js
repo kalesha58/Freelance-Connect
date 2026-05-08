@@ -68,6 +68,9 @@ const userSchema = new mongoose.Schema({
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isVerified: { type: Boolean, default: false },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
+    passwordResetOtpHash: { type: String },
+    passwordResetOtpExpiresAt: { type: Date },
+    passwordResetOtpAttempts: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -4,6 +4,7 @@ import {
     Image,
     Platform,
     ScrollView,
+    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -201,16 +202,17 @@ export default function FreelancerProfileScreen() {
 
     return (
         <View style={[styles.profileRoot, { backgroundColor: colors.background }]}>
-            <View style={[styles.headerActions, { paddingTop: topPaddingOffset + 6 }]}>
+            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+            <View style={[styles.headerActions, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 6 }]}>
                 <TouchableOpacity
-                    style={[styles.circularActionBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    style={[styles.circularActionBtn, { backgroundColor: 'transparent' }]}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={20} color={colors.foreground} />
+                    <Feather name="arrow-left" size={20} color="#fff" />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitleLabel, { color: colors.foreground }]}>Freelancer Profile</Text>
-                <TouchableOpacity style={[styles.circularActionBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <Feather name="share-2" size={18} color={colors.foreground} />
+                <Text style={[styles.headerTitleLabel, { color: '#fff' }]}>Freelancer Profile</Text>
+                <TouchableOpacity style={[styles.circularActionBtn, { backgroundColor: 'transparent' }]}>
+                    <Feather name="share-2" size={18} color="#fff" />
                 </TouchableOpacity>
             </View>
 
@@ -473,7 +475,11 @@ export default function FreelancerProfileScreen() {
 
                     <TouchableOpacity
                         style={[styles.primaryHireActionBtn, { backgroundColor: colors.buttonPrimary, flex: 1.35 }]}
-                        onPress={() => navigation.navigate("HireConfirm", { freelancerId: profile._id })}
+                        onPress={() => navigation.navigate("HireConfirm", { 
+                            freelancerId: profile._id,
+                            freelancerName: profile.name,
+                            freelancerAvatar: profile.avatar || profile.profilePic
+                        })}
                         activeOpacity={0.85}
                     >
                         <Text style={[styles.primaryHireActionLabel, { color: colors.onButtonPrimary }]}>Hire {profile.name.split(" ")[0]}</Text>
@@ -494,7 +500,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     headerActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 12 },
-    circularActionBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+    circularActionBtn: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center" },
     headerTitleLabel: { flex: 1, textAlign: "center", fontSize: 16, fontWeight: "700", marginHorizontal: 10 },
     scrollContentLayout: { paddingHorizontal: 16, paddingTop: 8 },
     mainHeroCard: { borderRadius: 20, padding: 20, borderWidth: 1, alignItems: "center", marginBottom: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 4 },

@@ -1,14 +1,15 @@
 import React, { useEffect } from "react";
 import {
+    ActivityIndicator,
     FlatList,
+    Image,
     Platform,
+    StatusBar,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
-    StatusBar,
-    Image,
-    ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -291,19 +292,18 @@ const styles = StyleSheet.create({
     headerArea: { marginBottom: 12 },
     headerSolid: {
         width: "100%",
-        paddingBottom: 40,
+        paddingBottom: 15,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
     },
     titleBar: {
         flexDirection: "row",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingTop: 10,
     },
     brandSubtitle: { fontSize: 13, fontWeight: "500", marginBottom: 2 },
-    brandTitle: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
+    brandTitle: { fontSize: 22, fontWeight: "800", letterSpacing: -0.5 },
     headerIcons: { flexDirection: "row", gap: 10, alignItems: "center" },
     iconBox: {
         width: 42,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    overlapSection: { paddingHorizontal: 16, marginTop: -30 },
+    overlapSection: { paddingHorizontal: 16, marginTop: -10 },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",

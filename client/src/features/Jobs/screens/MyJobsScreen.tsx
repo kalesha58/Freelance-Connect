@@ -87,7 +87,7 @@ export default function MyJobsScreen() {
     const renderHeader = () => (
         <View style={styles.headerContainer}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 8, paddingBottom: 15 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
                         <Text style={[styles.userNameText, { color: '#fff', marginTop: 10 }]}>
@@ -246,14 +246,13 @@ const styles = StyleSheet.create({
     },
     titleBar: {
         flexDirection: "row",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingTop: 10,
     },
     userNameWrapper: { flex: 1, paddingRight: 10 },
     roleLabelText: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
-    userNameText: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+    userNameText: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
     headerIconBtnSolid: {
         width: 44,
         height: 44,
@@ -275,7 +274,7 @@ const styles = StyleSheet.create({
     },
     contentPadding: {
         paddingHorizontal: 16,
-        marginTop: -30,
+        marginTop: -10,
     },
     searchContainer: {
         flexDirection: "row",

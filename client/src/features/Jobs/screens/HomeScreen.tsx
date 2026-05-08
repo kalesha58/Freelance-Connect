@@ -113,7 +113,7 @@ export default function HomeScreen() {
     const renderRequesterHeader = () => (
         <View style={styles.headerContainer}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 8, paddingBottom: 15 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
                         <Text style={[styles.roleLabelText, { color: 'rgba(255,255,255,0.7)' }]}>Hiring Partner</Text>
@@ -208,7 +208,7 @@ export default function HomeScreen() {
     const renderFreelancerHeader = () => (
         <View style={styles.headerContainer}>
             <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 12, paddingBottom: 40 }]}>
+            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topPaddingOffset + 8, paddingBottom: 15 }]}>
                 <View style={styles.titleBar}>
                     <View style={styles.userNameWrapper}>
                         <Text style={[styles.userNameText, { color: '#fff', marginTop: 10 }]} numberOfLines={1}>{user?.name ?? "Guest"}</Text>
@@ -303,7 +303,11 @@ export default function HomeScreen() {
                             <View style={{ paddingHorizontal: 16 }}>
                                 <FreelancerCard
                                     freelancer={f}
-                                    onHire={() => navigation.navigate("HireConfirm", { freelancerId: f.id })}
+                                    onHire={() => navigation.navigate("HireConfirm", { 
+                                        freelancerId: f.id,
+                                        freelancerName: f.name,
+                                        freelancerAvatar: f.avatar
+                                    })}
                                     onPress={() => navigation.navigate("FreelancerProfile", { id: f.id })}
                                 />
                             </View>
@@ -351,17 +355,16 @@ const styles = StyleSheet.create({
     },
     titleBar: {
         flexDirection: "row",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingTop: 10,
     },
     contentPadding: {
         paddingHorizontal: 16,
-        marginTop: -30, // Pull content up into the rounded header area
+        marginTop: -10, // Reduced overlap for more space
     },
     roleLabelText: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
-    userNameText: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+    userNameText: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
     userNameWrapper: { flex: 1, paddingRight: 10 },
     headerActionGroup: { flexDirection: "row", gap: 10, alignItems: 'center' },
     headerIconBtnSolid: {

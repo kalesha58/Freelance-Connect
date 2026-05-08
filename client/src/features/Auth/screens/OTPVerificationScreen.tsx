@@ -31,7 +31,7 @@ type Props = {
 const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
     const insets = useSafeAreaInsets();
     const colors = useColors();
-    const { signUp, verifyOTP } = useApp();
+    const { signUp, verifyOTP, forgotPassword } = useApp();
     const { email, flow } = route.params;
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
     const [otpError, setOtpError] = useState(false);
@@ -52,54 +52,47 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
     const filledCount = otp.filter(Boolean).length;
     const isComplete = filledCount === 6;
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         if (!isComplete) return;
 
         const code = otp.join('');
 
-        // For demo: accept "123456" as valid OTP
-        if (code !== '123456') {
-            setOtpError(true);
-            Alert.alert('Invalid OTP', 'The code you entered is incorrect. Please try again.');
-            return;
-        }
-
         setOtpError(false);
         setLoading(true);
-
-        const verify = async () => {
-            try {
-                await verifyOTP(email, code);
-                if (flow === 'forgot') {
-                    setLoading(false);
-                    navigation.navigate('ResetPassword', { email, otp: code });
-                } else {
-                    // signup flow — create user and go to home
-                    const { name, role } = route.params;
-                    await signUp(name || email.split('@')[0], email, route.params.password || '', role || 'freelancer');
-                    // RootNavigator will automatically switch to Main stack when user is set
-                }
-            } catch (e: any) {
+        try {
+            await verifyOTP(email, code);
+            if (flow === 'forgot') {
                 setLoading(false);
-                setOtpError(true);
-                Alert.alert('Error', e.message || 'OTP verification failed.');
+                navigation.navigate('ResetPassword', { email, otp: code });
+            } else {
+                // signup flow — create user and go to home
+                const { name, role } = route.params;
+                await signUp(name || email.split('@')[0], email, route.params.password || '', role || 'freelancer');
+                setLoading(false);
+                // RootNavigator will automatically switch to Main stack when user is set
             }
-        };
-
-        verify();
+        } catch (e: any) {
+            setLoading(false);
+            setOtpError(true);
+            Alert.alert('Error', e.message || 'OTP verification failed.');
+        }
     };
 
-    const handleResend = () => {
+    const handleResend = async () => {
         if (!isExpired) return;
         setResendLoading(true);
         setOtp(Array(6).fill(''));
         setOtpError(false);
 
-        setTimeout(() => {
+        try {
+            await forgotPassword(email);
             setResendLoading(false);
             restart();
             Alert.alert('OTP Sent', `A new code has been sent to ${maskedEmail}`);
-        }, 1000);
+        } catch (e: any) {
+            setResendLoading(false);
+            Alert.alert('Error', e.message || 'Failed to resend OTP.');
+        }
     };
 
     const formatTime = (seconds: number) => {
@@ -145,11 +138,6 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
                     We've sent a 6-digit verification code to
                 </Text>
                 <Text style={[styles.email, { color: colors.text }]}>{maskedEmail}</Text>
-
-                {/* Demo hint */}
-                <View style={styles.demoHint}>
-                    <Text style={styles.demoHintText}>🔑 Demo code: 123456</Text>
-                </View>
 
                 {/* OTP input */}
                 <View style={styles.otpSection}>
@@ -278,20 +266,6 @@ const styles = StyleSheet.create({
         marginTop: 4,
         marginBottom: Spacing.base,
         textAlign: 'center',
-    },
-    demoHint: {
-        backgroundColor: '#FFF7ED',
-        borderRadius: BorderRadius.sm,
-        paddingVertical: Spacing.xs,
-        paddingHorizontal: Spacing.md,
-        marginBottom: Spacing.xl,
-        borderWidth: 1,
-        borderColor: '#FED7AA',
-    },
-    demoHintText: {
-        fontSize: Typography.sm,
-        color: '#92400E',
-        fontWeight: Typography.medium,
     },
     otpSection: {
         width: '100%',
