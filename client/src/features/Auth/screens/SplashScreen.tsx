@@ -5,15 +5,12 @@ import {
     StyleSheet,
     Animated,
     StatusBar,
-    Dimensions,
+    Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/navigation/types';
 import { Typography, Spacing } from '@/theme';
 import { useColors } from '@/hooks/useColors';
-
-const { width, height } = Dimensions.get('window');
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -94,16 +91,15 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
 
             <Animated.View
                 style={[
-                    styles.logoBox,
+                    styles.logoContainer,
                     { transform: [{ scale: logoScale }], opacity: logoOpacity },
                 ]}
             >
-                {/* Skill Link "S" icon */}
-                <View style={styles.logoLines}>
-                    <View style={[styles.line, styles.lineTop]} />
-                    <View style={[styles.line, styles.lineMid]} />
-                    <View style={[styles.line, styles.lineBottom]} />
-                </View>
+                <Image
+                    source={require('../../../assets/SkillLynk_Logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                />
             </Animated.View>
 
             <Animated.Text style={[styles.appName, { opacity: textOpacity, color: colors.white }]}>
@@ -129,27 +125,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    logoBox: {
-        width: 88,
-        height: 88,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        borderRadius: 24,
+    logoContainer: {
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: Spacing.lg,
     },
-    logoLines: {
-        gap: 6,
-        alignItems: 'flex-start',
+    logoImage: {
+        width: 260,
+        height: 160,
     },
-    line: {
-        height: 4,
-        backgroundColor: '#fff',
-        borderRadius: 2,
-    },
-    lineTop: { width: 36 },
-    lineMid: { width: 26 },
-    lineBottom: { width: 32 },
     appName: {
         fontSize: Typography['4xl'],
         fontWeight: Typography.extrabold,
