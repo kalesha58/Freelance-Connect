@@ -24,6 +24,13 @@ const OTPInput: React.FC<Props> = ({
 }) => {
     const colors = useColors();
     const inputs = useRef<TextInput[]>([]);
+    
+    React.useEffect(() => {
+        // Auto focus first input on mount
+        setTimeout(() => {
+            inputs.current[0]?.focus();
+        }, 500);
+    }, []);
 
     const handleChangeText = (text: string, index: number) => {
         const newValue = [...value];
@@ -48,6 +55,7 @@ const OTPInput: React.FC<Props> = ({
                     key={i}
                     ref={(ref) => { if (ref) inputs.current[i] = ref; }}
                     style={[
+                        styles.input,
                         {
                             borderColor: error ? colors.destructive : colors.border,
                             backgroundColor: colors.muted,

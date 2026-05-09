@@ -38,7 +38,7 @@ const OTPVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
 
-    const { timeLeft, isExpired, restart } = useOTPTimer(30);
+    const { timeLeft, isExpired, restart } = useOTPTimer(60);
 
     // Mask email/phone for display
     const maskedEmail = (() => {

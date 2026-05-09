@@ -8,6 +8,7 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
+    Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/navigation/types';
@@ -85,9 +86,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             >
                 {/* Hero section */}
                 <View style={styles.hero}>
-                    <View style={[styles.logoMini, { backgroundColor: colors.headerBackground }]}>
-                        <Text style={styles.logoText}>S</Text>
-                    </View>
+                    <Image
+                        source={require('../../../assets/SkillLynk_Logo.png')}
+                        style={styles.logoImage}
+                        resizeMode="contain"
+                    />
                     <Text style={[styles.heading, { color: colors.foreground }]}>Welcome back</Text>
                     <Text style={[styles.subheading, { color: colors.mutedForeground }]}>
                         Sign in to your Skill Link account
@@ -199,18 +202,10 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.xl,
         marginBottom: Spacing.base,
     },
-    logoMini: {
-        width: 60,
-        height: 60,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
+    logoImage: {
+        width: 220,
+        height: 130,
         marginBottom: Spacing.base,
-    },
-    logoText: {
-        fontSize: Typography['2xl'],
-        fontWeight: Typography.extrabold,
-        color: '#FFFFFF',
     },
     heading: {
         fontSize: Typography['3xl'],

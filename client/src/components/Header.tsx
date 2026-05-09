@@ -77,11 +77,6 @@ const Header: React.FC<Props> = ({
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 3,
         zIndex: 10,
     },
     header: {
