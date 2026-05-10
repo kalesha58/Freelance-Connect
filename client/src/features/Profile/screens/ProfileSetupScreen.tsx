@@ -7,16 +7,22 @@ import {
     TextInput,
     Platform,
     Dimensions,
+    Image,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
-import { apiClient } from "@/utils/apiClient";
+import { apiClient, uploadImage } from "@/utils/apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const PHONE_REGEX = /^[+]?[0-9\s-]{6,20}$/;
 
 const { width } = Dimensions.get("window");
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
@@ -50,6 +56,18 @@ export default function ProfileSetupScreen() {
     const [usernameMessage, setUsernameMessage] = useState("");
     const [services, setServices] = useState<string[]>(user?.services || []);
     const [newService, setNewService] = useState("");
+
+    // Skills (freelancer)
+    const [skills, setSkills] = useState<string[]>(user?.skills || []);
+    const [newSkill, setNewSkill] = useState("");
+
+    // Avatar / contact / rate
+    const [avatarUrl, setAvatarUrl] = useState<string>(user?.avatar || user?.profilePic || "");
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const [phone, setPhone] = useState<string>(user?.phone || "");
+    const [hourlyRate, setHourlyRate] = useState<string>(
+        typeof user?.hourlyRate === 'number' && user.hourlyRate > 0 ? String(user.hourlyRate) : ""
+    );
 
     // Hiring specific state
     const [companyName, setCompanyName] = useState(user?.companyName || "");
@@ -91,6 +109,10 @@ export default function ProfileSetupScreen() {
                     if (data.tagline) setTagline(data.tagline);
                     if (data.username) setUsername(data.username);
                     if (data.services) setServices(data.services);
+                    if (data.skills) setSkills(data.skills);
+                    if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+                    if (data.phone) setPhone(data.phone);
+                    if (data.hourlyRate) setHourlyRate(data.hourlyRate);
                     if (data.companyName) setCompanyName(data.companyName);
                     if (data.companyWebsite) setCompanyWebsite(data.companyWebsite);
                     if (data.location) setLocation(data.location);
@@ -128,6 +150,10 @@ export default function ProfileSetupScreen() {
                     tagline,
                     username,
                     services,
+                    skills,
+                    avatarUrl,
+                    phone,
+                    hourlyRate,
                     companyName,
                     companyWebsite,
                     location,
@@ -156,7 +182,8 @@ export default function ProfileSetupScreen() {
         const timer = setTimeout(saveProgress, 1000);
         return () => clearTimeout(timer);
     }, [
-        currentStep, bio, tagline, username, services, 
+        currentStep, bio, tagline, username, services, skills,
+        avatarUrl, phone, hourlyRate,
         companyName, companyWebsite, location, industry, 
         education, experience, portfolioUrl, workStatus,
         eduInstitution, eduDegree, eduStart, eduEnd,
@@ -225,6 +252,60 @@ export default function ProfileSetupScreen() {
         setServices(services.filter((_, i) => i !== index));
     };
 
+    const addSkill = () => {
+        const trimmed = newSkill.trim();
+        if (!trimmed) return;
+        if (skills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+            setNewSkill("");
+            return;
+        }
+        setSkills([...skills, trimmed]);
+        setNewSkill("");
+    };
+
+    const removeSkill = (index: number) => {
+        setSkills(skills.filter((_, i) => i !== index));
+    };
+
+    const pickAvatar = async (useCamera: boolean) => {
+        const options: any = {
+            mediaType: 'photo',
+            quality: 0.6,
+            maxWidth: 1000,
+            maxHeight: 1000,
+        };
+        try {
+            const result = useCamera ? await launchCamera(options) : await launchImageLibrary(options);
+            if (result.didCancel || !result.assets || result.assets.length === 0) return;
+            const imageUri = result.assets[0].uri;
+            if (!imageUri) return;
+            setIsUploadingAvatar(true);
+            const uploadResult = await uploadImage(imageUri);
+            const url = uploadResult.url || uploadResult.imageUrl || uploadResult.secure_url;
+            if (!url) throw new Error('Upload returned no URL.');
+            setAvatarUrl(url);
+        } catch (error: any) {
+            console.error('Avatar upload failed:', error);
+            Alert.alert('Upload failed', error?.message || 'Could not upload that image. Please try again.');
+        } finally {
+            setIsUploadingAvatar(false);
+        }
+    };
+
+    const handleAvatarTap = () => {
+        if (isUploadingAvatar) return;
+        Alert.alert(
+            'Profile picture',
+            'Choose where to grab your photo from.',
+            [
+                { text: 'Take a photo', onPress: () => pickAvatar(true) },
+                { text: 'Choose from library', onPress: () => pickAvatar(false) },
+                ...(avatarUrl ? [{ text: 'Remove', style: 'destructive' as const, onPress: () => setAvatarUrl('') }] : []),
+                { text: 'Cancel', style: 'cancel' as const },
+            ]
+        );
+    };
+
     const addEducation = () => {
         if (eduInstitution && eduDegree) {
             setEducation([...education, {
@@ -257,17 +338,19 @@ export default function ProfileSetupScreen() {
         }
     };
 
+    const phoneValid = !phone.trim() || PHONE_REGEX.test(phone.trim());
+
     const isNextDisabled = () => {
         if (isHiring) {
             switch (currentStep) {
-                case 0: return companyName.trim().length < 2 || usernameState !== "available";
+                case 0: return companyName.trim().length < 2 || usernameState !== "available" || !phoneValid;
                 case 1: return bio.trim().length < 10;
                 case 2: return industry.trim().length < 2 || location.trim().length < 2;
                 default: return false;
             }
         } else {
             switch (currentStep) {
-                case 0: return bio.trim().length < 10 || usernameState !== "available"; // Bio at least 10 chars
+                case 0: return bio.trim().length < 10 || usernameState !== "available" || !phoneValid;
                 case 1: return services.length === 0;
                 case 2: return education.length === 0;
                 case 3: return experience.length === 0;
@@ -304,8 +387,14 @@ export default function ProfileSetupScreen() {
             tagline,
             location,
             username: username.trim(),
-            isProfileComplete: true
+            phone: phone.trim(),
+            isProfileComplete: true,
         };
+
+        if (avatarUrl) {
+            profileData.avatar = avatarUrl;
+            profileData.profilePic = avatarUrl;
+        }
 
         if (isHiring) {
             profileData.companyName = companyName;
@@ -313,23 +402,94 @@ export default function ProfileSetupScreen() {
             profileData.industry = industry;
         } else {
             profileData.services = services;
+            profileData.skills = skills;
             profileData.education = education;
             profileData.experience = experience;
             profileData.portfolioUrl = portfolioUrl.trim();
+            const rateNum = Number(hourlyRate);
+            if (Number.isFinite(rateNum) && rateNum > 0) {
+                profileData.hourlyRate = rateNum;
+            }
         }
 
         try {
             await updateProfile(profileData);
             await AsyncStorage.removeItem(STORAGE_KEY);
+            // If the user opened this screen from Settings (i.e. they already had
+            // isProfileComplete === true), the RootNavigator branch won't switch on
+            // its own, so we have to pop ourselves off the stack. During first-time
+            // signup canGoBack() is false and the navigator will swap branches.
+            if (navigation.canGoBack()) {
+                navigation.goBack();
+            }
         } catch (error) {
             console.error("Update Profile Error:", error);
             const errorMessage = String((error as Error)?.message || "");
             if (errorMessage.toLowerCase().includes("username is already taken")) {
                 setUsernameState("taken");
                 setUsernameMessage("Username is already taken.");
+            } else if (errorMessage.toLowerCase().includes("phone number is already in use")) {
+                Alert.alert("Phone in use", "That phone number is already linked to another account.");
+            } else {
+                Alert.alert("Could not save", errorMessage || "Something went wrong while saving your profile.");
             }
         }
     };
+
+    const renderAvatarPicker = () => {
+        const initials = (user?.name || username || '?').trim().charAt(0).toUpperCase() || '?';
+        return (
+            <View style={styles.avatarSection}>
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handleAvatarTap}
+                    style={[styles.avatarRing, { borderColor: colors.primary }]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Choose profile picture"
+                >
+                    {avatarUrl ? (
+                        <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+                    ) : (
+                        <View style={[styles.avatarFallback, { backgroundColor: colors.primary + "20" }]}>
+                            <Text style={[styles.avatarInitial, { color: colors.primary }]}>{initials}</Text>
+                        </View>
+                    )}
+                    <View style={[styles.avatarBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+                        {isUploadingAvatar ? (
+                            <ActivityIndicator size="small" color={colors.onButtonPrimary} />
+                        ) : (
+                            <Feather name="camera" size={14} color={colors.onButtonPrimary} />
+                        )}
+                    </View>
+                </TouchableOpacity>
+                <Text style={[styles.avatarHint, { color: colors.mutedForeground }]}>
+                    {avatarUrl ? "Tap to change photo" : "Add a profile photo (optional)"}
+                </Text>
+            </View>
+        );
+    };
+
+    const renderPhoneInput = () => (
+        <>
+            <TextInput
+                style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 4 }]}
+                placeholder="Phone number (optional)"
+                placeholderTextColor={colors.mutedForeground}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType={Platform.OS === 'ios' ? 'number-pad' : 'phone-pad'}
+                autoCorrect={false}
+                maxLength={20}
+            />
+            {!!phone.trim() && !phoneValid ? (
+                <Text style={[styles.usernameStatus, { color: colors.destructive, marginBottom: 8 }]}>
+                    Use 6–20 digits, optionally starting with +.
+                </Text>
+            ) : (
+                <View style={{ height: 6 }} />
+            )}
+        </>
+    );
 
     const renderStepContent = () => {
         if (isHiring) {
@@ -341,6 +501,7 @@ export default function ProfileSetupScreen() {
                             <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                                 Tell us about your organization or personal brand.
                             </Text>
+                            {renderAvatarPicker()}
                             <TextInput
                                 style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
                                 placeholder="Username (e.g. AcmeStudio)"
@@ -370,6 +531,7 @@ export default function ProfileSetupScreen() {
                                 value={companyName}
                                 onChangeText={setCompanyName}
                             />
+                            {renderPhoneInput()}
                             <TextInput
                                 style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
                                 placeholder="Company Website (Optional)"
@@ -444,8 +606,9 @@ export default function ProfileSetupScreen() {
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
                             Write a brief bio that highlights your passion and expertise.
                         </Text>
+                        {renderAvatarPicker()}
                         <TextInput
-                            style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 12 }]}
+                            style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 4 }]}
                             placeholder="Username (e.g. dev_Sara)"
                             placeholderTextColor={colors.mutedForeground}
                             value={username}
@@ -466,12 +629,20 @@ export default function ProfileSetupScreen() {
                         ]}>
                             {usernameMessage}
                         </Text>
+                        {renderPhoneInput()}
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 12 }]}
                             placeholder="Professional Tagline (e.g. Senior Mobile Developer)"
                             placeholderTextColor={colors.mutedForeground}
                             value={tagline}
                             onChangeText={setTagline}
+                        />
+                        <TextInput
+                            style={[styles.input, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 12 }]}
+                            placeholder="Location (e.g. Bengaluru, India)"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={location}
+                            onChangeText={setLocation}
                         />
                         <TextInput
                             style={[styles.textArea, { backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
@@ -489,15 +660,17 @@ export default function ProfileSetupScreen() {
                     <View style={styles.stepContainer}>
                         <Text style={[styles.stepTitle, { color: colors.foreground }]}>What services do you offer?</Text>
                         <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
-                            Add the categories or skills you want to be hired for.
+                            Add the categories you want to be hired for.
                         </Text>
                         <View style={styles.inputRow}>
                             <TextInput
-                                style={[styles.input, { flex: 1, backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                style={[styles.input, { flex: 1, backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 0 }]}
                                 placeholder="e.g. Wedding Photography"
                                 placeholderTextColor={colors.mutedForeground}
                                 value={newService}
                                 onChangeText={setNewService}
+                                onSubmitEditing={addService}
+                                returnKeyType="done"
                             />
                             <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.buttonPrimary }]} onPress={addService}>
                                 <Feather name="plus" size={24} color={colors.onButtonPrimary} />
@@ -512,6 +685,61 @@ export default function ProfileSetupScreen() {
                                     </TouchableOpacity>
                                 </View>
                             ))}
+                        </View>
+
+                        <View style={[styles.divider, { backgroundColor: colors.border, marginTop: 18 }]} />
+
+                        <Text style={[styles.subSectionTitle, { color: colors.foreground }]}>Skills</Text>
+                        <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
+                            Add specific skills clients can search you by (optional).
+                        </Text>
+                        <View style={styles.inputRow}>
+                            <TextInput
+                                style={[styles.input, { flex: 1, backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border, marginBottom: 0 }]}
+                                placeholder="e.g. React Native, Lightroom"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={newSkill}
+                                onChangeText={setNewSkill}
+                                onSubmitEditing={addSkill}
+                                returnKeyType="done"
+                            />
+                            <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.buttonPrimary }]} onPress={addSkill}>
+                                <Feather name="plus" size={24} color={colors.onButtonPrimary} />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.tagCloud}>
+                            {skills.map((item, index) => (
+                                <View key={`skill-${index}`} style={[styles.tag, { backgroundColor: colors.primary + "10" }]}>
+                                    <Text style={[styles.tagText, { color: colors.primary }]}>{item}</Text>
+                                    <TouchableOpacity onPress={() => removeSkill(index)}>
+                                        <Feather name="x" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
+                        </View>
+
+                        <View style={[styles.divider, { backgroundColor: colors.border, marginTop: 18 }]} />
+
+                        <Text style={[styles.subSectionTitle, { color: colors.foreground }]}>Hourly rate</Text>
+                        <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>
+                            Set the rate clients see on your profile (optional, you can change it later).
+                        </Text>
+                        <View style={styles.rateRow}>
+                            <View style={[styles.rateCurrency, { backgroundColor: colors.muted + "10", borderColor: colors.border }]}>
+                                <Text style={[styles.rateCurrencyText, { color: colors.mutedForeground }]}>$</Text>
+                            </View>
+                            <TextInput
+                                style={[styles.input, { flex: 1, marginBottom: 0, backgroundColor: colors.muted + "10", color: colors.foreground, borderColor: colors.border }]}
+                                placeholder="0"
+                                placeholderTextColor={colors.mutedForeground}
+                                value={hourlyRate}
+                                onChangeText={(t) => setHourlyRate(t.replace(/[^0-9.]/g, ''))}
+                                keyboardType="decimal-pad"
+                                maxLength={6}
+                            />
+                            <View style={[styles.ratePer, { backgroundColor: colors.muted + "10", borderColor: colors.border }]}>
+                                <Text style={[styles.rateCurrencyText, { color: colors.mutedForeground }]}>/ hr</Text>
+                            </View>
                         </View>
                     </View>
                 );
@@ -617,7 +845,7 @@ export default function ProfileSetupScreen() {
                                     }}
                                 >
                                     <Feather
-                                        name={opt.icon as keyof typeof Feather.glyphMap}
+                                        name={opt.icon as any}
                                         size={20}
                                         color={workStatus === opt.id ? "#FFFFFF" : colors.mutedForeground}
                                     />
@@ -756,7 +984,7 @@ export default function ProfileSetupScreen() {
                     return (
                         <React.Fragment key={index}>
                             <View style={[styles.stepIcon, { backgroundColor: stepBg }]}>
-                                <Feather name={step.icon as keyof typeof Feather.glyphMap} size={16} color={stepIconColor} />
+                                <Feather name={step.icon as any} size={16} color={stepIconColor} />
                             </View>
                             {index < STEPS.length - 1 ? (
                                 <View
@@ -940,4 +1168,77 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     divider: { height: 1, width: '100%', marginVertical: 10 },
+    avatarSection: {
+        alignItems: 'center',
+        marginTop: 4,
+        marginBottom: 18,
+    },
+    avatarRing: {
+        width: 96,
+        height: 96,
+        borderRadius: 48,
+        borderWidth: 2,
+        padding: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 44,
+    },
+    avatarFallback: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    avatarInitial: {
+        fontSize: 36,
+        fontWeight: '700',
+    },
+    avatarBadge: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+    },
+    avatarHint: {
+        fontSize: 12,
+        marginTop: 8,
+    },
+    subSectionTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        marginTop: 6,
+        marginBottom: 4,
+    },
+    rateRow: {
+        flexDirection: 'row',
+        alignItems: 'stretch',
+        gap: 8,
+        marginTop: 6,
+    },
+    rateCurrency: {
+        width: 44,
+        borderRadius: 10,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    ratePer: {
+        paddingHorizontal: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rateCurrencyText: { fontSize: 14, fontWeight: '600' },
 });

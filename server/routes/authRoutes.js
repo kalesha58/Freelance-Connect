@@ -257,6 +257,44 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
+// @desc    Change password while logged in
+// @route   POST /api/auth/change-password
+// @access  Private
+router.post('/change-password', protect, async (req, res) => {
+    try {
+        const currentPassword = typeof req.body?.currentPassword === 'string' ? req.body.currentPassword : '';
+        const newPassword = typeof req.body?.newPassword === 'string' ? req.body.newPassword : '';
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current and new passwords are required.' });
+        }
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ message: 'New password must be different from your current password.' });
+        }
+        if (!PASSWORD_POLICY_REGEX.test(newPassword)) {
+            return res.status(400).json({
+                message:
+                    'Password must be at least 6 characters and contain an uppercase letter, a number, and a special character.'
+            });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const ok = await user.matchPassword(currentPassword);
+        if (!ok) {
+            return res.status(401).json({ message: 'Current password is incorrect.' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+        res.json({ message: 'Password updated successfully.' });
+    } catch (err) {
+        console.error('Change password error:', err);
+        res.status(500).json({ message: err.message || 'Could not change password.' });
+    }
+});
+
 // @desc    Get user profile
 // @route   GET /api/auth/me
 // @access  Private

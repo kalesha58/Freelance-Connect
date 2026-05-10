@@ -166,7 +166,7 @@ export default function SearchScreen() {
                                             <TouchableOpacity 
                                                 key={job._id || job.id} 
                                                 style={[styles.resultRow, { borderBottomColor: colors.border }]}
-                                                onPress={() => navigation.navigate("JobDetail", { jobId: job._id || job.id })}
+                                                onPress={() => navigation.navigate("JobDetail", { id: job._id || job.id })}
                                             >
                                                 <View style={[styles.resultIcon, { backgroundColor: colors.blueLight }]}>
                                                     <Feather name="briefcase" size={16} color={colors.primary} />

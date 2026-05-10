@@ -210,6 +210,27 @@ export default function CreatePostScreen() {
                 </TouchableOpacity>
             </View>
 
+            {/* Pinned attachment preview — stays visible while scrolling (not inside ScrollView). */}
+            {selectedImage ? (
+                <View style={[styles.attachedPhotoBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                    <Image source={{ uri: selectedImage }} style={styles.attachedThumbnail} resizeMode="cover" />
+                    <View style={styles.attachedPhotoMeta}>
+                        <Text style={[styles.attachedPhotoTitle, { color: colors.foreground }]}>Photo attached</Text>
+                        <Text style={[styles.attachedPhotoHint, { color: colors.mutedForeground }]} numberOfLines={1}>
+                            Shown on your post after you tap Post
+                        </Text>
+                    </View>
+                    <TouchableOpacity
+                        style={[styles.attachedRemoveBtn, { backgroundColor: colors.muted + "40" }]}
+                        onPress={() => setSelectedImage(null)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityLabel="Remove attached photo"
+                    >
+                        <Feather name="trash-2" size={18} color={colors.destructive} />
+                    </TouchableOpacity>
+                </View>
+            ) : null}
+
             <KeyboardAvoidingView
                 style={styles.keyboardAvoiding}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -299,20 +320,7 @@ export default function CreatePostScreen() {
                     </View>
                 )}
 
-                {/* Image Attachment Preview */}
-                {selectedImage && (
-                    <View style={styles.imagePreviewContainer}>
-                        <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
-                        <TouchableOpacity 
-                            style={styles.removeImageBtn} 
-                            onPress={() => setSelectedImage(null)}
-                        >
-                            <View style={styles.removeIconCircle}>
-                                <Feather name="x" size={18} color="#fff" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                {/* Image preview lives in the pinned bar below the header — avoids scroll / keyboard jumps */}
 
                 {/* "Add to your post" Section (Only visible when keyboard is hidden) */}
                 {!isKeyboardVisible && (
@@ -417,6 +425,31 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     submitBtnText: { fontSize: 14, fontWeight: '800' },
+
+    attachedPhotoBar: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        gap: 12,
+    },
+    attachedThumbnail: {
+        width: 56,
+        height: 56,
+        borderRadius: 10,
+        backgroundColor: "#e2e8f0",
+    },
+    attachedPhotoMeta: { flex: 1, minWidth: 0 },
+    attachedPhotoTitle: { fontSize: 14, fontWeight: "700" },
+    attachedPhotoHint: { fontSize: 12, marginTop: 2, fontWeight: "500" },
+    attachedRemoveBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     
     scrollContent: {
         paddingHorizontal: 16,
@@ -506,38 +539,6 @@ const styles = StyleSheet.create({
     },
     tagChipText: { fontSize: 13, fontWeight: '600' },
 
-    imagePreviewContainer: {
-        marginVertical: 8,
-        borderRadius: 16,
-        overflow: 'hidden',
-        position: 'relative',
-        height: 140,
-        width: 140,
-        backgroundColor: '#f8fafc',
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-    },
-    imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
-    removeImageBtn: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        zIndex: 10,
-    },
-    removeIconCircle: {
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    
     addToPostContainer: {
         marginTop: 10,
         paddingTop: 10,

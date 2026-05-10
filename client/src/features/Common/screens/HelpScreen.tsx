@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import {
+    Alert,
+    Linking,
     Platform,
     ScrollView,
     StyleSheet,
@@ -33,6 +35,18 @@ export default function HelpScreen() {
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
+
+    const SUPPORT_EMAIL = "kaleshabox8@gmail.com";
+
+    const openMail = (subject: string) => {
+        const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`;
+        Linking.openURL(url).catch(() => {
+            Alert.alert(
+                "Couldn't open email",
+                `Please email us directly at ${SUPPORT_EMAIL}.`
+            );
+        });
+    };
 
     return (
         <View style={[styles.helpRoot, { backgroundColor: colors.background }]}>
@@ -79,19 +93,32 @@ export default function HelpScreen() {
                 <Text style={[styles.sectionHeadingTitle, { color: colors.foreground }]}>Contact Support</Text>
                 <View style={styles.supportChannelsRow}>
                     {[
-                        { icon: "message-circle" as const, label: "Live Chat", sub: "Typically replies in minutes", color: colors.primary },
-                        { icon: "mail" as const, label: "Email Us", sub: "kaleshabox8@gmail.com", color: colors.purpleAccent },
+                        {
+                            icon: "mail" as const,
+                            label: "Email Us",
+                            sub: SUPPORT_EMAIL,
+                            color: colors.purpleAccent,
+                            onPress: () => openMail("Skill Link — Support Request"),
+                        },
+                        {
+                            icon: "alert-octagon" as const,
+                            label: "Report a Bug",
+                            sub: "We'll triage within 24h",
+                            color: colors.primary,
+                            onPress: () => openMail("Skill Link — Bug Report"),
+                        },
                     ].map(item => (
                         <TouchableOpacity
                             key={item.label}
                             style={[styles.supportChannelCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                             activeOpacity={0.85}
+                            onPress={item.onPress}
                         >
                             <View style={[styles.channelIconSurface, { backgroundColor: item.color + "18" }]}>
                                 <Feather name={item.icon} size={22} color={item.color} />
                             </View>
                             <Text style={[styles.channelPrimaryLabel, { color: colors.foreground }]}>{item.label}</Text>
-                            <Text style={[styles.channelSecondaryLabel, { color: colors.mutedForeground }]}>{item.sub}</Text>
+                            <Text style={[styles.channelSecondaryLabel, { color: colors.mutedForeground }]} numberOfLines={1}>{item.sub}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>

@@ -15,6 +15,7 @@ export interface User {
     name: string;
     email: string;
     username?: string;
+    phone?: string;
     role: UserRole;
     avatar?: string;
     profilePic?: string;
@@ -28,6 +29,13 @@ export interface User {
         premiumChatUnlocks?: number;
         freeJobBoosts?: number;
     };
+    notificationPrefs?: {
+        jobAlerts?: boolean;
+        messages?: boolean;
+        activity?: boolean;
+    };
+    isVerified?: boolean;
+    createdAt?: string;
     companyName?: string;
     companyWebsite?: string;
     industry?: string;

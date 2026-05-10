@@ -33,6 +33,8 @@ import FollowListScreen from '@/features/Profile/screens/FollowListScreen';
 import SettingsScreen from '@/features/Profile/screens/SettingsScreen';
 import ReferralScreen from '@/features/Profile/screens/ReferralScreen';
 import RatingsScreen from '@/features/Profile/screens/RatingsScreen';
+import PaymentMethodsScreen from '@/features/Profile/screens/PaymentMethodsScreen';
+import SecurityScreen from '@/features/Profile/screens/SecurityScreen';
 import NotificationsScreen from '@/features/Common/screens/NotificationsScreen';
 import HelpScreen from '@/features/Common/screens/HelpScreen';
 import TermsScreen from '@/features/Common/screens/TermsScreen';
@@ -91,6 +93,9 @@ export const RootNavigator = () => {
             ) : (
                 <>
                     <Stack.Screen name="Main" component={MainTabNavigator} />
+                    {/* Re-registered here so users can re-open the guided setup from
+                        Settings ("Guided profile setup") after they've already finished it once. */}
+                    <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
                     <Stack.Screen name="Chat" component={ChatScreen} />
                     <Stack.Screen name="JobDetail" component={JobDetailScreen} />
                     <Stack.Screen name="CreateJob" component={CreateJobScreen} />
@@ -108,6 +113,8 @@ export const RootNavigator = () => {
                     <Stack.Screen name="FollowList" component={FollowListScreen} />
                     <Stack.Screen name="Referral" component={ReferralScreen} />
                     <Stack.Screen name="Ratings" component={RatingsScreen} />
+                    <Stack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
+                    <Stack.Screen name="Security" component={SecurityScreen} />
                     <Stack.Screen name="Notifications" component={NotificationsScreen} />
                     <Stack.Screen name="Help" component={HelpScreen} />
                     <Stack.Screen name="Terms" component={TermsScreen} />

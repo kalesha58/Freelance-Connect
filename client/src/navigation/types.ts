@@ -33,6 +33,8 @@ export type RootStackParamList = {
     FollowList: { mode: "following" | "followers" };
     Referral: undefined;
     Ratings: undefined;
+    PaymentMethods: undefined;
+    Security: undefined;
     Notifications: undefined;
     Help: undefined;
     Terms: undefined;

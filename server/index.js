@@ -42,6 +42,8 @@ app.use('/api/statuses', require('./routes/statusRoutes'));
 app.get('/api/statuses-ping', (req, res) => res.json({ message: 'statuses prefix reachable' }));
 app.use('/api/referrals', require('./routes/referralRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/payment-methods', require('./routes/paymentMethodRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/api/routes', (req, res) => {

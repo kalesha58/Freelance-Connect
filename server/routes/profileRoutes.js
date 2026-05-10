@@ -57,6 +57,18 @@ router.put('/', protect, async (req, res) => {
             updatePayload.usernameLower = username.toLowerCase();
         }
 
+        // Phone is sparse-unique on the User schema. An empty string is treated as a
+        // distinct value by Mongo, so two users saving "" would collide. Drop empty
+        // strings so the index sees them as undefined.
+        if (Object.prototype.hasOwnProperty.call(req.body, 'phone')) {
+            const phoneRaw = typeof req.body.phone === 'string' ? req.body.phone.trim() : '';
+            if (!phoneRaw) {
+                delete updatePayload.phone;
+            } else {
+                updatePayload.phone = phoneRaw;
+            }
+        }
+
         const user = await User.findByIdAndUpdate(
             req.user._id,
             updatePayload,
@@ -69,8 +81,13 @@ router.put('/', protect, async (req, res) => {
 
         res.json(user);
     } catch (err) {
-        if (err?.code === 11000 && err?.keyPattern?.usernameLower) {
-            return res.status(409).json({ message: 'Username is already taken.' });
+        if (err?.code === 11000) {
+            if (err?.keyPattern?.usernameLower) {
+                return res.status(409).json({ message: 'Username is already taken.' });
+            }
+            if (err?.keyPattern?.phone) {
+                return res.status(409).json({ message: 'Phone number is already in use.' });
+            }
         }
         res.status(400).json({ message: err.message });
     }

@@ -75,6 +75,12 @@ const userSchema = new mongoose.Schema({
     signupDeviceIdHash: { type: String, default: '', index: true },
     signupIp: { type: String, default: '' },
     isVerified: { type: Boolean, default: false },
+    /** In-app notification category preferences (mirrors Settings toggles). */
+    notificationPrefs: {
+        jobAlerts: { type: Boolean, default: true },
+        messages: { type: Boolean, default: true },
+        activity: { type: Boolean, default: false }
+    },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     passwordResetOtpHash: { type: String },
     passwordResetOtpExpiresAt: { type: Date },

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Platform,
     ScrollView,
@@ -26,14 +26,52 @@ export default function SettingsScreen() {
     const colors = useColors();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const { user, signOut } = useApp();
+    const { user, signOut, updateProfile } = useApp();
     const { themeMode, setThemeMode, isDark } = useTheme();
 
-    const [notifJobs, setNotifJobs] = useState(true);
-    const [notifMessages, setNotifMessages] = useState(true);
-    const [notifActivity, setNotifActivity] = useState(false);
+    const initialPrefs = user?.notificationPrefs;
+    const [notifJobs, setNotifJobs] = useState<boolean>(initialPrefs?.jobAlerts ?? true);
+    const [notifMessages, setNotifMessages] = useState<boolean>(initialPrefs?.messages ?? true);
+    const [notifActivity, setNotifActivity] = useState<boolean>(initialPrefs?.activity ?? false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+
+    // Track previous toggle values so we only persist on real changes (and not on the
+    // initial render or when an unrelated user-context update flows in).
+    const persistedRef = useRef({
+        jobAlerts: initialPrefs?.jobAlerts ?? true,
+        messages: initialPrefs?.messages ?? true,
+        activity: initialPrefs?.activity ?? false,
+    });
+
+    useEffect(() => {
+        const prefs = user?.notificationPrefs;
+        if (!prefs) return;
+        if (prefs.jobAlerts !== undefined) {
+            setNotifJobs(prefs.jobAlerts);
+            persistedRef.current.jobAlerts = prefs.jobAlerts;
+        }
+        if (prefs.messages !== undefined) {
+            setNotifMessages(prefs.messages);
+            persistedRef.current.messages = prefs.messages;
+        }
+        if (prefs.activity !== undefined) {
+            setNotifActivity(prefs.activity);
+            persistedRef.current.activity = prefs.activity;
+        }
+    }, [user?.notificationPrefs?.jobAlerts, user?.notificationPrefs?.messages, user?.notificationPrefs?.activity]);
+
+    useEffect(() => {
+        const next = { jobAlerts: notifJobs, messages: notifMessages, activity: notifActivity };
+        const prev = persistedRef.current;
+        if (next.jobAlerts === prev.jobAlerts && next.messages === prev.messages && next.activity === prev.activity) {
+            return;
+        }
+        persistedRef.current = next;
+        updateProfile({ notificationPrefs: next }).catch((err) => {
+            console.warn("Failed to save notification prefs:", err?.message || err);
+        });
+    }, [notifJobs, notifMessages, notifActivity, updateProfile]);
 
     const DELETION_EMAIL = "kaleshabox8@gmail.com";
     const openDeletionEmail = () => {
@@ -135,9 +173,9 @@ export default function SettingsScreen() {
                         colors={colors}
                     />
                     <SettingRow icon="user-plus" label="Refer a Friend" sublabel="Share your code" onPress={() => navigation.navigate("Referral")} colors={colors} />
-                    <SettingRow icon="credit-card" label="Payment Methods" sublabel="Manage cards & billing" onPress={() => { }} colors={colors} />
+                    <SettingRow icon="credit-card" label="Payment Methods" sublabel="Manage cards & billing" onPress={() => navigation.navigate("PaymentMethods")} colors={colors} />
                     <SettingRow icon="star" label="My Reviews" onPress={() => navigation.navigate("Ratings")} colors={colors} />
-                    <SettingRow icon="shield" label="Security" sublabel="Password & Verification" onPress={() => { }} isLast colors={colors} />
+                    <SettingRow icon="shield" label="Security" sublabel="Password & Verification" onPress={() => navigation.navigate("Security")} isLast colors={colors} />
 
                 </SettingSection>
 
