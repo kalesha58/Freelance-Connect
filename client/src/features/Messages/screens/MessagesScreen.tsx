@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -45,7 +45,7 @@ interface ConversationItemProps {
     onPress: () => void;
 }
 
-function ConversationItem({
+const ConversationItem = React.memo(function ConversationItem({
     participantId,
     participantName,
     participantAvatar,
@@ -107,7 +107,7 @@ function ConversationItem({
             </View>
         </TouchableOpacity>
     );
-}
+});
 
 export default function MessagesScreen() {
     const colors = useColors();
@@ -115,14 +115,29 @@ export default function MessagesScreen() {
     const navigation = useNavigation<any>();
     const { user, blockedUserIds, isLoading, fetchAllUsers } = useApp();
     const { conversations, onlineUsers } = useFirebase();
-    const [searchQuery, setSearchQuery] = React.useState("");
-    const [allUsers, setAllUsers] = React.useState<any[]>([]);
+    /** Immediate value for the TextInput so typing stays responsive */
+    const [searchInput, setSearchInput] = useState("");
+    /** Debounced value drives filtering so list work does not run every keystroke */
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [allUsers, setAllUsers] = useState<any[]>([]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetchAllUsers().then(setAllUsers).catch(() => {});
     }, [fetchAllUsers]);
 
-    const userMap = React.useMemo(() => {
+    useEffect(() => {
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = setTimeout(() => {
+            setDebouncedSearch(searchInput.trim());
+            debounceTimerRef.current = null;
+        }, 220);
+        return () => {
+            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        };
+    }, [searchInput]);
+
+    const userMap = useMemo(() => {
         const map: Record<string, any> = {};
         allUsers.forEach(u => {
             map[u._id] = u;
@@ -130,8 +145,8 @@ export default function MessagesScreen() {
         return map;
     }, [allUsers]);
 
-    const filteredConversations = React.useMemo(() => {
-        const query = searchQuery.toLowerCase().trim();
+    const filteredConversations = useMemo(() => {
+        const query = debouncedSearch.toLowerCase().trim();
         const base = conversations.filter((item) => {
             const otherParticipantId = item.participants.find(id => id !== user?._id) ?? "";
             return !blockedUserIds.includes(otherParticipantId);
@@ -142,10 +157,15 @@ export default function MessagesScreen() {
             const nameFromDoc = item.participantNames?.[otherParticipantId];
             const nameFromMap = userMap[otherParticipantId]?.name;
             const name = nameFromDoc || nameFromMap || "User";
-            
+
             return name.toLowerCase().includes(query) || (item.lastMessage || "").toLowerCase().includes(query);
         });
-    }, [conversations, searchQuery, user?._id, blockedUserIds, userMap]);
+    }, [conversations, debouncedSearch, user?._id, blockedUserIds, userMap]);
+
+    const clearSearch = useCallback(() => {
+        setSearchInput("");
+        setDebouncedSearch("");
+    }, []);
 
     const topInsetOffset = Platform.OS === "ios" ? insets.top : 20;
 
@@ -159,109 +179,135 @@ export default function MessagesScreen() {
 
     if (!user) return null;
 
-    const ListHeader = () => (
-        <View style={styles.headerArea}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
-            <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 12 }]}>
-                <View style={styles.titleBar}>
-                    <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 12 }}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingBottom: 5 }}>
-                            <Feather name="arrow-left" size={24} color="#fff" />
-                        </TouchableOpacity>
-                        <View>
-                            <Text style={[styles.brandSubtitle, { color: "rgba(255,255,255,0.7)" }]}>Connect &</Text>
-                            <Text style={[styles.brandTitle, { color: "#fff" }]}>Messages</Text>
+    const conversationTotal = conversations.length;
+
+    const listHeaderElement = useMemo(
+        () => (
+            <View style={styles.headerArea}>
+                <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
+                <View style={[styles.headerSolid, { backgroundColor: colors.headerBackground, paddingTop: topInsetOffset + 12 }]}>
+                    <View style={styles.titleBar}>
+                        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 12 }}>
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingBottom: 5 }}>
+                                <Feather name="arrow-left" size={24} color="#fff" />
+                            </TouchableOpacity>
+                            <View>
+                                <Text style={[styles.brandSubtitle, { color: "rgba(255,255,255,0.7)" }]}>Connect &</Text>
+                                <Text style={[styles.brandTitle, { color: "#fff" }]}>Messages</Text>
+                            </View>
+                        </View>
+                        <View style={styles.headerIcons}>
+                            <TouchableOpacity
+                                style={[styles.iconBox, { backgroundColor: "rgba(255,255,255,0.15)" }]}
+                                onPress={() => navigation.navigate("NewChat")}
+                            >
+                                <Ionicons name="create-outline" size={22} color="#fff" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.iconBox, { backgroundColor: "rgba(255,255,255,0.15)" }]}
+                                onPress={() => navigation.navigate("MessageSettings")}
+                            >
+                                <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
+                            </TouchableOpacity>
                         </View>
                     </View>
-                    <View style={styles.headerIcons}>
-                        <TouchableOpacity
-                            style={[styles.iconBox, { backgroundColor: "rgba(255,255,255,0.15)" }]}
-                            onPress={() => navigation.navigate("NewChat")}
-                        >
-                            <Ionicons name="create-outline" size={22} color="#fff" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.iconBox, { backgroundColor: "rgba(255,255,255,0.15)" }]}
-                            onPress={() => navigation.navigate("MessageSettings")}
-                        >
-                            <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
-                        </TouchableOpacity>
+                </View>
+
+                <View style={styles.overlapSection}>
+                    <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Feather name="search" size={18} color={colors.mutedForeground} />
+                        <TextInput
+                            style={[styles.searchField, { color: colors.foreground }]}
+                            placeholder="Search conversations..."
+                            placeholderTextColor={colors.mutedForeground}
+                            value={searchInput}
+                            onChangeText={setSearchInput}
+                            autoCorrect={false}
+                        />
+                        {searchInput.length > 0 && (
+                            <TouchableOpacity onPress={clearSearch}>
+                                <Ionicons name="close-circle" size={18} color={colors.mutedForeground} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    <View style={styles.listSubHeadingRow}>
+                        <Text style={[styles.listSubHeading, { color: colors.foreground }]}>Recent Chats</Text>
+                        <Text style={[styles.countLabel, { color: colors.mutedForeground }]}>
+                            {conversationTotal} conversation{conversationTotal !== 1 ? "s" : ""}
+                        </Text>
                     </View>
                 </View>
             </View>
-
-            <View style={styles.overlapSection}>
-                <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <Feather name="search" size={18} color={colors.mutedForeground} />
-                    <TextInput
-                        style={[styles.searchField, { color: colors.foreground }]}
-                        placeholder="Search conversations..."
-                        placeholderTextColor={colors.mutedForeground}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        autoCorrect={false}
-                    />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchQuery("")}>
-                            <Ionicons name="close-circle" size={18} color={colors.mutedForeground} />
-                        </TouchableOpacity>
-                    )}
-                    <View style={[styles.filterIndicator, { backgroundColor: colors.primary + "15" }]}>
-                        <Ionicons name="options-outline" size={16} color={colors.primary} />
-                    </View>
-                </View>
-
-                <View style={styles.listSubHeadingRow}>
-                    <Text style={[styles.listSubHeading, { color: colors.foreground }]}>Recent Chats</Text>
-                    <Text style={[styles.countLabel, { color: colors.mutedForeground }]}>
-                        {conversations.length} conversation{conversations.length !== 1 ? "s" : ""}
-                    </Text>
-                </View>
-            </View>
-        </View>
+        ),
+        [
+            colors.border,
+            colors.card,
+            colors.foreground,
+            colors.headerBackground,
+            colors.mutedForeground,
+            navigation,
+            searchInput,
+            clearSearch,
+            topInsetOffset,
+            conversationTotal,
+        ]
     );
+
+    const renderConversation = useCallback(
+        ({ item }: { item: (typeof filteredConversations)[number] }) => {
+            const otherParticipantId = item.participants.find(id => id !== user._id) ?? "";
+            const isOnline = !!onlineUsers[otherParticipantId];
+            const unread = item.unreadCounts?.[user._id] ?? 0;
+
+            const nameFromDoc = item.participantNames?.[otherParticipantId];
+            const nameFromMap = userMap[otherParticipantId]?.name;
+            const participantName = nameFromDoc || nameFromMap || "User";
+
+            const avatarFromDoc = item.participantAvatars?.[otherParticipantId];
+            const avatarFromMap = userMap[otherParticipantId]?.avatar || userMap[otherParticipantId]?.profilePic;
+            const participantAvatar = avatarFromDoc || avatarFromMap;
+
+            return (
+                <View style={styles.convoWrapper}>
+                    <ConversationItem
+                        participantId={otherParticipantId}
+                        participantName={participantName}
+                        participantAvatar={participantAvatar}
+                        lastMessage={item.lastMessage}
+                        lastMessageTime={item.lastMessageTime}
+                        unreadCount={unread}
+                        isOnline={isOnline}
+                        onPress={() =>
+                            navigation.navigate("Chat", {
+                                conversationId: item.id,
+                                participantId: otherParticipantId,
+                                participantName,
+                                participantAvatar,
+                            })
+                        }
+                    />
+                </View>
+            );
+        },
+        [navigation, onlineUsers, user._id, userMap]
+    );
+
+    const keyExtractor = useCallback((item: (typeof filteredConversations)[number]) => item.id, []);
 
     return (
         <View style={[styles.messagesRoot, { backgroundColor: colors.background }]}>
             <FlatList
                 data={filteredConversations}
-                keyExtractor={(item) => item.id}
-                ListHeaderComponent={ListHeader}
-                renderItem={({ item }) => {
-                    const otherParticipantId = item.participants.find(id => id !== user._id) ?? "";
-                    const isOnline = !!onlineUsers[otherParticipantId];
-                    const unread = item.unreadCounts?.[user._id] ?? 0;
-                    
-                    const nameFromDoc = item.participantNames?.[otherParticipantId];
-                    const nameFromMap = userMap[otherParticipantId]?.name;
-                    const participantName = nameFromDoc || nameFromMap || "User";
-                    
-                    const avatarFromDoc = item.participantAvatars?.[otherParticipantId];
-                    const avatarFromMap = userMap[otherParticipantId]?.avatar || userMap[otherParticipantId]?.profilePic;
-                    const participantAvatar = avatarFromDoc || avatarFromMap;
-
-                    return (
-                        <View style={styles.convoWrapper}>
-                            <ConversationItem
-                                participantId={otherParticipantId}
-                                participantName={participantName}
-                                participantAvatar={participantAvatar}
-                                lastMessage={item.lastMessage}
-                                lastMessageTime={item.lastMessageTime}
-                                unreadCount={unread}
-                                isOnline={isOnline}
-                                onPress={() =>
-                                    navigation.navigate("Chat", {
-                                        conversationId: item.id,
-                                        participantId: otherParticipantId,
-                                        participantName,
-                                        participantAvatar,
-                                    })
-                                }
-                            />
-                        </View>
-                    );
-                }}
+                keyExtractor={keyExtractor}
+                ListHeaderComponent={listHeaderElement}
+                renderItem={renderConversation}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                initialNumToRender={12}
+                maxToRenderPerBatch={8}
+                windowSize={7}
+                removeClippedSubviews={Platform.OS === "android"}
                 contentContainerStyle={[styles.messagesListPadding, { paddingBottom: 100 }]}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={() => (
@@ -329,13 +375,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     searchField: { flex: 1, fontSize: 16, fontWeight: "400", paddingVertical: 0 },
-    filterIndicator: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        alignItems: "center",
-        justifyContent: "center",
-    },
     listSubHeadingRow: {
         flexDirection: "row",
         justifyContent: "space-between",

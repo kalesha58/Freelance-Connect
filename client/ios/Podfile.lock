@@ -2961,7 +2961,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview (13.16.0):
+  - react-native-webview (13.16.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3966,7 +3966,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
-  hermes-engine: e559f3505afd1b41e412f7245460e52b9ec5f151
+  hermes-engine: 9fb7c1026c16a4f1bdf7bee5c7581b158fa91343
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   RCTDeprecation: af44b104091a34482596cd9bd7e8d90c4e9b4bd7
@@ -3977,7 +3977,7 @@ SPEC CHECKSUMS:
   React: 1ba7d364ade7d883a1ec055bfc3606f35fdee17b
   React-callinvoker: bc2a26f8d84fb01f003fc6de6c9337b64715f95b
   React-Core: 7840d3a80b43a95c5e80ef75146bd70925ebab0f
-  React-Core-prebuilt: 525153598ab2f87d04ce909f7808840a16240a2e
+  React-Core-prebuilt: 3e697549a9e035997c3895cc606bc78c97183197
   React-CoreModules: 2eb010400b63b89e53a324ffb3c112e4c7c3ce42
   React-cxxreact: a558e92199d26f145afa9e62c4233cf8e7950efe
   React-debug: 755200a6e7f5e6e0a40ff8d215493d43cce285fc
@@ -4010,7 +4010,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: 6be69ebb8d769a97cd034b94feaa909ff1e463a2
   react-native-restart: 0bc732f4461709022a742bb29bcccf6bbc5b4863
   react-native-safe-area-context: ae7587b95fb580d1800c5b0b2a7bd48c2868e67a
-  react-native-webview: 3e303e80cadb5f17118c8c1502aa398e9287e415
+  react-native-webview: 0ed52ddb2eafc64a502871218440b8b4d37961c3
   React-NativeModulesApple: 5ba0903927f6b8d335a091700e9fda143980f819
   React-networking: 3a4b7f9ed2b2d1c0441beacb79674323a24bcca6
   React-oscompat: ff26abf0ae3e3fdbe47b44224571e3fc7226a573
@@ -4044,7 +4044,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: e96e93b493d8d86eeaee3e590ba0be53f6abe46f
   ReactCodegen: 797de5178718324c6eba3327b07f9a423fbd5787
   ReactCommon: 07572bf9e687c8a52fbe4a3641e9e3a1a477c78e
-  ReactNativeDependencies: 2cde7c61aaf5910743140084a9d09a50074dd332
+  ReactNativeDependencies: b2b3edcc764ce50ec53cb199309cd2240eba57d1
   RNFBApp: fdc22fcdb61b16877dfcee623a29cd1107dde01a
   RNFBDatabase: 5c01f3f6b892581d90f79d89b123e3802d541034
   RNFBFirestore: 40a1b2ee6e9b16dd999bf9f440e46a19edc5f51d

@@ -22,6 +22,12 @@ export interface User {
     tagline?: string;
     location?: string;
     referralCode?: string;
+    referralCount?: number;
+    rewardsEarned?: number;
+    perks?: {
+        premiumChatUnlocks?: number;
+        freeJobBoosts?: number;
+    };
     companyName?: string;
     companyWebsite?: string;
     industry?: string;
@@ -135,6 +141,41 @@ export interface BlockedUser {
     tagline?: string;
 }
 
+export interface ReferralHistoryItem {
+    _id: string;
+    user: { _id: string; name: string; avatar?: string; role?: string; joinedAt?: string } | null;
+    status: 'signed_up' | 'milestone_completed' | 'rewarded' | 'rejected';
+    milestones: {
+        profileCompleted?: { done: boolean; at?: string };
+        firstJobPosted?: { done: boolean; at?: string };
+        firstJobApplied?: { done: boolean; at?: string };
+        firstHire?: { done: boolean; at?: string };
+    };
+    rewardGiven: boolean;
+    rewardAmount: number;
+    rewardPerk?: string;
+    createdAt: string;
+}
+
+export interface ReferralSummary {
+    referralCode: string;
+    referralCount: number;
+    rewardsEarned: number;
+    perks: { premiumChatUnlocks: number; freeJobBoosts: number };
+    referredBy?: string | null;
+    history: ReferralHistoryItem[];
+}
+
+export interface AppNotification {
+    _id: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, any>;
+    read: boolean;
+    createdAt: string;
+}
+
 interface AppContextType {
     user: User | null;
     isAuthenticated: boolean;
@@ -177,6 +218,11 @@ interface AppContextType {
     fetchBlockedUsers: () => Promise<BlockedUser[]>;
     blockUser: (userId: string, reason?: string) => Promise<void>;
     unblockUser: (userId: string) => Promise<void>;
+    fetchReferralSummary: () => Promise<ReferralSummary>;
+    applyReferralCode: (code: string) => Promise<void>;
+    fetchNotifications: () => Promise<{ items: AppNotification[]; unreadCount: number }>;
+    markNotificationRead: (id: string) => Promise<void>;
+    markAllNotificationsRead: () => Promise<void>;
     addStatus: (imageUri: string, caption?: string, tags?: string[]) => Promise<void>;
     loadStatuses: () => Promise<void>;
     /**
@@ -646,6 +692,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const fetchReferralSummary = async (): Promise<ReferralSummary> => {
+        const data = await apiClient('/referrals/me');
+        setUser((prev) =>
+            prev
+                ? {
+                      ...prev,
+                      referralCode: data.referralCode || prev.referralCode,
+                      referralCount: data.referralCount,
+                      rewardsEarned: data.rewardsEarned,
+                      perks: data.perks,
+                  }
+                : prev
+        );
+        return data as ReferralSummary;
+    };
+
+    const applyReferralCode = async (code: string): Promise<void> => {
+        const trimmed = (code || '').trim();
+        if (!trimmed) throw new Error('Referral code is required.');
+        await apiClient('/referrals/apply', {
+            method: 'POST',
+            body: { code: trimmed },
+        });
+        await refreshCurrentUser();
+    };
+
+    const fetchNotifications = async () => {
+        const data = await apiClient('/notifications');
+        return data as { items: AppNotification[]; unreadCount: number };
+    };
+
+    const markNotificationRead = async (id: string) => {
+        await apiClient(`/notifications/${id}/read`, { method: 'POST' });
+    };
+
+    const markAllNotificationsRead = async () => {
+        await apiClient('/notifications/read-all', { method: 'POST' });
+    };
+
     // ─────────────────────────────────────────────────────────────────────────
     // Status management — all backed by /api/statuses
     // ─────────────────────────────────────────────────────────────────────────
@@ -857,6 +942,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 fetchBlockedUsers,
                 blockUser,
                 unblockUser,
+                fetchReferralSummary,
+                applyReferralCode,
+                fetchNotifications,
+                markNotificationRead,
+                markAllNotificationsRead,
                 addStatus,
                 loadStatuses,
                 markStatusViewed,

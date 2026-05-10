@@ -287,6 +287,17 @@ export default function ProfileSetupScreen() {
         }
     };
 
+    /** Skip optional steps (Experience / Portfolio) without validating required fields on that step */
+    const handleSkipStep = () => {
+        if (currentStep >= STEPS.length - 1) {
+            handleComplete();
+        } else {
+            setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
+        }
+    };
+
+    const showFreelancerSkip = !isHiring && currentStep >= 3;
+
     const handleComplete = async () => {
         const profileData: any = {
             bio,
@@ -577,15 +588,16 @@ export default function ProfileSetupScreen() {
                             ].map((opt) => (
                                 <TouchableOpacity
                                     key={opt.id}
+                                    activeOpacity={0.85}
                                     style={[
                                         styles.statusToggleBtn,
-                                        { 
-                                            backgroundColor: workStatus === opt.id ? colors.primary : colors.muted + "15",
-                                            borderColor: workStatus === opt.id ? colors.primary : colors.border
-                                        }
+                                        {
+                                            backgroundColor: workStatus === opt.id ? colors.primary : colors.card,
+                                            borderColor: workStatus === opt.id ? colors.primary : colors.border,
+                                        },
                                     ]}
                                     onPress={() => {
-                                        setWorkStatus(opt.id as any);
+                                        setWorkStatus(opt.id as "none" | "freelance" | "company");
                                         if (opt.id === "freelance") {
                                             setExpCompany("Self-employed / Freelance");
                                             setExpRole("Freelancer");
@@ -604,8 +616,20 @@ export default function ProfileSetupScreen() {
                                         }
                                     }}
                                 >
-                                    <Feather name={opt.icon as any} size={14} color={workStatus === opt.id ? "#fff" : colors.mutedForeground} />
-                                    <Text style={[styles.statusToggleLabel, { color: workStatus === opt.id ? "#fff" : colors.foreground }]}>{opt.label}</Text>
+                                    <Feather
+                                        name={opt.icon as keyof typeof Feather.glyphMap}
+                                        size={20}
+                                        color={workStatus === opt.id ? "#FFFFFF" : colors.mutedForeground}
+                                    />
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.statusToggleLabel,
+                                            { color: workStatus === opt.id ? "#FFFFFF" : colors.foreground },
+                                        ]}
+                                    >
+                                        {opt.label}
+                                    </Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -702,27 +726,52 @@ export default function ProfileSetupScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <Text style={[styles.headerTitle, { color: colors.foreground }]}>Complete Your Profile</Text>
-                <Text style={[styles.headerSubtitle, { color: colors.mutedForeground }]}>Step {currentStep + 1} of {STEPS.length}</Text>
+                <View style={styles.headerTopRow}>
+                    <View style={styles.headerTitleBlock}>
+                        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Complete Your Profile</Text>
+                        <Text style={[styles.headerSubtitle, { color: colors.mutedForeground }]}>
+                            Step {currentStep + 1} of {STEPS.length}
+                        </Text>
+                    </View>
+                    {showFreelancerSkip ? (
+                        <TouchableOpacity
+                            onPress={handleSkipStep}
+                            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Skip this step"
+                        >
+                            <Text style={[styles.skipText, { color: colors.primary }]}>Skip</Text>
+                        </TouchableOpacity>
+                    ) : null}
+                </View>
             </View>
 
             <View style={styles.stepperContainer}>
-                {STEPS.map((step, index) => (
-                    <React.Fragment key={index}>
-                        <View style={[
-                            styles.stepIcon,
-                            { backgroundColor: index <= currentStep ? colors.headerBackground : colors.muted + "20" }
-                        ]}>
-                            <Feather name={step.icon as any} size={16} color={index <= currentStep ? "#fff" : colors.mutedForeground} />
-                        </View>
-                        {index < STEPS.length - 1 && (
-                            <View style={[
-                                styles.stepLine,
-                                { backgroundColor: index < currentStep ? colors.headerBackground : colors.muted + "20" }
-                            ]} />
-                        )}
-                    </React.Fragment>
-                ))}
+                {STEPS.map((step, index) => {
+                    const isDone = index < currentStep;
+                    const isActive = index === currentStep;
+                    const stepBg = isDone || isActive ? colors.primary : colors.muted + "35";
+                    const stepIconColor = isDone || isActive ? "#FFFFFF" : colors.mutedForeground;
+                    const lineDone = index < currentStep;
+                    return (
+                        <React.Fragment key={index}>
+                            <View style={[styles.stepIcon, { backgroundColor: stepBg }]}>
+                                <Feather name={step.icon as keyof typeof Feather.glyphMap} size={16} color={stepIconColor} />
+                            </View>
+                            {index < STEPS.length - 1 ? (
+                                <View
+                                    style={[
+                                        styles.stepLine,
+                                        {
+                                            backgroundColor: lineDone ? colors.primary : colors.border,
+                                            opacity: lineDone ? 1 : 0.85,
+                                        },
+                                    ]}
+                                />
+                            ) : null}
+                        </React.Fragment>
+                    );
+                })}
             </View>
 
             <KeyboardAwareScrollViewCompat style={styles.content} showsVerticalScrollIndicator={false}>
@@ -763,6 +812,14 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1 },
     header: { paddingHorizontal: 16, marginBottom: 16 },
+    headerTopRow: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 12,
+    },
+    headerTitleBlock: { flex: 1, minWidth: 0 },
+    skipText: { fontSize: 16, fontWeight: "700", paddingTop: 2 },
     headerTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
     headerSubtitle: { fontSize: 13, fontWeight: '500', marginTop: 2 },
     stepperContainer: {
@@ -780,8 +837,9 @@ const styles = StyleSheet.create({
     },
     stepLine: {
         flex: 1,
-        height: 2,
-        marginHorizontal: 6,
+        height: 3,
+        marginHorizontal: 4,
+        borderRadius: 2,
     },
     content: { flex: 1, paddingHorizontal: 16 },
     stepContainer: { flex: 1 },
@@ -856,17 +914,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     nextBtnText: { fontSize: 15, fontWeight: '700' },
-    statusToggleRow: { flexDirection: 'row', gap: 8, marginVertical: 12 },
-    statusToggleBtn: { 
-        flex: 1, 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        gap: 6, 
-        paddingVertical: 10, 
-        borderRadius: 12, 
-        borderWidth: 1 
+    statusToggleRow: {
+        flexDirection: "row",
+        alignItems: "stretch",
+        gap: 8,
+        marginVertical: 14,
     },
-    statusToggleLabel: { fontSize: 12, fontWeight: '600' },
+    statusToggleBtn: {
+        flex: 1,
+        minWidth: 0,
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 6,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        gap: 6,
+    },
+    statusToggleLabel: {
+        fontSize: 11,
+        fontWeight: "600",
+        textAlign: "center",
+        lineHeight: 14,
+        width: "100%",
+    },
     divider: { height: 1, width: '100%', marginVertical: 10 },
 });

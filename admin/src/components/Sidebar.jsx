@@ -14,7 +14,8 @@ import {
     Zap,
     PanelLeftClose,
     PanelLeft,
-    Flag
+    Flag,
+    Gift
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -24,6 +25,7 @@ const navItems = [
     { name: 'Job Management',  icon: Briefcase,        path: '/jobs',     color: '#10b981', description: 'Postings & listings' },
     { name: 'Community Posts', icon: MessageSquare,    path: '/posts',    color: '#f59e0b', description: 'Feed & moderation' },
     { name: 'Moderation',      icon: Flag,             path: '/moderation', color: '#ef4444', description: 'Content review' },
+    { name: 'Referrals',       icon: Gift,             path: '/referrals', color: '#a855f7', description: 'Invites & rewards' },
     { name: 'System Settings', icon: Settings,         path: '/settings', color: '#a78bfa', description: 'Config & preferences' },
 ];
 

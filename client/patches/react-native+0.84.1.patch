@@ -1,0 +1,78 @@
+diff --git a/node_modules/react-native/scripts/cocoapods/rncore.rb b/node_modules/react-native/scripts/cocoapods/rncore.rb
+index 597c4b4..f6d233e 100644
+--- a/node_modules/react-native/scripts/cocoapods/rncore.rb
++++ b/node_modules/react-native/scripts/cocoapods/rncore.rb
+@@ -141,9 +141,7 @@ class ReactNativeCoreUtils
+ 
+         rncore_log("Resolved stable ReactNativeCore-prebuilt version:")
+         rncore_log("  #{Pathname.new(destinationDebug).relative_path_from(Pathname.pwd).to_s}")
+-        rncore_log("  #{Pathname.new(destinationRelease).relative_path_from(Pathname.pwd).to_s}")
+-
+-        return {:http => URI::File.build(path: destinationDebug).to_s }
++        return {:http => "file://#{URI::Parser.new.escape(destinationDebug)}" }
+     end
+ 
+     def self.podspec_source_download_prebuilt_nightly_tarball()
+@@ -178,8 +176,7 @@ class ReactNativeCoreUtils
+ 
+         rncore_log("Resolved nightly ReactNativeCore-prebuilt version:")
+         rncore_log("  #{Pathname.new(destinationDebug).relative_path_from(Pathname.pwd).to_s}")
+-        rncore_log("  #{Pathname.new(destinationRelease).relative_path_from(Pathname.pwd).to_s}")
+-        return {:http => URI::File.build(path: destinationDebug).to_s }
++        return {:http => "file://#{URI::Parser.new.escape(destinationDebug)}" }
+     end
+ 
+     def self.process_dsyms(frameworkTarball, dSymsTarball)
+diff --git a/node_modules/react-native/scripts/cocoapods/rndependencies.rb b/node_modules/react-native/scripts/cocoapods/rndependencies.rb
+index a901840..e5fc112 100644
+--- a/node_modules/react-native/scripts/cocoapods/rndependencies.rb
++++ b/node_modules/react-native/scripts/cocoapods/rndependencies.rb
+@@ -156,12 +156,10 @@ class ReactNativeDependenciesUtils
+             return
+         end
+ 
+-        url = release_tarball_url(@@react_native_version, :debug)
+-        rndeps_log("Using tarball from URL: #{url}")
+         destinationDebug = download_stable_rndeps(@@react_native_path, @@react_native_version, :debug)
+         download_stable_rndeps(@@react_native_path, @@react_native_version, :release)
+ 
+-        return {:http => URI::File.build(path: destinationDebug).to_s }
++        return {:http => "file://#{URI::Parser.new.escape(destinationDebug)}" }
+     end
+ 
+     def self.release_tarball_url(version, build_type)
+@@ -223,13 +221,10 @@ class ReactNativeDependenciesUtils
+             return
+         end
+ 
+-        url = nightly_tarball_url(version, :debug)
+-        rndeps_log("Using tarball from URL: #{url}")
+         destinationDebug = download_nightly_rndeps(@@react_native_path, @@react_native_version, :debug)
+         download_nightly_rndeps(@@react_native_path, @@react_native_version, :release)
+ 
+-        return {:http => URI::File.build(path: destinationDebug).to_s }
+-        return {:http => url}
++        return {:http => "file://#{URI::Parser.new.escape(destinationDebug)}" }
+     end
+ 
+     def self.download_rndeps_tarball(react_native_path, tarball_url, version, configuration)
+diff --git a/node_modules/react-native/scripts/react-native-xcode.sh b/node_modules/react-native/scripts/react-native-xcode.sh
+index 1dcdf55..9cf548c 100755
+--- a/node_modules/react-native/scripts/react-native-xcode.sh
++++ b/node_modules/react-native/scripts/react-native-xcode.sh
+@@ -148,7 +148,14 @@ if [[ -n "$CONFIG_JSON" ]]; then
+ elif [[ -n "$CONFIG_CMD" ]]; then
+   EXTRA_ARGS+=("--config-cmd" "$CONFIG_CMD")
+ else
+-  EXTRA_ARGS+=("--config-cmd" "'$NODE_BINARY' $NODE_ARGS '$REACT_NATIVE_DIR/cli.js' config")
++  # Paths may contain apostrophes (e.g. .../Baig's/...); single-quote wrapping breaks /bin/sh -c.
++  _RN_CONFIG_CMD="$(printf '%q ' "$NODE_BINARY")"
++  if [[ -n "${NODE_ARGS}" ]]; then
++    _RN_CONFIG_CMD+="$(printf '%s ' ${NODE_ARGS})"
++  fi
++  _RN_CONFIG_CMD+="$(printf '%q ' "$REACT_NATIVE_DIR/cli.js")"
++  _RN_CONFIG_CMD+="config"
++  EXTRA_ARGS+=("--config-cmd" "${_RN_CONFIG_CMD}")
+ fi
+ 
+ # shellcheck disable=SC2086

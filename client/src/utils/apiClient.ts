@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDeviceId } from './deviceId';
 
 // Use your local IP address for mobile devices, or 'http://localhost:5001/api' for iOS simulator
 // and 'http://10.0.2.2:5001/api' for Android emulator.
@@ -11,11 +12,13 @@ interface RequestOptions extends RequestInit {
 
 export const apiClient = async (endpoint: string, options: RequestOptions = {}) => {
     const token = await AsyncStorage.getItem('skill_link_token');
+    const deviceId = await getDeviceId();
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
+        'X-Device-Id': deviceId,
         ...(options.headers as Record<string, string>),
     };
 
@@ -60,6 +63,7 @@ export const apiClient = async (endpoint: string, options: RequestOptions = {}) 
 
 export const uploadImage = async (imageUri: string) => {
     const token = await AsyncStorage.getItem('skill_link_token');
+    const deviceId = await getDeviceId();
 
     const formData = new FormData();
     // In React Native, the file object in FormData needs special handling
@@ -79,6 +83,7 @@ export const uploadImage = async (imageUri: string) => {
             body: formData,
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'X-Device-Id': deviceId,
                 // Do NOT set Content-Type for FormData, the browser/fetch will set it with the boundary
             },
         });

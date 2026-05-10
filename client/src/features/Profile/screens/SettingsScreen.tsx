@@ -69,6 +69,7 @@ export default function SettingsScreen() {
                     <TouchableOpacity
                         style={[styles.profileBriefCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                         activeOpacity={0.8}
+                        onPress={() => navigation.navigate("EditProfile")}
                     >
                         <View style={[styles.bigAvatarCircle, { backgroundColor: colors.headerBackground }]}>
                             <Text style={styles.bigAvatarLabel}>{user.name.charAt(0)}</Text>
@@ -119,7 +120,20 @@ export default function SettingsScreen() {
                 </SettingSection>
 
                 <SettingSection title="ACCOUNT" colors={colors}>
-                    <SettingRow icon="user" label="Edit Profile" onPress={() => navigation.navigate("ProfileSetup")} colors={colors} />
+                    <SettingRow
+                        icon="edit-3"
+                        label="Edit profile"
+                        sublabel="Photo, bio, skills & portfolio"
+                        onPress={() => navigation.navigate("EditProfile")}
+                        colors={colors}
+                    />
+                    <SettingRow
+                        icon="layers"
+                        label="Guided profile setup"
+                        sublabel="Step-by-step if you skipped steps"
+                        onPress={() => navigation.navigate("ProfileSetup")}
+                        colors={colors}
+                    />
                     <SettingRow icon="user-plus" label="Refer a Friend" sublabel="Share your code" onPress={() => navigation.navigate("Referral")} colors={colors} />
                     <SettingRow icon="credit-card" label="Payment Methods" sublabel="Manage cards & billing" onPress={() => { }} colors={colors} />
                     <SettingRow icon="star" label="My Reviews" onPress={() => navigation.navigate("Ratings")} colors={colors} />

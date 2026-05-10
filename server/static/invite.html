@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're invited to Skill Link</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+      color: #1e1b4b;
+    }
+    .card {
+      width: 100%; max-width: 460px; background: rgba(255,255,255,0.97);
+      border-radius: 20px; padding: 2.25rem 2rem; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.35);
+      text-align: center;
+    }
+    .gift-icon {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 0.5rem; font-weight: 800; letter-spacing: -0.02em; }
+    .sub { color: #475569; font-size: 0.95rem; line-height: 1.55; margin: 0 0 1.5rem; }
+    .code-box {
+      background: linear-gradient(135deg, #f1f5f9, #ffffff);
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .code-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #64748b; margin-bottom: 0.4rem;
+    }
+    .code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 1.6rem; font-weight: 800; letter-spacing: 0.12em;
+      color: #4f46e5; word-break: break-all;
+    }
+    .copy-btn {
+      margin-top: 0.75rem; background: #4f46e5; color: white;
+      border: none; padding: 0.55rem 1.1rem; font-weight: 600; font-size: 0.85rem;
+      border-radius: 999px; cursor: pointer; transition: transform 0.15s ease;
+    }
+    .copy-btn:hover { transform: translateY(-1px); }
+    .copy-btn.copied { background: #10b981; }
+    .stores {
+      display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .store-btn {
+      flex: 1 1 180px; min-width: 160px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.85rem 1rem; border-radius: 12px;
+      background: #0f172a; color: white; text-decoration: none;
+      font-weight: 600; font-size: 0.85rem;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .store-btn.alt { background: #1e293b; }
+    .step-list {
+      text-align: left; margin: 1.5rem 0 0; padding: 0;
+      list-style: none; counter-reset: step;
+    }
+    .step-list li {
+      counter-increment: step;
+      padding: 0.55rem 0 0.55rem 2.4rem;
+      position: relative; font-size: 0.85rem; color: #475569;
+      border-top: 1px solid #e2e8f0;
+    }
+    .step-list li:first-child { border-top: none; }
+    .step-list li::before {
+      content: counter(step);
+      position: absolute; left: 0; top: 0.55rem;
+      width: 1.6rem; height: 1.6rem;
+      background: #eef2ff; color: #4f46e5;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem;
+    }
+    .footer {
+      margin-top: 1.5rem; font-size: 0.75rem; color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="gift-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+        <rect x="2" y="7" width="20" height="5"></rect>
+        <line x1="12" y1="22" x2="12" y2="7"></line>
+        <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"></path>
+        <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"></path>
+      </svg>
+    </div>
+    <h1>You're invited to Skill Link</h1>
+    <p class="sub">A friend invited you to join the freelancer-hiring marketplace. Use the code below when you sign up to credit them.</p>
+
+    <div class="code-box">
+      <div class="code-label">Your referral code</div>
+      <div class="code" id="code">{{CODE}}</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy code</button>
+    </div>
+
+    <div class="stores">
+      <a class="store-btn" href="https://apps.apple.com/" id="iosLink">Download for iOS</a>
+      <a class="store-btn alt" href="https://play.google.com/store" id="androidLink">Download for Android</a>
+    </div>
+
+    <ol class="step-list">
+      <li>Install the Skill Link app from your store.</li>
+      <li>On the signup screen, paste the code in the "Referral code" field.</li>
+      <li>Complete your profile to unlock the reward for your friend.</li>
+    </ol>
+
+    <p class="footer">Skill Link · Refer & Earn program</p>
+  </div>
+
+  <script>
+    function copyCode() {
+      const code = document.getElementById('code').innerText.trim();
+      const btn = document.getElementById('copyBtn');
+      navigator.clipboard.writeText(code).then(() => {
+        btn.classList.add('copied');
+        btn.innerText = 'Copied!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerText = 'Copy code';
+        }, 1500);
+      }).catch(() => {
+        const range = document.createRange();
+        range.selectNode(document.getElementById('code'));
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      });
+    }
+  </script>
+</body>
+</html>

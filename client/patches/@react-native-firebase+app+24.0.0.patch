@@ -1,0 +1,28 @@
+diff --git a/node_modules/@react-native-firebase/app/ios_config.sh b/node_modules/@react-native-firebase/app/ios_config.sh
+index a35f763..de5c9df 100755
+--- a/node_modules/@react-native-firebase/app/ios_config.sh
++++ b/node_modules/@react-native-firebase/app/ios_config.sh
+@@ -95,7 +95,22 @@ if [[ ${_SEARCH_RESULT} ]]; then
+ 
+   if [[ ${_RN_ROOT_EXISTS} ]]; then
+     if ! python3 --version >/dev/null 2>&1; then echo "error: python3 not found, firebase.json file processing error." && exit 1; fi
+-    _JSON_OUTPUT_BASE64=$(python3 -c 'import json,sys,base64;print(base64.b64encode(bytes(json.dumps(json.loads(open('"'${_SEARCH_RESULT}'"', '"'rb'"').read())['${_JSON_ROOT}']), '"'utf-8'"')).decode())' || echo "e30=")
++    export RNFB_FIREBASE_JSON_PATH="${_SEARCH_RESULT}"
++    export RNFB_JSON_ROOT_KEY="react-native"
++    _JSON_OUTPUT_BASE64=$(python3 <<'PY'
++import base64
++import json
++import os
++
++path = os.environ["RNFB_FIREBASE_JSON_PATH"]
++key = os.environ["RNFB_JSON_ROOT_KEY"]
++with open(path, "rb") as f:
++    root = json.loads(f.read())
++subset = root[key]
++print(base64.b64encode(json.dumps(subset).encode("utf-8")).decode())
++PY
++) || _JSON_OUTPUT_BASE64="e30="
++    unset RNFB_FIREBASE_JSON_PATH RNFB_JSON_ROOT_KEY
+   fi
+ 
+   _PLIST_ENTRY_KEYS+=("firebase_json_raw")

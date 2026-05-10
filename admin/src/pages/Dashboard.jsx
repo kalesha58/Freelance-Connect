@@ -18,7 +18,8 @@ import {
     Info,
     Cpu,
     HardDrive,
-    Wifi
+    Wifi,
+    Gift
 } from 'lucide-react';
 
 /* ─── Pure-SVG Area Chart ─── */
@@ -220,12 +221,17 @@ const Dashboard = () => {
     const [error, setError] = useState('');
     const [lastUpdated, setLastUpdated] = useState(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [topReferrers, setTopReferrers] = useState([]);
 
     const fetchStats = useCallback(async (silent = false) => {
         try {
             if (silent) setIsRefreshing(true); else setLoading(true);
-            const response = await api.get('/api/admin/stats');
-            setStats(response.data);
+            const [statsRes, referrersRes] = await Promise.all([
+                api.get('/api/admin/stats'),
+                api.get('/api/admin/top-referrers').catch(() => ({ data: [] })),
+            ]);
+            setStats(statsRes.data);
+            setTopReferrers(referrersRes.data || []);
             setLastUpdated(new Date());
             setError('');
         } catch {
@@ -391,6 +397,83 @@ const Dashboard = () => {
                         <span>Avg: <strong style={{ color: 'var(--text-main)' }}>18/day</strong></span>
                     </div>
                 </div>
+            </div>
+
+            {/* ── Top Referrers ── */}
+            <div className="card animate-fade-in" style={{ animationDelay: '0.42s', marginBottom: '1.25rem' }}>
+                <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    marginBottom: '1.25rem',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                        <div style={{
+                            width: '32px', height: '32px', borderRadius: '9px',
+                            background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                            <Gift size={16} color="#a855f7" />
+                        </div>
+                        <div>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>Top Referrers</h3>
+                            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Users driving the most signups</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => navigate('/referrals')}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem' }}
+                    >
+                        View All
+                    </button>
+                </div>
+                {topReferrers.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        No referrers yet — once members start inviting friends, they'll appear here.
+                    </div>
+                ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+                        {topReferrers.map((u, idx) => (
+                            <div
+                                key={u._id}
+                                onClick={() => navigate(`/users/${u._id}`)}
+                                style={{
+                                    display: 'flex', gap: '0.75rem', alignItems: 'center',
+                                    padding: '0.75rem',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '10px',
+                                    background: 'var(--bg-hover)',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                <div style={{
+                                    width: '36px', height: '36px', borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #a855f7, #6366f1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: 'white', fontWeight: 700, fontSize: '0.85rem',
+                                    flexShrink: 0,
+                                }}>
+                                    {(u.name || '?').charAt(0).toUpperCase()}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {u.name || 'Unknown'}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                        {u.referralCount} referral{u.referralCount === 1 ? '' : 's'} · {u.rewardsEarned || 0} credits
+                                    </div>
+                                </div>
+                                <div style={{
+                                    fontSize: '0.7rem', fontWeight: 700,
+                                    background: idx === 0 ? '#fde68a' : 'var(--bg-main)',
+                                    color: idx === 0 ? '#92400e' : 'var(--text-muted)',
+                                    padding: '0.15rem 0.5rem', borderRadius: '999px',
+                                }}>
+                                    #{idx + 1}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* ── Row 3: Activity + System Health ── */}

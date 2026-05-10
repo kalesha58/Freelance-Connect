@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const { protect, optionalAuth } = require('../middleware/authMiddleware');
 const { hasBlockingRelationship } = require('../utils/blocking');
+const { trackReferralEvent } = require('../utils/referralService');
 
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
 
@@ -43,6 +44,7 @@ router.get('/:userId', optionalAuth, async (req, res) => {
 router.put('/', protect, async (req, res) => {
     try {
         const updatePayload = { ...req.body, isProfileComplete: true };
+        const wasComplete = !!req.user.isProfileComplete;
 
         if (Object.prototype.hasOwnProperty.call(req.body, 'username')) {
             const username = typeof req.body.username === 'string' ? req.body.username.trim() : '';
@@ -60,6 +62,10 @@ router.put('/', protect, async (req, res) => {
             updatePayload,
             { new: true, runValidators: true }
         ).select('-password');
+
+        if (!wasComplete && user?.isProfileComplete) {
+            trackReferralEvent({ userId: user._id, milestone: 'profileCompleted' }).catch(() => {});
+        }
 
         res.json(user);
     } catch (err) {

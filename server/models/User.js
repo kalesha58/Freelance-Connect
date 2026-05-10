@@ -66,6 +66,14 @@ const userSchema = new mongoose.Schema({
     isProfileComplete: { type: Boolean, default: false },
     referralCode: { type: String, unique: true, sparse: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    referralCount: { type: Number, default: 0 },
+    rewardsEarned: { type: Number, default: 0 },
+    perks: {
+        premiumChatUnlocks: { type: Number, default: 0 },
+        freeJobBoosts: { type: Number, default: 0 }
+    },
+    signupDeviceIdHash: { type: String, default: '', index: true },
+    signupIp: { type: String, default: '' },
     isVerified: { type: Boolean, default: false },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     passwordResetOtpHash: { type: String },

@@ -5,6 +5,11 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
 const { sendPasswordResetOtpEmail } = require('../utils/mailer');
+const {
+    generateReferralCode,
+    linkReferralOnSignup,
+    hashDeviceId
+} = require('../utils/referralService');
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_OTP_ATTEMPTS = 5;
@@ -20,6 +25,7 @@ const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 router.post('/complete-profile', protect, async (req, res) => {
     console.log('Complete Profile POST Hit. User:', req.user._id);
     try {
+        const wasComplete = !!req.user.isProfileComplete;
         const user = await User.findByIdAndUpdate(
             req.user._id,
             { isProfileComplete: true },
@@ -28,6 +34,10 @@ router.post('/complete-profile', protect, async (req, res) => {
 
         if (user) {
             console.log('User updated successfully');
+            if (!wasComplete) {
+                const { trackReferralEvent } = require('../utils/referralService');
+                trackReferralEvent({ userId: user._id, milestone: 'profileCompleted' }).catch(() => {});
+            }
             res.json({
                 _id: user._id,
                 isProfileComplete: user.isProfileComplete
@@ -55,15 +65,9 @@ router.post('/signup', async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        let referredById = null;
-        if (referredByCode) {
-            const referrer = await User.findOne({ referralCode: referredByCode });
-            if (referrer) {
-                referredById = referrer._id;
-            }
-        }
-
-        const referralCode = name.replace(/\s+/g, '').toLowerCase() + Math.floor(1000 + Math.random() * 9000);
+        const referralCode = await generateReferralCode(name);
+        const ip = req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() || req.ip || '';
+        const deviceIdHash = hashDeviceId(req.headers['x-device-id']);
 
         const user = await User.create({
             name,
@@ -71,14 +75,21 @@ router.post('/signup', async (req, res) => {
             password,
             role,
             referralCode,
-            referredBy: referredById
+            signupIp: ip,
+            signupDeviceIdHash: deviceIdHash
         });
 
         if (user) {
-            const userObj = user.toObject();
-            delete userObj.password;
+            await linkReferralOnSignup({
+                newUser: user,
+                referredByCode,
+                ip,
+                deviceIdHash
+            });
+
+            const fresh = await User.findById(user._id).select('-password').lean();
             res.status(201).json({
-                ...userObj,
+                ...fresh,
                 token: generateToken(user._id)
             });
         } else {

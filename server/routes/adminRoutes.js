@@ -19,7 +19,13 @@ const {
     toggleUserVerification,
     getReports,
     resolveReport,
-    getFullActivity
+    getFullActivity,
+    getReferrals,
+    approveReferralReward,
+    rejectReferralReward,
+    getReferralConfig,
+    updateReferralConfig,
+    getTopReferrers
 } = require('../controllers/adminController');
 const { adminProtect } = require('../middleware/adminAuth');
 
@@ -49,5 +55,12 @@ router.delete('/posts/:id', adminProtect, deletePost);
 
 router.get('/reports', adminProtect, getReports);
 router.put('/reports/:id', adminProtect, resolveReport);
+
+router.get('/referrals', adminProtect, getReferrals);
+router.put('/referrals/:id/approve', adminProtect, approveReferralReward);
+router.put('/referrals/:id/reject', adminProtect, rejectReferralReward);
+router.get('/referral-config', adminProtect, getReferralConfig);
+router.put('/referral-config', adminProtect, updateReferralConfig);
+router.get('/top-referrers', adminProtect, getTopReferrers);
 
 module.exports = router;

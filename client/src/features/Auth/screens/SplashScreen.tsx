@@ -77,9 +77,6 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
         };
         pulseLoop();
 
-        // Keep loop running while component is mounted
-        pulseLoop();
-
         return () => {
             // Cleanup animations if needed
         };
@@ -103,7 +100,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
             </Animated.View>
 
             <Animated.Text style={[styles.appName, { opacity: textOpacity, color: colors.white }]}>
-                Skill Link
+                SkilLynk
             </Animated.Text>
 
             <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>
@@ -131,8 +128,8 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.lg,
     },
     logoImage: {
-        width: 260,
-        height: 160,
+        width: 180,
+        height: 110,
     },
     appName: {
         fontSize: Typography['4xl'],

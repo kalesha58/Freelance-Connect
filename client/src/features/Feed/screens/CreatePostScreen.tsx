@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
     Platform,
     StyleSheet,
@@ -9,11 +9,10 @@ import {
     Image,
     Alert,
     Keyboard,
-    Animated,
     Dimensions,
-    StatusBar
+    StatusBar,
+    KeyboardAvoidingView,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
@@ -25,6 +24,16 @@ import { uploadImage } from "@/utils/apiClient";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat/KeyboardAwareScrollViewCompat";
 
 const { width } = Dimensions.get("window");
+
+type PostActionItem = {
+    id: string;
+    icon: string;
+    label: string;
+    color: string;
+    action: () => void;
+    /** Shown under label for poll / event / portfolio — reminds users to add hashtags */
+    tagHint?: string;
+};
 
 /**
  * Phase 2 Redesign for a "Rich & Premium" UI.
@@ -43,24 +52,20 @@ export default function CreatePostScreen() {
     const [postType, setPostType] = useState<"social" | "portfolio">(user?.role === "freelancer" ? "portfolio" : "social");
     const [isPosting, setIsPosting] = useState(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-    
-    // Animation refs for the toolbar
-    const keyboardTranslateY = useRef(new Animated.Value(60)).current;
+    const tagInputRef = useRef<TextInput>(null);
+
+    const focusTagInput = useCallback(() => {
+        tagInputRef.current?.focus();
+    }, []);
 
     useEffect(() => {
         const showSubscription = Keyboard.addListener(
-            Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-            () => {
-                setIsKeyboardVisible(true);
-                Animated.spring(keyboardTranslateY, { toValue: 0, friction: 8, useNativeDriver: true }).start();
-            }
+            Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+            () => setIsKeyboardVisible(true)
         );
         const hideSubscription = Keyboard.addListener(
-            Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-            () => {
-                setIsKeyboardVisible(false);
-                Animated.timing(keyboardTranslateY, { toValue: 60, duration: 250, useNativeDriver: true }).start();
-            }
+            Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+            () => setIsKeyboardVisible(false)
         );
 
         return () => {
@@ -135,13 +140,43 @@ export default function CreatePostScreen() {
 
     const canSubmit = caption.trim().length > 0 && selectedImage && !isPosting;
 
-    const actionItems = [
-        { id: 'photo', icon: 'image', label: 'Photo/Video', color: colors.primary, action: () => pickImage(false) },
-        { id: 'camera', icon: 'camera', label: 'Camera', color: '#fbbf24', action: () => pickImage(true) },
-        { id: 'poll', icon: 'bar-chart-2', label: 'Poll', color: '#10b981', action: () => Alert.alert("Coming Soon", "Polls will be available soon!") },
-        { id: 'event', icon: 'calendar', label: 'Event', color: '#f43f5e', action: () => Alert.alert("Coming Soon", "Events will be available soon!") },
-        { id: 'portfolio', icon: 'briefcase', label: 'Portfolio', color: '#8b5cf6', action: () => setPostType('portfolio') },
-        { id: 'tag', icon: 'hash', label: 'Add Tag', color: colors.mutedForeground, action: () => {} },
+    const actionItems: PostActionItem[] = [
+        { id: "photo", icon: "image", label: "Photo/Video", color: colors.primary, action: () => pickImage(false) },
+        { id: "camera", icon: "camera", label: "Camera", color: "#fbbf24", action: () => pickImage(true) },
+        {
+            id: "poll",
+            icon: "bar-chart-2",
+            label: "Poll",
+            tagHint: "+ #tags",
+            color: "#10b981",
+            action: () => Alert.alert("Coming Soon", "Polls will be available soon. Add hashtags below so people can discover your post."),
+        },
+        {
+            id: "event",
+            icon: "calendar",
+            label: "Event",
+            tagHint: "+ #tags",
+            color: "#f43f5e",
+            action: () => Alert.alert("Coming Soon", "Events will be available soon. Add hashtags below so people can discover your post."),
+        },
+        {
+            id: "portfolio",
+            icon: "briefcase",
+            label: "Portfolio",
+            tagHint: "+ #tags",
+            color: "#8b5cf6",
+            action: () => {
+                setPostType("portfolio");
+                focusTagInput();
+            },
+        },
+        {
+            id: "tag",
+            icon: "hash",
+            label: "Add Tag",
+            color: colors.mutedForeground,
+            action: focusTagInput,
+        },
     ];
 
     return (
@@ -175,15 +210,20 @@ export default function CreatePostScreen() {
                 </TouchableOpacity>
             </View>
 
-            <KeyboardAwareScrollViewCompat
-                style={{ flex: 1 }}
-                contentContainerStyle={[
-                    styles.scrollContent,
-                    { paddingBottom: isKeyboardVisible ? 60 + insets.bottom : 20 + insets.bottom }
-                ]}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="always"
+            <KeyboardAvoidingView
+                style={styles.keyboardAvoiding}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={0}
             >
+                <KeyboardAwareScrollViewCompat
+                    style={styles.scrollFlex}
+                    contentContainerStyle={[
+                        styles.scrollContent,
+                        { paddingBottom: isKeyboardVisible ? 16 : 24 + insets.bottom },
+                    ]}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="always"
+                >
                 {/* User Info Section */}
                 <View style={styles.userRow}>
                     <Image
@@ -219,6 +259,29 @@ export default function CreatePostScreen() {
                     autoFocus
                     textAlignVertical="top"
                 />
+
+                <View style={[styles.tagInputRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Feather name="hash" size={18} color={colors.mutedForeground} />
+                    <TextInput
+                        ref={tagInputRef}
+                        style={[styles.tagInputField, { color: colors.foreground }]}
+                        placeholder="Add tags (e.g. design, freelance)"
+                        placeholderTextColor={colors.mutedForeground}
+                        value={tagInput}
+                        onChangeText={setTagInput}
+                        onSubmitEditing={addTag}
+                        returnKeyType="done"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                    />
+                    <TouchableOpacity
+                        onPress={addTag}
+                        style={[styles.tagAddBtn, { backgroundColor: colors.primary }]}
+                        hitSlop={{ top: 8, bottom: 8 }}
+                    >
+                        <Text style={styles.tagAddBtnText}>Add</Text>
+                    </TouchableOpacity>
+                </View>
 
                 {/* Tags List */}
                 {tags.length > 0 && (
@@ -260,59 +323,76 @@ export default function CreatePostScreen() {
                             {actionItems.map((item) => (
                                 <TouchableOpacity 
                                     key={item.id} 
-                                    style={[styles.actionCard, { backgroundColor: colors.card }]}
+                                    style={[styles.actionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                                     onPress={item.action}
                                 >
                                     <View style={[styles.itemIconContainer, { backgroundColor: item.color + '15' }]}>
-                                        <Feather name={item.icon} size={24} color={item.color} />
+                                        <Feather name={item.icon as any} size={24} color={item.color} />
                                     </View>
-                                    <Text style={[styles.actionLabel, { color: colors.foreground }]}>{item.label}</Text>
+                                    <View style={styles.actionLabelCol}>
+                                        <Text style={[styles.actionLabel, { color: colors.foreground }]}>{item.label}</Text>
+                                        {item.tagHint ? (
+                                            <Text style={[styles.actionTagHint, { color: colors.mutedForeground }]}>
+                                                {item.tagHint}
+                                            </Text>
+                                        ) : null}
+                                    </View>
                                     <Feather name="plus" size={14} color={colors.mutedForeground} style={styles.plusIcon} />
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
                 )}
-            </KeyboardAwareScrollViewCompat>
+                </KeyboardAwareScrollViewCompat>
 
-            {/* Floating Keyboard Toolbar */}
-            {isKeyboardVisible && (
-                <KeyboardAvoidingView 
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-                    style={styles.toolbarWrapper}
-                >
-                    <Animated.View 
+                {/* Pinned above keyboard (not position:absolute) so it stays tappable */}
+                {isKeyboardVisible ? (
+                    <View
                         style={[
-                            styles.keyboardToolbar, 
-                            { 
-                                backgroundColor: colors.background, 
+                            styles.keyboardToolbar,
+                            {
+                                backgroundColor: colors.background,
                                 borderTopColor: colors.border,
-                                transform: [{ translateY: keyboardTranslateY }]
-                            }
+                                paddingBottom: Math.max(insets.bottom, 10),
+                            },
                         ]}
                     >
                         <View style={styles.toolbarContent}>
                             <View style={styles.toolbarIcons}>
                                 {actionItems.slice(0, 5).map((item) => (
-                                    <TouchableOpacity key={item.id} onPress={item.action} style={styles.toolbarIconBtn}>
-                                        <Feather name={item.icon} size={20} color={item.color} />
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        onPress={item.action}
+                                        style={styles.toolbarIconBtn}
+                                        hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+                                        accessibilityLabel={
+                                            item.tagHint ? `${item.label}. ${item.tagHint}` : item.label
+                                        }
+                                    >
+                                        <Feather name={item.icon as any} size={22} color={item.color} />
                                     </TouchableOpacity>
                                 ))}
                             </View>
-                            <Text style={[styles.charCount, { color: caption.length > 950 ? colors.destructive : colors.mutedForeground }]}>
+                            <Text
+                                style={[
+                                    styles.charCount,
+                                    { color: caption.length > 950 ? colors.destructive : colors.mutedForeground },
+                                ]}
+                            >
                                 {caption.length}/1000
                             </Text>
                         </View>
-                    </Animated.View>
-                </KeyboardAvoidingView>
-            )}
+                    </View>
+                ) : null}
+            </KeyboardAvoidingView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
+    keyboardAvoiding: { flex: 1 },
+    scrollFlex: { flex: 1 },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -380,10 +460,35 @@ const styles = StyleSheet.create({
         fontSize: 16,
         lineHeight: 24,
         minHeight: 100,
-        marginBottom: 20,
+        marginBottom: 12,
         fontWeight: '500',
     },
-    
+    tagInputRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: 12,
+        borderWidth: 1,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        marginBottom: 16,
+        gap: 8,
+    },
+    tagInputField: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: "500",
+        paddingVertical: 6,
+    },
+    tagAddBtn: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 10,
+    },
+    tagAddBtnText: {
+        color: "#fff",
+        fontSize: 13,
+        fontWeight: "700",
+    },
     tagsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -461,6 +566,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
+        minHeight: 64,
     },
     itemIconContainer: {
         width: 38,
@@ -470,29 +576,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginRight: 10,
     },
-    actionLabel: { fontSize: 13, fontWeight: '700', flex: 1 },
+    actionLabelCol: { flex: 1, minWidth: 0, justifyContent: "center" },
+    actionLabel: { fontSize: 13, fontWeight: '700' },
+    actionTagHint: { fontSize: 10, fontWeight: "600", marginTop: 2, letterSpacing: 0.2 },
     plusIcon: { marginLeft: 2, opacity: 0.4 },
 
-    toolbarWrapper: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-    },
     keyboardToolbar: {
         borderTopWidth: 1,
+        width: "100%",
     },
     toolbarContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        height: 50,
+        paddingHorizontal: 16,
+        paddingTop: 10,
+        minHeight: 48,
     },
     toolbarIcons: {
         flexDirection: 'row',
-        gap: 18,
+        alignItems: 'center',
+        gap: 14,
+        flex: 1,
+        flexWrap: 'wrap',
     },
-    toolbarIconBtn: { padding: 2 },
+    toolbarIconBtn: { padding: 4 },
     charCount: { fontSize: 12, fontWeight: '700', opacity: 0.6 },
 });

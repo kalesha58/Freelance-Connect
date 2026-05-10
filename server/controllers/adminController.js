@@ -3,6 +3,9 @@ const Job = require('../models/Job');
 const Post = require('../models/Post');
 const Application = require('../models/Application');
 const Report = require('../models/Report');
+const Referral = require('../models/Referral');
+const ReferralConfig = require('../models/ReferralConfig');
+const referralService = require('../utils/referralService');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -501,6 +504,113 @@ const getFullActivity = async (req, res) => {
     }
 };
 
+// ── Referral admin endpoints ────────────────────────────────────────────────
+
+const getReferrals = async (req, res) => {
+    try {
+        const { status, q } = req.query;
+        const query = {};
+        if (status && ['signed_up', 'milestone_completed', 'rewarded', 'rejected'].includes(status)) {
+            query.status = status;
+        }
+
+        let referrals = await Referral.find(query)
+            .populate('referrerId', 'name email role avatar referralCode')
+            .populate('referredUserId', 'name email role avatar createdAt')
+            .sort({ createdAt: -1 })
+            .limit(500)
+            .lean();
+
+        if (q) {
+            const needle = String(q).toLowerCase();
+            referrals = referrals.filter((r) => {
+                const refName = r.referrerId?.name?.toLowerCase() || '';
+                const refEmail = r.referrerId?.email?.toLowerCase() || '';
+                const refdName = r.referredUserId?.name?.toLowerCase() || '';
+                const refdEmail = r.referredUserId?.email?.toLowerCase() || '';
+                return (
+                    refName.includes(needle) ||
+                    refEmail.includes(needle) ||
+                    refdName.includes(needle) ||
+                    refdEmail.includes(needle) ||
+                    (r.referralCode || '').toLowerCase().includes(needle)
+                );
+            });
+        }
+
+        res.json(referrals);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const approveReferralReward = async (req, res) => {
+    try {
+        const referral = await referralService.approveReward(req.params.id);
+        res.json(referral);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const rejectReferralReward = async (req, res) => {
+    try {
+        const reason = typeof req.body?.reason === 'string' ? req.body.reason : '';
+        const referral = await referralService.rejectReward(req.params.id, reason);
+        res.json(referral);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const getReferralConfig = async (req, res) => {
+    try {
+        const config = await ReferralConfig.getSingleton();
+        res.json(config);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const updateReferralConfig = async (req, res) => {
+    try {
+        const allowed = [
+            'enabled',
+            'selfReferralBlocked',
+            'maxReferralsPerDevice',
+            'freelancerReward',
+            'hiringReward',
+            'requesterReward'
+        ];
+        const update = {};
+        for (const key of allowed) {
+            if (req.body[key] !== undefined) update[key] = req.body[key];
+        }
+        const config = await ReferralConfig.findOneAndUpdate(
+            { singleton: 'global' },
+            { $set: update },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+        res.json(config);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const getTopReferrers = async (req, res) => {
+    try {
+        const limit = Math.min(parseInt(req.query.limit, 10) || 5, 50);
+        const users = await User.find({ referralCount: { $gt: 0 } })
+            .sort({ referralCount: -1, rewardsEarned: -1 })
+            .limit(limit)
+            .select('name email avatar profilePic role referralCount rewardsEarned referralCode')
+            .lean();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     adminLogin,
     getStats,
@@ -520,5 +630,11 @@ module.exports = {
     toggleUserVerification,
     getReports,
     resolveReport,
-    getFullActivity
+    getFullActivity,
+    getReferrals,
+    approveReferralReward,
+    rejectReferralReward,
+    getReferralConfig,
+    updateReferralConfig,
+    getTopReferrers
 };

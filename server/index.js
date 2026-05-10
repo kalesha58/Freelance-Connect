@@ -40,6 +40,8 @@ app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/follow', require('./routes/followRoutes'));
 app.use('/api/statuses', require('./routes/statusRoutes'));
 app.get('/api/statuses-ping', (req, res) => res.json({ message: 'statuses prefix reachable' }));
+app.use('/api/referrals', require('./routes/referralRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/api/routes', (req, res) => {
@@ -68,6 +70,21 @@ app.get('/account-deletion-info', (req, res) => {
     }
     res.type('html').send(
         '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Account deletion</title></head><body><p>Email kaleshabox8@gmail.com with subject Data Deletion Request.</p></body></html>'
+    );
+});
+
+// Public referral landing page — renders the code prominently with store buttons.
+// No deep-link attribution: recipient must paste the code manually on signup.
+const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+app.get('/invite/:code', (req, res) => {
+    const code = escapeHtml((req.params.code || '').slice(0, 32));
+    const htmlPath = path.join(__dirname, 'static', 'invite.html');
+    if (fs.existsSync(htmlPath)) {
+        const template = fs.readFileSync(htmlPath, 'utf8');
+        return res.type('html').send(template.replace(/\{\{CODE\}\}/g, code));
+    }
+    res.type('html').send(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Skill Link Invite</title></head><body><h1>You're invited!</h1><p>Use referral code <strong>${code}</strong> when you sign up.</p></body></html>`
     );
 });
 

@@ -203,8 +203,8 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.base,
     },
     logoImage: {
-        width: 220,
-        height: 130,
+        width: 160,
+        height: 95,
         marginBottom: Spacing.base,
     },
     heading: {

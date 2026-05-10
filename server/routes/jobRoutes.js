@@ -4,6 +4,7 @@ const Job = require('../models/Job');
 const Application = require('../models/Application');
 const { protect, optionalAuth } = require('../middleware/authMiddleware');
 const { getBlockedUserIdsFor } = require('../utils/blocking');
+const { trackReferralEvent } = require('../utils/referralService');
 
 // @desc    Get all jobs
 // @route   GET /api/jobs
@@ -124,6 +125,8 @@ router.post('/', protect, async (req, res) => {
             clientRating: req.user.rating || 0
         });
 
+        trackReferralEvent({ userId: req.user._id, milestone: 'firstJobPosted' }).catch(() => {});
+
         res.status(201).json(job);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -227,6 +230,8 @@ router.post('/:id/apply', protect, async (req, res) => {
         job.applicants = (job.applicants || 0) + 1;
         await job.save();
 
+        trackReferralEvent({ userId: req.user._id, milestone: 'firstJobApplied' }).catch(() => {});
+
         res.status(201).json(application);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -268,8 +273,13 @@ router.put('/applications/:id', protect, async (req, res) => {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
+        const wasHired = application.status === 'hired';
         application.status = status;
         await application.save();
+
+        if (!wasHired && status === 'hired') {
+            trackReferralEvent({ userId: req.user._id, milestone: 'firstHire' }).catch(() => {});
+        }
 
         res.json(application);
     } catch (error) {

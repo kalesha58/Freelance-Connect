@@ -115,6 +115,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
+				F7D62BC82FA05100E09D4F02 /* Copy RN prebuilt framework dSYMs */,
 				8382BFA95CC0A10D574E5246 /* [CP-User] [RNFB] Core Configuration */,
 			);
 			buildRules = (
@@ -205,6 +206,21 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-freelance/Pods-freelance-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		F7D62BC82FA05100E09D4F02 /* Copy RN prebuilt framework dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy RN prebuilt framework dSYMs";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "bash \"${SRCROOT}/scripts/copy-rn-framework-dsyms.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		8382BFA95CC0A10D574E5246 /* [CP-User] [RNFB] Core Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -280,7 +296,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G9PQL69SX5;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = freelance/Info.plist;
@@ -290,7 +306,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -316,7 +332,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G9PQL69SX5;
 				INFOPLIST_FILE = freelance/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = freelance;
@@ -325,7 +341,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
